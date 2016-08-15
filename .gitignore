@@ -5,3 +5,7 @@
 /.project
 /hs_err_pid2732.log
 /seventh_error.log
+/target/
+/release/
+/build.xml
+/franks.xml
