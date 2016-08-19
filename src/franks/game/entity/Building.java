@@ -11,7 +11,7 @@ import franks.math.Vector2f;
  * @author Tony
  *
  */
-public class Building extends Entity {
+public class Building extends TempEntity {
 
 	/**
 	 * @param game

@@ -44,6 +44,67 @@ public class Entity implements Renderable {
 		BUILDING,
 	}
 	
+	public static enum Direction {
+		NORTH,
+		NORTH_EAST,
+		EAST,
+		SOUTH_EAST,
+		SOUTH,
+		SOUTH_WEST,
+		WEST,
+		NORTH_WEST,
+		;
+		
+		public static Direction getDirection(Vector2f v) {
+			//if(!v.isZero())System.out.println(v);
+			
+			final float threshold = 0.5f;
+			if(v.y > threshold) {
+				if(v.x > threshold) {
+					return Direction.SOUTH;
+				}
+				else if(v.x < -threshold) {
+					return Direction.WEST;
+				}
+				else {
+					return Direction.SOUTH_WEST;
+				}
+			}
+			else if(v.y < -threshold) {
+				if(v.x > threshold) {
+					return Direction.EAST;
+				}
+				else if(v.x < -threshold) {
+					return Direction.NORTH;
+				}
+				else {
+					return Direction.NORTH_EAST;
+				}
+			}
+			else {
+				if(v.x > threshold) {
+					return Direction.SOUTH_EAST;
+				}
+				else if(v.x < -threshold) {
+					return Direction.NORTH_WEST;
+				}
+				else {
+					return Direction.SOUTH;
+				}
+			}
+		}
+	}
+	
+	public static enum State {
+		IDLE,
+		WALKING,
+		COLLECTING,
+		DROPPING,
+		DYING,
+		DEAD,
+		ATTACKING,
+	}
+	
 	private Type type;
 	protected Vector2f pos;
 	protected Vector2f renderPos;
@@ -59,15 +120,16 @@ public class Entity implements Renderable {
 	private LeoMap attributes;
 	
 	private boolean isAlive;
-	private TextureRegion image;
+		
+	private State currentState;
+	private Direction currentDirection;
 	
 	/**
 	 * 
 	 */
-	public Entity(Game game, Type type, TextureRegion image, Vector2f pos, int width, int height) {
+	public Entity(Game game, Type type, Vector2f pos, int width, int height) {
 		this.game = game;
-		this.type = type;
-		this.image = image;
+		this.type = type;	
 		this.pos = pos;
 		this.centerPos = new Vector2f();
 		this.renderPos = new Vector2f();
@@ -80,6 +142,37 @@ public class Entity implements Renderable {
 		this.isAlive = true;
 		
 		this.world = game.getWorld();
+		
+		this.currentState = State.IDLE;
+		this.currentDirection = Direction.SOUTH;
+	}
+	
+	/**
+	 * @return the currentDirection
+	 */
+	public Direction getCurrentDirection() {
+		return currentDirection;
+	}
+	
+	/**
+	 * @return the currentState
+	 */
+	public State getCurrentState() {
+		return currentState;
+	}
+	
+	/**
+	 * @param currentDirection the currentDirection to set
+	 */
+	public void setCurrentDirection(Direction currentDirection) {
+		this.currentDirection = currentDirection;
+	}
+	
+	/**
+	 * @param currentState the currentState to set
+	 */
+	public void setCurrentState(State currentState) {
+		this.currentState = currentState;
 	}
 	
 	//public void consumeResource(String resource)
@@ -300,8 +393,8 @@ public class Entity implements Renderable {
 		
 		MapTile tile = world.getMap().getTile(0, isoX, isoY);
 		if(tile!=null) {
-			dx = tile.getRenderX() + 16;//-cameraPos.x;
-			dy = tile.getRenderY() - 8;//-cameraPos.y;
+			dx = tile.getIsoX() + 16 - cameraPos.x;
+			dy = tile.getIsoY() -  8 - cameraPos.y;
 		}
 		
 //		
@@ -329,7 +422,7 @@ public class Entity implements Renderable {
 		if(isSelected()) {
 			canvas.fillCircle(getDiameter()/2.8f, dx, dy, 0xcfffffff);
 		}
-		canvas.drawImage(this.image, dx, dy, null);
+		//canvas.drawImage(this.image, dx, dy, null);
 	}
 	
 }

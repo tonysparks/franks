@@ -3,19 +3,29 @@
  */
 package franks.game;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+import org.hjson.JsonValue;
+
+import com.badlogic.gdx.Gdx;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import franks.FranksGame;
 import franks.game.CommandAction.CompletionState;
 import franks.game.CommandQueue.CommandRequest;
 import franks.game.entity.Building;
+import franks.game.entity.DataEntity;
 import franks.game.entity.Entity;
+import franks.game.entity.Entity.Type;
+import franks.game.entity.EntityData;
 import franks.game.entity.Human;
 import franks.game.entity.ResourceEntity;
-import franks.game.entity.Entity.Type;
 import franks.gfx.Art;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
@@ -26,7 +36,12 @@ import franks.gfx.Terminal;
 import franks.map.MapTile;
 import franks.math.Rectangle;
 import franks.math.Vector2f;
+import franks.util.AssetWatcher;
+import franks.util.Command;
 import franks.util.Cons;
+import franks.util.Console;
+import franks.util.FileSystemAssetWatcher;
+import franks.util.PassThruAssetWatcher;
 import franks.util.TimeStep;
 import leola.vm.types.LeoMap;
 import leola.vm.types.LeoObject;
@@ -64,6 +79,11 @@ public class Game implements Renderable {
 	
 	private Camera camera;
 	private CameraController cameraController;
+	
+	private ResourceCache textureCache;
+	private Gson gson;
+	
+	private AssetWatcher watcher;
 	/**
 	 * 
 	 */
@@ -77,6 +97,8 @@ public class Game implements Renderable {
 		this.moveMeter = new MovementMeter();
 		this.healthMeter = new HealthMeter();
 		this.resources = new Resources();
+		
+		this.textureCache = new ResourceCache();
 		
 		this.entities = new ArrayList<>();
 		this.aliveEntities = new ArrayList<>();
@@ -94,20 +116,65 @@ public class Game implements Renderable {
 		this.commandQueue = new CommandQueue(this);
 		
 		this.cameraController = new CameraController(world.getMap(), camera);
+	
+		this.gson = new GsonBuilder().create();
+		
+		try {
+			this.watcher = new FileSystemAssetWatcher(new File("/assets"));
+			this.watcher.startWatching();
+		}
+		catch(IOException e) {
+			Cons.println("*** Unable to start asset watcher - " + e);
+			this.watcher = new PassThruAssetWatcher();
+		}
 		
 		// temp
 
-		this.human = new Human(this);
-		this.human.moveToRegion(0, 0);
-		addEntity(human);
-		
-		newTree(0, 3);
-		newStone(1, 0);
-		newBerryBush(2, 2);
-		newBerryBush(3, 6);
+
 		
 		//newBuilding(8, 3, 2, 2);
+		
+		app.getConsole().addCommand(new Command("reload") {
+			
+			@Override
+			public void execute(Console console, String... args) {
+				entities.clear();
+				human = new Human(Game.this);
+				human.moveToRegion(0, 0);
+				addEntity(human);
+				
+				newTree(0, 3);
+				newStone(1, 0);
+				newBerryBush(2, 2);
+				newBerryBush(3, 6);
+				
+				EntityData ent = loadEntity("assets/entities/archer.json");
+				DataEntity dataEnt = new DataEntity(Game.this, ent);
+				dataEnt.moveToRegion(12, 6);
+				addEntity(dataEnt);
+			}
+		});
+		app.getConsole().execute("reload");
 	}
+	
+	public EntityData loadEntity(String file) {
+		try {
+			return gson.fromJson(JsonValue.readHjson(Gdx.files.internal(file).reader(1024)).toString(), EntityData.class);
+		}
+		catch(IOException e) {
+			Cons.println("*** Unable to load '" + file + "' : " + e);
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * @return the textureCache
+	 */
+	public ResourceCache getTextureCache() {
+		return textureCache;
+	}
+	
 	
 	public Entity newStone(int x, int y) {
 		Entity ent = new ResourceEntity(this, Type.STONE, "Stone", Art.stone, 40 + randomizer.nextInt(10));
@@ -388,6 +455,7 @@ public class Game implements Renderable {
 		RenderFont.drawShadedString(canvas, "Movements: " + moveMeter.getMovementAmount(), x, y, textColor);
 		RenderFont.drawShadedString(canvas, "Health: " + healthMeter.getHealth(), x, y+=15f, textColor);
 		RenderFont.drawShadedString(canvas, "Happiness: " + healthMeter.getHappiness(), x, y+=15f, textColor);
+		RenderFont.drawShadedString(canvas, "Actions: " + actions.size(), x, y+=15f, textColor);
 		
 		this.selectedEntity.ifPresent(ent -> {
 			float sx = 20;

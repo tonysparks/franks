@@ -20,6 +20,7 @@ public class AbstractTile implements MapTile {
 	private static final int isFlippedHorizontal = (1 << 0), isFlippedVert = (1 << 1), isFlippedDiagnally = (1 << 2);
 
 	protected int x, y;
+	protected int isoX, isoY;
 	protected int width, height;
 	protected int xIndex, yIndex;
 	protected int layer;
@@ -312,6 +313,15 @@ public class AbstractTile implements MapTile {
 		this.renderY = y;
 	}
 
+	/* (non-Javadoc)
+	 * @see franks.map.MapTile#setIsoPosition(int, int)
+	 */
+	@Override
+	public void setIsoPosition(int x, int y) {
+		this.isoX = x;
+		this.isoY = y;
+	}
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -330,6 +340,22 @@ public class AbstractTile implements MapTile {
 	@Override
 	public int getRenderY() {
 		return renderY;
+	}
+	
+	/* (non-Javadoc)
+	 * @see franks.map.MapTile#getIsoX()
+	 */
+	@Override
+	public int getIsoX() {
+		return this.isoX;
+	}
+	
+	/* (non-Javadoc)
+	 * @see franks.map.MapTile#getIsoY()
+	 */
+	@Override
+	public int getIsoY() {	
+		return this.isoY;
 	}
 
 	/*

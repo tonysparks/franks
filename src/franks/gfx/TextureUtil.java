@@ -100,6 +100,10 @@ public class TextureUtil {
 	public static TextureRegion subImage(TextureRegion image, int x, int y, int width, int height) {
 		return new TextureRegion(image.getTexture(), x, y, width, height);
 	}
+	
+	public static TextureRegion subImageRegion(TextureRegion image, int x, int y, int width, int height) {
+		return new TextureRegion(image, x, y, width, height);
+	}
 
 	public static Pixmap subPixmap(Pixmap pix, int x, int y, int width, int height) {
 		Pixmap sub = new Pixmap(width, height, pix.getFormat());
@@ -204,6 +208,10 @@ public class TextureUtil {
 		return splitImage(image, image.getRegionWidth(), image.getRegionHeight(), row, col);
 	}
 	
+	public static TextureRegion[] splitImageRegion(TextureRegion image, int row, int col) {
+		return splitImageRegion(image, image.getRegionWidth(), image.getRegionHeight(), row, col);
+	}
+	
 	/**
 	 * Splits the image 
 	 * @param image
@@ -225,6 +233,26 @@ public class TextureUtil {
 		for (int j = 0; j < row; j++) {
 			for (int i = 0; i < col; i++) {				
 				TextureRegion region = new TextureRegion(image.getTexture(), i * w, j * h, w, h);
+				//region.flip(false, true);
+				images[frame++] = region;
+			}
+		}
+
+		return images;
+	}
+	
+	public static TextureRegion[] splitImageRegion(TextureRegion image, int width, int height, int row, int col) {				
+		int total = col * row; // total returned images
+		int frame = 0; // frame counter
+
+		int w = width / col;
+		int h = height / row;
+
+		TextureRegion[] images = new TextureRegion[total];
+
+		for (int j = 0; j < row; j++) {
+			for (int i = 0; i < col; i++) {				
+				TextureRegion region = new TextureRegion(image, i * w, j * h, w, h);
 				//region.flip(false, true);
 				images[frame++] = region;
 			}

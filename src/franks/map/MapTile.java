@@ -1261,10 +1261,14 @@ public interface MapTile {
 	 * @return the width
 	 */
 	int getWidth();
-
+	
 	int getX();
 
 	int getY();
+	
+	int getIsoX();
+	int getIsoY();
+	void setIsoPosition(int x, int y);
 
 	/**
 	 * @return the xIndex

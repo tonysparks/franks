@@ -10,6 +10,8 @@ import franks.game.PathPlanner;
 import franks.game.PreconditionResponse;
 import franks.game.CommandQueue.CommandRequest;
 import franks.game.entity.Entity;
+import franks.game.entity.Entity.Direction;
+import franks.game.entity.Entity.State;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
 import franks.map.MapTile;
@@ -25,13 +27,16 @@ public class MovementCommand extends Command {
 	private PathPlanner<Void> planner;
 	private Entity entity;
 	
+	private int movementSpeed;
+	
 	/**
 	 * @param name
 	 * @param movementCost
 	 */
-	public MovementCommand(Game game, Entity entity) {
+	public MovementCommand(Game game, Entity entity, int movementSpeed) {
 		super("moveTo", -1);		
 		this.entity = entity;
+		this.movementSpeed = movementSpeed;
 		this.planner = new PathPlanner<>(game, game.getWorld().getGraph(), entity);
 	}
 
@@ -80,16 +85,24 @@ public class MovementCommand extends Command {
 			@Override
 			public void cancel() {
 				this.isCancelled = true;
+				planner.clearPath();
 			}
 			
 			@Override
 			public void update(TimeStep timeStep) {
 				Vector2f waypoint = planner.nextWaypoint(entity);
+				if(waypoint==null) {
+					atDestination = true;
+					entity.setCurrentState(State.IDLE);
+					return;
+				}
+				
 				Vector2f pos = entity.getPos();
 				Vector2f vel = new Vector2f();
 				Vector2f.Vector2fNormalize(waypoint, vel);
 				
-				int movementSpeed = 160;
+				entity.setCurrentState(State.WALKING);
+				entity.setCurrentDirection(Direction.getDirection(vel));
 				
 				
 //				double dt = timeStep.asFraction();
@@ -114,6 +127,7 @@ public class MovementCommand extends Command {
 						}
 						
 						atDestination = true;
+						entity.setCurrentState(State.IDLE);
 					}
 				}
 			}
@@ -123,10 +137,15 @@ public class MovementCommand extends Command {
 			 */
 			@Override
 			public void render(Canvas canvas, Camera camera, float alpha) {
+				Vector2f c = camera.getRenderPosition(alpha);
 				planner.getPath().forEach(node -> {
 					MapTile tile = node.getValue();
-					game.getWorld().getMap().renderIsoRect(canvas, tile.getRenderX(), tile.getRenderY(), tile.getWidth(), tile.getHeight(), 0xffffffff);
+					game.getWorld().getMap().renderIsoRect(canvas, tile.getIsoX()-c.x, tile.getIsoY()-c.y, tile.getWidth(), tile.getHeight(), 0xffffffff);
+					//game.getWorld().getMap().renderIsoRect(canvas, tile.getRenderX(), tile.getRenderY(), tile.getWidth(), tile.getHeight(), 0xffffffff);
 				});
+				//canvas.resizeFont(14f);
+				
+				//canvas.drawString(entity.getPos().toString(), entity.getPos().x-c.x, entity.getPos().y-c.y, 0xffffffff);
 			}
 		};
 	}

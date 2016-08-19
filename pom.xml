@@ -14,6 +14,8 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<additionalparam>-Xdoclint:none</additionalparam>
+
+		<gdx.version>1.9.3</gdx.version>
 	</properties>
 
 	<dependencies>
@@ -35,6 +37,77 @@
 			<artifactId>hjson</artifactId>
 			<version>2.0.0</version>
 		</dependency>
+
+		<dependency>
+			<groupId>com.badlogicgames.gdx</groupId>
+			<artifactId>gdx</artifactId>
+			<version>${gdx.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.badlogicgames.gdx</groupId>
+			<artifactId>gdx-backend-lwjgl</artifactId>
+			<version>${gdx.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.badlogicgames.gdx</groupId>
+			<artifactId>gdx-freetype</artifactId>
+			<version>${gdx.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.badlogicgames.gdx</groupId>
+			<artifactId>gdx-controllers</artifactId>
+			<version>${gdx.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.badlogicgames.gdx</groupId>
+			<artifactId>gdx-controllers-desktop</artifactId>
+			<version>${gdx.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.badlogicgames.gdx</groupId>
+			<artifactId>gdx-platform</artifactId>
+			<version>${gdx.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.badlogicgames.gdx</groupId>
+			<artifactId>gdx-freetype-platform</artifactId>
+			<version>${gdx.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.badlogicgames.gdx</groupId>
+			<artifactId>gdx-controllers-platform</artifactId>
+			<version>${gdx.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.paulscode</groupId>
+			<artifactId>Paulscode-SoundSystem</artifactId>
+			<version>2013.04.17</version>
+			<scope>system</scope>
+			<systemPath>${basedir}/lib/SoundSystem.jar</systemPath>
+		</dependency>
+		<dependency>
+            <groupId>com.paulscode</groupId>
+            <artifactId>Paulscode-SoundSystem-LWJGL</artifactId>
+            <version>2013.04.17</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/lib/LibraryLWJGLOpenAL.jar</systemPath>
+        </dependency>
+		<dependency>
+            <groupId>com.paulscode</groupId>
+            <artifactId>Paulscode-SoundSystem-CodecWav</artifactId>
+            <version>2013.04.17</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/lib/CodecWav.jar</systemPath>
+        </dependency>
+		
+		
+		<dependency>
+		  <groupId>com.github.tonysparks.leola</groupId>
+		  <artifactId>leola</artifactId>
+		  <version>0.9.7</version>
+		</dependency>
+
 	</dependencies>
 
 

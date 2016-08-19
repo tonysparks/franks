@@ -14,7 +14,7 @@ import franks.math.Vector2f;
  * @author Tony
  *
  */
-public class Human extends Entity {
+public class Human extends TempEntity {
 
 	/**
 	 * @param type
@@ -29,7 +29,7 @@ public class Human extends Entity {
 		attribute("consumeFoodRate", 2);
 		attribute("food", 5);
 		
-		addAvailableAction(new MovementCommand(game, this));
+		addAvailableAction(new MovementCommand(game, this, 100));
 		addAvailableAction(new CollectResourceCommand2("Wood", this));
 		addAvailableAction(new CollectResourceCommand2("Stone", this));
 		addAvailableAction(new CollectResourceCommand2("Food", this));

@@ -204,9 +204,10 @@ public class PathPlanner<E> {
 			
 			nextWaypoint.x = (centerX - x);
 			nextWaypoint.y = (centerY - y);
+			return nextWaypoint;
 		}
-		
-		return nextWaypoint;
+
+		return null;
 	}
 	
 	/**

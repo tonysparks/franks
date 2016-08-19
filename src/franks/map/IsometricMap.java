@@ -96,11 +96,14 @@ public class IsometricMap extends OrthoMap {
 	}
 	
 	public Vector2f worldToIsoIndex(float worldX, float worldY, Vector2f out) {
-		worldX -= this.vert * this.halfTileWidth;
-		worldY -= this.startY;
+//		worldX -= this.vert * this.halfTileWidth;
+//		worldY -= this.startY;
 		
 		int x = (int)((worldY / this.baseTileHeight) + (worldX / this.tileWidth));
 		int y = (int)((worldY / this.baseTileHeight) - (worldX / this.tileWidth));
+		
+//		float x = ((worldY / this.baseTileHeight) + (worldX / this.tileWidth));
+//		float y = ((worldY / this.baseTileHeight) - (worldX / this.tileWidth));
 		
 		if(x<0 || x > this.horiz-1 || y < 0 || y > this.vert-1 ) {
 			return null;
@@ -109,13 +112,35 @@ public class IsometricMap extends OrthoMap {
 		out.set(x,y);
 		
 		return out;
+		
+//		float x = ( (worldX / this.halfTileWidth) + (worldY / this.halfTileHeight) ) / 2f;
+//		float y = ( (worldY / this.halfTileHeight) - (worldX / this.halfTileWidth)) / 2f;
+//		out.set(x,y);
+//		return out;
+		
 	}
 	
-	public Vector2f worldToIsoPosition(float worldX, float worldY, Vector2f out) {		
-		MapTile tile = getWorldTile(0, worldX, worldY);
-		if(tile!=null) {
-			out.set(tile.getRenderX(), tile.getRenderY());
-		}
+	public Vector2f screenToIsoPosition(float worldX, float worldY, Vector2f out) {				
+//		float x = ( (worldX / this.halfTileWidth) + (worldY / this.halfTileHeight) ) / 2f;
+//		float y = ( (worldY / this.halfTileHeight) - (worldX / this.halfTileWidth)) / 2f;
+		
+		float x = ( (worldY / this.baseTileHeight) + (worldX / this.tileWidth) );
+		float y = ( (worldY / this.baseTileHeight) - (worldX / this.tileWidth));
+		
+		//worldToIsoIndex(worldX, worldY, out);		
+		//isoIndexToWorld(out.x, out.y, out);
+		isoIndexToScreen(x, y, out);
+		
+		return out;
+		
+	}
+	
+	
+	public Vector2f isoIndexToScreen(float isoX, float isoY, Vector2f out) {
+		float startX = (this.vert - 1) * this.halfTileWidth;
+		float startY = 0;//(this.vert-1) * this.halfTileHeight;
+		out.x = startX + ((isoX - isoY) * this.halfTileWidth) + this.halfTileHeight;// - 192;
+		out.y = startY + ((isoX * this.halfTileHeight) + (isoY * this.halfTileHeight));// + 96;
 		
 		return out;
 	}
@@ -135,9 +160,9 @@ public class IsometricMap extends OrthoMap {
 		return out;
 	}
 
-	public void renderIsoRect(Canvas canvas, int x, int y, int width, int height, Integer color) {
-		Vector2f a = new Vector2f();
-		Vector2f b = new Vector2f();
+	Vector2f a = new Vector2f();
+	Vector2f b = new Vector2f();
+	public void renderIsoRect(Canvas canvas, float x, float y, float width, float height, Integer color) {
 				
 //		canvas.drawString(x + "," + y, x, y, color);
 //		canvas.drawCircle(2, x, y, color);
@@ -224,7 +249,7 @@ public class IsometricMap extends OrthoMap {
 					for(int layerIndex = 0; layerIndex < this.backgroundLayers.length; layerIndex++) {
 						MapTile tile = this.backgroundLayers[layerIndex].getRow(yTile)[xTile];
 						if(tile!=null) {
-							tile.setRenderingPosition(x1,y1);							
+							tile.setIsoPosition(x1,y1);							
 						}
 					}					
 				}
@@ -313,7 +338,8 @@ public class IsometricMap extends OrthoMap {
 						if(tile!=null) {
 							tile.setRenderingPosition(x1,y1);
 							tile.render(canvas, camera, alpha);
-							canvas.setFont("Courier New", 8);
+							
+							//canvas.setFont("Courier New", 8);							
 							//canvas.drawString("I:"+xTile+","+yTile, x1, y1, 0xff00ffff);
 							//canvas.drawString("T:"+tile.getXIndex()+","+tile.getYIndex(), x1, y1+10, 0xff00ffff);
 							//renderIsoRect(canvas, x1, y1, tile.getWidth(), tile.getHeight(), 0xff00ffff);

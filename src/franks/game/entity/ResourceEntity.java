@@ -12,7 +12,7 @@ import franks.math.Vector2f;
  * @author Tony
  *
  */
-public class ResourceEntity extends Entity {
+public class ResourceEntity extends TempEntity {
 
 	private String resourceName;
 	/**

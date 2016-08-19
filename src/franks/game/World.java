@@ -40,6 +40,7 @@ public class World implements Renderable {
 	private MapGraph<Void> graph;
 	
 	private TextureRegion tileImg;
+	private Vector2f cacheVector;
 	/**
 	 * 
 	 */
@@ -47,6 +48,7 @@ public class World implements Renderable {
 		this.camera = camera;
 		this.cursor = cursor;
 		
+		this.cacheVector = new Vector2f();
 		this.regions = new Region[64][64];
 		for(int y = 0; y < this.regions.length; y++) {
 			for(int x = 0; x < this.regions[y].length; x++) {
@@ -180,8 +182,17 @@ public class World implements Renderable {
 		return out;
 	}
 	
+	public Vector2f worldToScreen(float worldX, float worldY, Vector2f out) {
+		Vector2f pos = camera.getPosition();
+		out.set(worldX - pos.x, worldY - pos.y);
+		return out;
+	}
+	
 	public Vector2f worldToIso(float worldX, float worldY, Vector2f out) {
-		this.map.worldToIsoPosition(worldX, worldY, out);
+		//worldToScreen(worldX, worldY, out);
+		this.map.screenToIsoPosition(worldX, worldY, out);
+		//this.map.worldToIsoIndex(worldX, worldY, out);
+		//Vector2f.Vector2fSubtract(out, camera.getPosition(), out);
 		return out;
 	}
 	
@@ -216,11 +227,16 @@ public class World implements Renderable {
 		MapTile tile = this.map.getWorldTile(0, pos.x, pos.y);
 		
 		canvas.drawString( "Screen: " + (int)cursor.getCenterPos().x+","+ (int)cursor.getCenterPos().y, cursor.getX()-50, cursor.getY()+40, 0xffffffff);
-		canvas.drawString( "World:  " + (int)pos.x+","+ (int)pos.y, cursor.getX()-50, cursor.getY()+50, 0xffffffff);
+		canvas.drawString( "World:  " + (int)pos.x+","+ (int)pos.y, cursor.getX()-50, cursor.getY()+60, 0xffffffff);
 		
 		if(tile != null) {
+			canvas.drawString( "IsoPos:  " + (int)tile.getIsoX()+","+ (int)tile.getIsoY(), cursor.getX()-50, cursor.getY()+80, 0xffffffff);
+			canvas.drawString( "TileIndex:  " + (int)tile.getXIndex()+","+ (int)tile.getYIndex(), cursor.getX()-50, cursor.getY()+100, 0xffffffff);
+			canvas.drawString( "TilePos:  " + (int)tile.getX()+","+ (int)tile.getY(), cursor.getX()-50, cursor.getY()+120, 0xffffffff);
+			
 			//canvas.drawRect(tile.getRenderX(), tile.getRenderY(), tile.getWidth(), tile.getHeight(), 0xffffffff);
-			map.renderIsoRect(canvas, tile.getRenderX(), tile.getRenderY(), tile.getWidth(), tile.getHeight(), 0xffffffff);
+			Vector2f c = camera.getRenderPosition(alpha);
+			map.renderIsoRect(canvas, tile.getIsoX()-c.x, tile.getIsoY()-c.y, tile.getWidth(), tile.getHeight(), 0xffffffff);
 			//canvas.drawString( tile.getRenderX()+","+tile.getRenderY(), 10, 70, 0xffffffff);
 		}
 		

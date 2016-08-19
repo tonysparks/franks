@@ -1,0 +1,120 @@
+/*
+ * see license.txt 
+ */
+package franks.game.entity;
+
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+
+import franks.game.Game;
+import franks.game.World;
+import franks.game.entity.Entity.Direction;
+import franks.game.entity.EntityData.GraphicData;
+import franks.gfx.AnimatedImage;
+import franks.gfx.AnimationFrame;
+import franks.gfx.Camera;
+import franks.gfx.Canvas;
+import franks.gfx.FramedAnimation;
+import franks.gfx.Renderable;
+import franks.gfx.TextureUtil;
+import franks.math.Vector2f;
+import franks.util.TimeStep;
+
+/**
+ * @author Tony
+ *
+ */
+public class EntityModel implements Renderable {
+
+	private Game game;
+	private Entity entity;
+	
+	private AnimatedImage[][] animations;
+	private Vector2f renderPos;
+		
+	/**
+	 * 
+	 */
+	public EntityModel(Game game, Entity entity, GraphicData graphics) {
+		this.game = game;		
+		this.entity = entity;
+		
+		this.renderPos = new Vector2f();
+		this.animations = new AnimatedImage[Entity.State.values().length][];
+		
+		graphics.sectionStates.forEach( (k,v) -> {
+			TextureRegion tex = game.getTextureCache().getTexture(v.filePath);			
+			tex = TextureUtil.subImage(tex, v.x, v.y, v.width, v.height);			
+			int numberOfDirections = Direction.values().length;
+			int rowHeight = tex.getRegionHeight() / numberOfDirections; 
+			
+			animations[k.ordinal()] = new AnimatedImage[numberOfDirections];
+			for(int dirIndex = 0; dirIndex < numberOfDirections; dirIndex++) {				
+				TextureRegion subTex = TextureUtil.subImageRegion(tex, 0, dirIndex * rowHeight, v.width, rowHeight);
+				TextureRegion[] frames = TextureUtil.splitImageRegion(subTex, 1, v.numberOfFrames);				
+				AnimationFrame[] aFrames = new AnimationFrame[frames.length];
+				for(int i = 0; i < aFrames.length; i++) {
+					frames[i].flip(v.flipX, v.flipY);
+					aFrames[i] = new AnimationFrame(v.frameTime, i);
+				}
+				
+				AnimatedImage image = new AnimatedImage(frames, new FramedAnimation(aFrames));
+				animations[k.ordinal()][v.directions[dirIndex].ordinal()] = image;
+			}
+		});
+	}
+
+	
+	@Override
+	public void update(TimeStep timeStep) {
+		this.animations[entity.getCurrentState().ordinal()][entity.getCurrentDirection().ordinal()].update(timeStep);
+	}
+	
+	@Override
+	public void render(Canvas canvas, Camera camera, float alpha) {
+		TextureRegion tex = this.animations[entity.getCurrentState().ordinal()][entity.getCurrentDirection().ordinal()].getCurrentImage();
+		
+		Vector2f cameraPos = camera.getRenderPosition(alpha);
+
+		World world = game.getWorld();
+		
+		float dx = -1;
+		float dy = -1;
+		
+		Vector2f pos = entity.getPos();
+//		Vector2f cameraIsoPos = new Vector2f();
+		//world.worldToIso(cameraPos.x, cameraPos.y, cameraIsoPos);
+		//Vector2f.Vector2fCopy(pos, renderPos);
+//		world.worldToIso(pos.x, pos.y, renderPos);
+		
+//		float sx = renderPos.x;
+//		float sy = renderPos.y;
+//		
+//		Vector2f.Vector2fSubtract(renderPos, cameraPos, renderPos);
+//		
+//		int isoX = (int) (pos.x / world.getRegionWidth());
+//		int isoY = (int) (pos.y / world.getRegionHeight());
+//		
+//		MapTile tile = world.getMap().getTile(0, isoX, isoY);
+		//if(tile!=null) {
+//			dx = tile.getIsoX() + 16 - cameraPos.x;
+//			dy = tile.getIsoY() -  8 - cameraPos.y;
+			//world.getMap().iso
+		//}
+		
+		float tileX = (pos.x / world.getRegionWidth());
+		float tileY = (pos.y / world.getRegionHeight());
+		world.getMap().isoIndexToScreen(tileX, tileY, renderPos);
+		Vector2f.Vector2fSubtract(renderPos, cameraPos, renderPos);
+		dx = renderPos.x;
+		dy = renderPos.y;
+		dx -= 32;
+		dy -= 32;
+		
+		canvas.drawImage(tex, dx, dy, 0xffffffff);
+//		canvas.drawString(dx+","+dy, dx, dy + 70, 0xffffffff);
+//		canvas.drawString(sx+","+sy, dx, dy + 90, 0xffffffff);
+//		if(tile!=null) {
+//			canvas.drawString(tile.getXIndex()+","+tile.getYIndex(), dx, dy + 110, 0xffffffff);	
+//		}
+	}
+}
