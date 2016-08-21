@@ -4,7 +4,9 @@
 package franks.game.entity;
 
 import franks.game.Game;
+import franks.game.action.AttackCommand;
 import franks.game.action.CollectResourceCommand2;
+import franks.game.action.DieCommand;
 import franks.game.action.MovementCommand;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
@@ -23,24 +25,47 @@ public class DataEntity extends Entity {
 	 * 
 	 */
 	public DataEntity(Game game, EntityData data) {
-		super(game, data.type, new Vector2f(), data.width, data.height);
+		super(game, data.name, data.type, new Vector2f(), data.width, data.height);
 		this.model = new EntityModel(game, this, data.graphics);
+		
+		this.health = data.getNumber("health", 5D).intValue();
 		
 		if(data.availableActions!=null) {
 			data.availableActions.forEach(action -> {
 				switch(action.action) {
 					case "movement": {
-						addAvailableAction(new MovementCommand(game, this, ((Double)action.params.get("movementSpeed")).intValue() ));
+						addAvailableAction(new MovementCommand(game, this, action.getNumber("movementSpeed", 50D).intValue() ));
 						break;
 					}
 					case "collect": {
-						addAvailableAction(new CollectResourceCommand2(action.params.get("resource").toString(), this));
+						addAvailableAction(new CollectResourceCommand2(action.getStr("resource", "wood"), this));
+						break;
+					}
+					case "attack": {
+						addAvailableAction(new AttackCommand(this, action.getNumber("cost", 1D).intValue(),
+								action.getNumber("attackDistance", 1D).intValue(),
+								action.getNumber("attackPoints", 50D).intValue()) );
+						break;
+					}
+					case "die" : {
+						addAvailableAction(new DieCommand(this));
 						break;
 					}
 				}
 			});
 		}
 		
+	}
+	
+	
+	
+	/* (non-Javadoc)
+	 * @see franks.game.entity.Entity#setCurrentState(franks.game.entity.Entity.State)
+	 */
+	@Override
+	public void setCurrentState(State currentState) {	
+		super.setCurrentState(currentState);
+		this.model.resetAnimation();
 	}
 	
 	@Override
@@ -52,6 +77,14 @@ public class DataEntity extends Entity {
 	@Override
 	public void render(Canvas canvas, Camera camera, float alpha) {
 		model.render(canvas, camera, alpha);
+		
+		if(getType().equals(Type.HUMAN)) {
+			Vector2f pos = getRenderPosition(camera, alpha);
+			int health = getHealth();
+			for(int i = 0; i < health; i++) {
+				canvas.drawString("*", pos.x+23 + (i*10), pos.y+68, 0xffffffff);
+			}
+		}
 	}
 
 }

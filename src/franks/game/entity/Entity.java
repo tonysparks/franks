@@ -7,14 +7,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
-
+import franks.game.Cell;
 import franks.game.Command;
+import franks.game.CommandQueue;
+import franks.game.CommandQueue.CommandRequest;
 import franks.game.Game;
 import franks.game.World;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
 import franks.gfx.Renderable;
+import franks.map.Map;
 import franks.map.MapTile;
 import franks.math.Rectangle;
 import franks.math.Vector2f;
@@ -56,25 +58,30 @@ public class Entity implements Renderable {
 		;
 		
 		public static Direction getDirection(Vector2f v) {
-			//if(!v.isZero())System.out.println(v);
+			return getDirection(v.x, v.y);
+		}
+		
+		public static Direction getDirection(float x, float y) {
+//			Vector2f v = new Vector2f(x,y);
+//			if(!v.isZero())System.out.println(v);
 			
 			final float threshold = 0.5f;
-			if(v.y > threshold) {
-				if(v.x > threshold) {
+			if(y > threshold) {
+				if(x > threshold) {
 					return Direction.SOUTH;
 				}
-				else if(v.x < -threshold) {
+				else if(x < -threshold) {
 					return Direction.WEST;
 				}
 				else {
 					return Direction.SOUTH_WEST;
 				}
 			}
-			else if(v.y < -threshold) {
-				if(v.x > threshold) {
+			else if(y < -threshold) {
+				if(x > threshold) {
 					return Direction.EAST;
 				}
-				else if(v.x < -threshold) {
+				else if(x < -threshold) {
 					return Direction.NORTH;
 				}
 				else {
@@ -82,10 +89,10 @@ public class Entity implements Renderable {
 				}
 			}
 			else {
-				if(v.x > threshold) {
+				if(x > threshold) {
 					return Direction.SOUTH_EAST;
 				}
-				else if(v.x < -threshold) {
+				else if(x < -threshold) {
 					return Direction.NORTH_WEST;
 				}
 				else {
@@ -100,15 +107,18 @@ public class Entity implements Renderable {
 		WALKING,
 		COLLECTING,
 		DROPPING,
-		DYING,
+		//DYING,
 		DEAD,
 		ATTACKING,
 	}
 	
 	private Type type;
+	private String name;
 	protected Vector2f pos;
 	protected Vector2f renderPos;
 	private Vector2f centerPos;
+	private Vector2f tilePos;
+	protected Vector2f scratch;
 	protected Rectangle bounds;
 	private boolean isSelected;
 	
@@ -119,32 +129,58 @@ public class Entity implements Renderable {
 	
 	private LeoMap attributes;
 	
-	private boolean isAlive;
+	protected int health;
+	private boolean isDeleted;
 		
 	private State currentState;
 	private Direction currentDirection;
 	
-	/**
-	 * 
-	 */
+	private CommandQueue commandQueue;
+	
 	public Entity(Game game, Type type, Vector2f pos, int width, int height) {
+		this(game, type.name(), type, pos, width, height);
+	}
+	
+	public Entity(Game game, String name, Type type, Vector2f pos, int width, int height) {
 		this.game = game;
+		this.name = name;
 		this.type = type;	
 		this.pos = pos;
 		this.centerPos = new Vector2f();
 		this.renderPos = new Vector2f();
+		this.scratch = new Vector2f();
+		
+		this.tilePos = new Vector2f();
 		
 		this.bounds = new Rectangle(width, height);
 		this.bounds.setLocation(pos);
 		
 		this.availableCommands = new ArrayList<>();
 		this.attributes = new LeoMap();
-		this.isAlive = true;
+		this.isDeleted = false;
 		
 		this.world = game.getWorld();
 		
+		this.commandQueue = new CommandQueue(game);
+		
 		this.currentState = State.IDLE;
 		this.currentDirection = Direction.SOUTH;
+		
+		this.health = 5;
+	}
+	
+	/**
+	 * @return the name
+	 */
+	public String getName() {
+		return name;
+	}
+	
+	/**
+	 * @return the commandQueue
+	 */
+	public CommandQueue getCommandQueue() {
+		return commandQueue;
 	}
 	
 	/**
@@ -172,7 +208,7 @@ public class Entity implements Renderable {
 	 * @param currentState the currentState to set
 	 */
 	public void setCurrentState(State currentState) {
-		this.currentState = currentState;
+		this.currentState = currentState;		
 	}
 	
 	//public void consumeResource(String resource)
@@ -188,14 +224,39 @@ public class Entity implements Renderable {
 	}
 	
 	/**
+	 * @return the health
+	 */
+	public int getHealth() {
+		return health;
+	}
+	
+	/**
 	 * @return the isAlive
 	 */
 	public boolean isAlive() {
-		return isAlive;
+		return !this.currentState.equals(State.DEAD);
 	}
 	
+	public void delete() {
+		this.isDeleted = true;
+	}
+	
+	public boolean isDeleted() {
+		return this.isDeleted;
+	}
+	
+	
 	public void kill() {
-		this.isAlive = false;
+		if(this.isAlive()) {
+			doAction(new CommandRequest(game, "die", this));
+		}
+	}
+	
+	public void damage() {
+		this.health--;
+		if(this.health<=0) {
+			kill();
+		}
 	}
 	
 	/**
@@ -316,9 +377,57 @@ public class Entity implements Renderable {
 		return this;
 	}
 	
+	public Entity lookAt(float x, float y) {
+		scratch.set(x, y);
+		return lookAt(scratch);
+	}
+	
+	public Entity lookAt(Vector2f pos) {
+		Vector2f.Vector2fSubtract(pos, getCenterPos(), scratch);		
+		Vector2f.Vector2fNormalize(scratch, scratch);
+		Direction dir = Direction.getDirection(scratch);
+		setCurrentDirection(dir);
+		return this;
+	}
+	
+	public Entity lookAt(MapTile tile) {
+		int tileX = (int)(pos.x / world.getRegionWidth());
+		int tileY = (int)(pos.y / world.getRegionHeight());
+		int dirX = tile.getXIndex() - tileX;
+		int dirY = tile.getYIndex() - tileY;
+		setCurrentDirection(Direction.getDirection(dirX, dirY));
+		return this;
+	}
+	
+	public boolean hasAction(String actionName) {
+		for(Command cmd : this.availableCommands) {
+			if(cmd.getName().equals(actionName)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public void queueAction(CommandRequest request) {
+		this.commandQueue.add(request);
+	}
+	
+	public void doAction(CommandRequest request) {
+		this.commandQueue.cancel();
+		queueAction(request);
+	}
+	
+	public boolean canDo(String actionName) {
+		return hasAction(actionName);
+	}
+	
 	public Entity addAvailableAction(Command action) {
 		this.availableCommands.add(action);
 		return this;
+	}
+	
+	public boolean isDead() {
+		return getCurrentState().equals(State.DEAD);
 	}
 	
 	/**
@@ -333,6 +442,16 @@ public class Entity implements Renderable {
 	 */
 	public Type getType() {
 		return type;
+	}
+	
+	/**
+	 * @return the tilePos
+	 */
+	public Vector2f getTilePos() {
+		float tileX = (pos.x / world.getRegionWidth());
+		float tileY = (pos.y / world.getRegionHeight());
+		tilePos.set(tileX, tileY);
+		return tilePos;
 	}
 	
 	/**
@@ -354,6 +473,60 @@ public class Entity implements Renderable {
 		return bounds;
 	}
 	
+	public int getZOrder() {
+		World world = game.getWorld();		
+		int tileY = (int)(pos.y / world.getRegionHeight());
+		return tileY ;//+ bounds.height;
+//		MapTile tile = game.getWorld().getMapTileByWorldPos(getCenterPos());
+//		if(tile!=null) {
+//			return tile.getRenderY();
+//		}
+//		return -1;
+	}
+	
+	/**
+	 * Test to see if this Entity currently resides in the supplied {@link Cell}
+	 * @param cell
+	 * @return true if this entity is inside the supplied cell
+	 */
+	public boolean inCell(Cell cell) {
+		return cell.getBounds().contains(getCenterPos());
+	}
+	
+	
+	/**
+	 * Returns the distance of this Entity to the Cell in tile units
+	 * @param cell
+	 * @return the number of tiles that separate these two
+	 */
+	public int distanceFrom(Cell cell) {
+		Rectangle r = cell.getTileBounds();
+		int centerX = r.x + r.width / 2;
+		int centerY = r.y + r.height / 2;
+		
+		Vector2f centerPos = getCenterPos();
+		
+		Map map = game.getMap();
+		int tileX = map.worldToTileX((int)centerPos.x);
+		int tileY = map.worldToTileY((int)centerPos.y);
+		
+		return (int)Math.sqrt((centerX - tileX) * (centerX - tileX) + (centerY - tileY) * (centerY - tileY));		
+	}
+	
+	public int distanceFrom(Entity other) {
+		Vector2f centerPos = getCenterPos();
+		
+		Map map = game.getMap();
+		int meX = map.worldToTileX((int)centerPos.x);
+		int meY = map.worldToTileY((int)centerPos.y);
+		
+		centerPos = other.getCenterPos();
+		int otherX = map.worldToTileX((int)centerPos.x);
+		int otherY = map.worldToTileY((int)centerPos.y);
+		
+		return (int)Math.sqrt((otherX - meX) * (otherX - meX) + (otherY - meY) * (otherY - meY));
+	}
+	
 	public float getDiameter() {
 		return (float)Math.sqrt(bounds.width*bounds.width + bounds.height*bounds.height);
 	}
@@ -362,7 +535,8 @@ public class Entity implements Renderable {
 	 * @see newera.gfx.Renderable#update(newera.util.TimeStep)
 	 */
 	@Override
-	public void update(TimeStep timeStep) {		
+	public void update(TimeStep timeStep) {
+		this.commandQueue.update(timeStep);
 	}
 	
 	/* (non-Javadoc)
@@ -425,4 +599,19 @@ public class Entity implements Renderable {
 		//canvas.drawImage(this.image, dx, dy, null);
 	}
 	
+	public Vector2f getRenderPosition(Camera camera, float alpha) {
+		Vector2f cameraPos = camera.getRenderPosition(alpha);
+		
+		World world = game.getWorld();
+		Vector2f tilePos = getTilePos();
+		
+		world.getMap().isoIndexToScreen(tilePos.x, tilePos.y, renderPos);
+		Vector2f.Vector2fSubtract(renderPos, cameraPos, renderPos);
+		
+		renderPos.x -= 32;
+		renderPos.y -= 32;
+		
+		return renderPos;
+	}
 }
+

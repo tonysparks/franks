@@ -60,7 +60,7 @@ public class Art {
 			BLACK_IMAGE.setTexture(new Texture(map));
 		}
 		
-		cursorImg = loadImage("./assets/gfx/crosshair.png");
+		cursorImg = loadImage("./assets/gfx/cursors/default_cursor.png");
 		soldier = loadImage("./assets/gfx/soldier.png");
 		tree = loadImage("./assets/gfx/tree01.png");
 		stone = loadImage("./assets/gfx/stone.png");

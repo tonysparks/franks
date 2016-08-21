@@ -3,6 +3,8 @@
  */
 package franks.game;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -18,9 +20,9 @@ import franks.map.ImageTile;
 import franks.map.IsometricMap;
 import franks.map.Layer;
 import franks.map.Map;
+import franks.map.Map.SceneDef;
 import franks.map.MapGraph;
 import franks.map.MapTile;
-import franks.map.Map.SceneDef;
 import franks.math.Vector2f;
 import franks.util.TimeStep;
 
@@ -31,11 +33,20 @@ import franks.util.TimeStep;
 public class World implements Renderable {
 	public static final int RegionWidth = 32;
 	public static final int RegionHeight = 32;
+
+	public static final int CellTileWidth = 3;
+	public static final int CellTileHeight = 2;
+	
+	public static final int CellWidth = RegionWidth * CellTileWidth;
+	public static final int CellHeight = RegionHeight * CellTileHeight;
+	
 	
 	private Region[][] regions;
 	private IsometricMap map;
 	private Cursor cursor;
 	private Camera camera;
+	
+	private List<Cell> cells;
 	
 	private MapGraph<Void> graph;
 	
@@ -44,12 +55,13 @@ public class World implements Renderable {
 	/**
 	 * 
 	 */
-	public World(Camera camera, Cursor cursor) {
-		this.camera = camera;
-		this.cursor = cursor;
+	public World(Game game) {
+		this.camera = game.getCamera();
+		this.cursor = game.getCursor();
 		
+		this.cells = new ArrayList<>();
 		this.cacheVector = new Vector2f();
-		this.regions = new Region[64][64];
+		this.regions = new Region[12][12];
 		for(int y = 0; y < this.regions.length; y++) {
 			for(int x = 0; x < this.regions[y].length; x++) {
 				this.regions[y][x] = new Region(x,y, RegionWidth, RegionHeight);
@@ -90,6 +102,7 @@ public class World implements Renderable {
 			
 			background.addRow(y, row);
 		}
+
 		
 		this.map =// new OrthoMap(true); 
 				new IsometricMap(true);
@@ -103,6 +116,16 @@ public class World implements Renderable {
 		});
 		
 		this.camera.setWorldBounds(new Vector2f(this.map.getMapWidth(), this.map.getMapHeight()));
+		
+		
+		int numberOfXCells = scene.getDimensionX() / CellTileWidth;
+		int numberOfYCells = scene.getDimensionY() / CellTileHeight;
+		
+		for(int y = 0; y < numberOfYCells; y++) {
+			for(int x = 0; x < numberOfXCells; x++) {				
+				this.cells.add(new Cell(game, map, x*CellTileWidth, y*CellTileHeight, CellTileWidth, CellTileHeight));				
+			}
+		}
 	}
 
 	public int getRegionWidth() {
@@ -118,6 +141,13 @@ public class World implements Renderable {
 	 */
 	public IsometricMap getMap() {
 		return map;
+	}
+	
+	/**
+	 * @return the cells
+	 */
+	public List<Cell> getCells() {
+		return cells;
 	}
 	
 	/**
@@ -226,6 +256,9 @@ public class World implements Renderable {
 		pos = screenToWorldCoordinates(pos.x, pos.y);		
 		MapTile tile = this.map.getWorldTile(0, pos.x, pos.y);
 		
+		//this.cells.forEach(cell -> cell.render(canvas, camera, alpha));
+		//this.cells.get(0).render(canvas, camera, alpha);
+		
 		canvas.drawString( "Screen: " + (int)cursor.getCenterPos().x+","+ (int)cursor.getCenterPos().y, cursor.getX()-50, cursor.getY()+40, 0xffffffff);
 		canvas.drawString( "World:  " + (int)pos.x+","+ (int)pos.y, cursor.getX()-50, cursor.getY()+60, 0xffffffff);
 		
@@ -236,6 +269,7 @@ public class World implements Renderable {
 			
 			//canvas.drawRect(tile.getRenderX(), tile.getRenderY(), tile.getWidth(), tile.getHeight(), 0xffffffff);
 			Vector2f c = camera.getRenderPosition(alpha);
+			
 			map.renderIsoRect(canvas, tile.getIsoX()-c.x, tile.getIsoY()-c.y, tile.getWidth(), tile.getHeight(), 0xffffffff);
 			//canvas.drawString( tile.getRenderX()+","+tile.getRenderY(), 10, 70, 0xffffffff);
 		}

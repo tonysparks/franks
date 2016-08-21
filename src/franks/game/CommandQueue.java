@@ -9,16 +9,14 @@ import java.util.Queue;
 
 import franks.game.CommandAction.CompletionState;
 import franks.game.entity.Entity;
-import franks.gfx.Camera;
-import franks.gfx.Canvas;
-import franks.gfx.Renderable;
 import franks.util.TimeStep;
+import franks.util.Updatable;
 
 /**
  * @author Tony
  *
  */
-public class CommandQueue implements Renderable {
+public class CommandQueue implements Updatable {
 
 	public static class CommandRequest {
 		public Optional<Entity> selectedEntity;
@@ -26,10 +24,19 @@ public class CommandQueue implements Renderable {
 		public String action;
 		
 		public CommandRequest(Game game, String action) {
-			this.action = action;
-			this.selectedEntity = Optional.ofNullable(game.getSelectedEntity().orElse(null));
-			this.targetEntity = Optional.ofNullable(game.getEntityOverMouse());
+			this(game, action, game.getSelectedEntity().orElse(null), game.getEntityOverMouse());
 		}
+		
+		public CommandRequest(Game game, String action, Entity selectedEntity) {
+			this(game, action, selectedEntity, game.getEntityOverMouse());
+		}
+		
+		public CommandRequest(Game game, String action, Entity selectedEntity, Entity targetEntity) {
+			this.action = action;
+			this.selectedEntity = Optional.ofNullable(selectedEntity);
+			this.targetEntity = Optional.ofNullable(targetEntity);
+		}
+		
 	}
 	
 	private Queue<CommandRequest> queue;
@@ -50,7 +57,9 @@ public class CommandQueue implements Renderable {
 		return this;
 	}
 	
-	
+	public Optional<CommandAction> getCurrentAction() {
+		return this.currentAction;
+	}
 	
 	public CommandQueue clear() {
 		this.queue.clear();
@@ -67,6 +76,8 @@ public class CommandQueue implements Renderable {
 		if(currentAction.isPresent()) {
 			CommandAction action = currentAction.get();
 			if(action.getCurrentState() != CompletionState.InProgress) {
+				action.end();
+				
 				currentAction = Optional.empty();
 			}
 			else {
@@ -78,14 +89,10 @@ public class CommandQueue implements Renderable {
 		if(!currentAction.isPresent()) {
 			if(!queue.isEmpty()) {
 				CommandRequest request = queue.poll();
-				game.executeCommandRequest(request);
+				currentAction = game.executeCommandRequest(request);
+				if(currentAction.isPresent())
+					System.out.println("executing: " + request.action);
 			}
 		}
-	}
-	
-	@Override
-	public void render(Canvas canvas, Camera camera, float alpha) {
-		
-	}
-
+	}	
 }

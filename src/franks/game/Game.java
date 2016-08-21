@@ -6,6 +6,7 @@ package franks.game;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -22,9 +23,9 @@ import franks.game.CommandQueue.CommandRequest;
 import franks.game.entity.Building;
 import franks.game.entity.DataEntity;
 import franks.game.entity.Entity;
+import franks.game.entity.Entity.Direction;
 import franks.game.entity.Entity.Type;
 import franks.game.entity.EntityData;
-import franks.game.entity.Human;
 import franks.game.entity.ResourceEntity;
 import franks.gfx.Art;
 import franks.gfx.Camera;
@@ -33,6 +34,7 @@ import franks.gfx.Cursor;
 import franks.gfx.RenderFont;
 import franks.gfx.Renderable;
 import franks.gfx.Terminal;
+import franks.map.IsometricMap;
 import franks.map.MapTile;
 import franks.math.Rectangle;
 import franks.math.Vector2f;
@@ -52,15 +54,17 @@ import leola.vm.types.LeoObject;
  */
 public class Game implements Renderable {
 
+	private FranksGame app;
 	private World world;
 	
 	private MovementMeter moveMeter;
 	private Resources resources;
 	
-	private Human human;
-	
 	private List<Entity> entities;
 	private List<Entity> aliveEntities;
+	
+	private List<Entity> selectedEntities;
+	
 	private Optional<Entity> selectedEntity;
 	private Optional<Entity> hoveredOverEntity;
 	
@@ -84,6 +88,15 @@ public class Game implements Renderable {
 	private Gson gson;
 	
 	private AssetWatcher watcher;
+	
+	private Comparator<Entity> renderOrder = new Comparator<Entity>() {
+		
+		@Override
+		public int compare(Entity left, Entity right) {
+			return left.getZOrder() - right.getZOrder();
+		}
+	};
+	
 	/**
 	 * 
 	 */
@@ -91,8 +104,8 @@ public class Game implements Renderable {
 		this.camera = camera;
 		this.terminal = app.getTerminal();
 		this.randomizer = new Randomizer();
-		this.world = new World(camera, app.getUiManager().getCursor());
 		this.cursor = app.getUiManager().getCursor();
+		this.world = new World(this); 
 		
 		this.moveMeter = new MovementMeter();
 		this.healthMeter = new HealthMeter();
@@ -102,6 +115,7 @@ public class Game implements Renderable {
 		
 		this.entities = new ArrayList<>();
 		this.aliveEntities = new ArrayList<>();
+		this.selectedEntities = new ArrayList<>();
 		
 		this.selectedEntity = Optional.empty();
 		this.hoveredOverEntity = Optional.empty();
@@ -139,19 +153,32 @@ public class Game implements Renderable {
 			@Override
 			public void execute(Console console, String... args) {
 				entities.clear();
-				human = new Human(Game.this);
-				human.moveToRegion(0, 0);
-				addEntity(human);
-				
-				newTree(0, 3);
-				newStone(1, 0);
+								
+				newStone(6, 3);
+				newStone(4, 0);
 				newBerryBush(2, 2);
 				newBerryBush(3, 6);
 				
 				EntityData ent = loadEntity("assets/entities/archer.json");
-				DataEntity dataEnt = new DataEntity(Game.this, ent);
-				dataEnt.moveToRegion(12, 6);
-				addEntity(dataEnt);
+				for(int i = 0; i < 8; i++) {
+					DataEntity dataEnt = new DataEntity(Game.this, ent);
+					dataEnt.moveToRegion(0, i);
+					dataEnt.setCurrentDirection(Direction.SOUTH_EAST);
+					addEntity(dataEnt);
+				}
+				
+				EntityData knight = loadEntity("assets/entities/green_knight.json");
+				DataEntity dataKnight= new DataEntity(Game.this, knight);
+				dataKnight.moveToRegion(0, 10);
+				dataKnight.setCurrentDirection(Direction.SOUTH_EAST);
+				addEntity(dataKnight);
+				
+				for(int i = 0; i < 8; i++) {
+					DataEntity dataEnt = new DataEntity(Game.this, ent);
+					dataEnt.moveToRegion(11, i);
+					dataEnt.setCurrentDirection(Direction.NORTH_WEST);
+					addEntity(dataEnt);
+				}
 			}
 		});
 		app.getConsole().execute("reload");
@@ -166,6 +193,27 @@ public class Game implements Renderable {
 		}
 		
 		return null;
+	}
+	
+	/**
+	 * @return the app
+	 */
+	public FranksGame getApp() {
+		return app;
+	}
+	
+	/**
+	 * @return the camera
+	 */
+	public Camera getCamera() {
+		return camera;
+	}
+	
+	/**
+	 * @return the cursor
+	 */
+	public Cursor getCursor() {
+		return cursor;
 	}
 	
 	/**
@@ -207,6 +255,7 @@ public class Game implements Renderable {
 	
 	public Game addEntity(Entity ent) {
 		this.entities.add(ent);
+		this.entities.sort(renderOrder);
 		return this;
 	}
 	
@@ -256,6 +305,27 @@ public class Game implements Renderable {
 		return selectedEntity.isPresent();
 	}
 	
+	public boolean selectRegion(Vector2f startPos, Vector2f endPos) {
+		Vector2f worldStart = world.screenToWorldCoordinates(startPos);
+		Vector2f worldEnd = world.screenToWorldCoordinates(endPos);
+		
+		int width = (int)Math.abs(worldEnd.x - worldStart.x);
+		int height = (int)Math.abs(worldEnd.y - worldStart.y);
+		Rectangle region = new Rectangle(width, height);
+		region.setLocation(worldStart);
+
+		this.selectedEntities.clear();
+		for(Entity ent : this.entities) {
+			if(ent.isAlive()) {
+				if(ent.getBounds().intersects(region)) {
+					this.selectedEntities.add(ent);
+				}
+			}
+		}
+		
+		return !this.selectedEntities.isEmpty();
+	}
+	
 	public boolean hoveringOverEntity() {
 		hoveredOverEntity = Optional.ofNullable(getEntityOverMouse());		
 		return hoveredOverEntity.isPresent();
@@ -275,6 +345,28 @@ public class Game implements Renderable {
 		}
 		
 		return null;
+	}
+	
+	public Cell getCellOverMouse() {				
+		Vector2f worldPos = getMouseWorldPos();
+		MapTile tile = world.getMapTileByWorldPos(worldPos);
+		if(tile!=null) {
+			Rectangle bounds = tile.getBounds();
+			for(Cell cell : world.getCells()) {
+				if(bounds.intersects(cell.getBounds()) ||
+				   bounds.contains(cell.getCenterPos())) {
+					return cell;
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	public MapTile getTileOverMouse() {
+		Vector2f worldPos = getMouseWorldPos();
+		MapTile tile = world.getMapTileByWorldPos(worldPos);
+		return tile;
 	}
 	
 	/**
@@ -299,10 +391,10 @@ public class Game implements Renderable {
 		return new CommandRequest(this, action);
 	}
 	
-	public void executeCommandRequest(CommandRequest request) {
-		request.selectedEntity.flatMap(ent -> ent.getCommand(request.action))
-		  					  .filter(cmd -> cmd.checkPreconditions(this, request).isMet())
-		  					  .ifPresent(cmd -> actions.add(cmd.doAction(this, request)));
+	public Optional<CommandAction> executeCommandRequest(CommandRequest request) {
+		return request.selectedEntity.flatMap(ent -> ent.getCommand(request.action))
+									 .filter(cmd -> cmd.checkPreconditions(this, request).isMet())
+									 .map(cmd -> cmd.doAction(this, request).start());
 	}
 	
 	public void queueCommand() {
@@ -326,6 +418,9 @@ public class Game implements Renderable {
 				case TREE:
 					this.commandQueue.add(makeRequest("collectWood"));
 					break;
+				case HUMAN:
+					this.commandQueue.add(makeRequest("attack"));		
+					break;
 				default: // throw new IllegalArgumentException("Unsupported type: " + resource.getType());
 					Cons.println("Unsupported type: " + resource.getType());
 			}
@@ -333,6 +428,8 @@ public class Game implements Renderable {
 		}
 		else {
 			this.commandQueue.add(makeRequest("moveTo"));			
+			
+			//this.commandQueue.add(makeRequest("die"));
 		}
 	}
 	
@@ -377,6 +474,10 @@ public class Game implements Renderable {
 	public World getWorld() {
 		return world;
 	}
+	
+	public IsometricMap getMap() {
+		return world.getMap();
+	}
 
 	/* (non-Javadoc)
 	 * @see newera.gfx.Renderable#update(newera.util.TimeStep)
@@ -393,7 +494,7 @@ public class Game implements Renderable {
 		this.aliveEntities.clear();
 		this.entities.forEach(ent -> {
 			ent.update(timeStep);
-			if(ent.isAlive()) {
+			if(!ent.isDeleted()) {
 				aliveEntities.add(ent);
 			}
 		});
@@ -441,9 +542,29 @@ public class Game implements Renderable {
 	public void render(Canvas canvas, Camera camera, float alpha) {
 		this.world.render(canvas, camera, alpha);
 		this.actions.forEach(action -> action.render(canvas, camera, alpha));
+			
+		Vector2f c = camera.getRenderPosition(alpha);
+		IsometricMap map = world.getMap();
+		this.selectedEntity.ifPresent(ent -> {
+
+			Vector2f tilePos = ent.getTilePos();
+			MapTile tile = map.getTile(0, (int)tilePos.x, (int)tilePos.y);
+			if(tile!=null) {
+				map.renderIsoRect(canvas, tile.getIsoX()-c.x, tile.getIsoY()-c.y, tile.getWidth(), tile.getHeight(), 0xab34baff);
+			}
+		});
 		
+		for(Entity ent: this.selectedEntities) {
+			Vector2f tilePos = ent.getTilePos();
+			MapTile tile = map.getTile(0, (int)tilePos.x, (int)tilePos.y);
+			if(tile!=null) {
+				map.renderIsoRect(canvas, tile.getIsoX()-c.x, tile.getIsoY()-c.y, tile.getWidth(), tile.getHeight(), 0xab34baff);
+			}
+		}
+
+		this.entities.sort(renderOrder);
 		this.entities.forEach(ent -> ent.render(canvas, camera, alpha));
-		
+		//this.entities.forEach(ent -> RenderFont.drawShadedString(canvas, "" + ent.getZOrder(), ent.getRenderPosition(camera, alpha).x+42, ent.getRenderPosition(camera, alpha).y+64, 0xffffffff));
 		
 		int textColor = 0xff00ff00;
 		canvas.setFont("Consola", 12);
@@ -457,17 +578,26 @@ public class Game implements Renderable {
 		RenderFont.drawShadedString(canvas, "Happiness: " + healthMeter.getHappiness(), x, y+=15f, textColor);
 		RenderFont.drawShadedString(canvas, "Actions: " + actions.size(), x, y+=15f, textColor);
 		
+		
 		this.selectedEntity.ifPresent(ent -> {
 			float sx = 20;
 			float sy = 20;
-			RenderFont.drawShadedString(canvas, "Selected: " + ent.getType(), sx, sy, textColor);
+			RenderFont.drawShadedString(canvas, "Selected: " + ent.getName(), sx, sy, textColor);
 			renderEntityAttributes(canvas, ent, sx, sy + 15, textColor);
+			
+			
 		});
 		
+		for(Entity ent: this.selectedEntities) {
+			float sx = 20;
+			float sy = 20;
+			RenderFont.drawShadedString(canvas, "Selected: " + ent.getName(), sx, sy, textColor);
+			renderEntityAttributes(canvas, ent, sx, sy + 15, textColor);
+		}
 		
 		this.hoveredOverEntity.ifPresent(ent -> {
 			Vector2f pos = cursor.getCursorPos();
-			RenderFont.drawShadedString(canvas, "" + ent.getType(), pos.x + 30, pos.y, textColor);
+			RenderFont.drawShadedString(canvas, "" + ent.getName(), pos.x + 30, pos.y, textColor);
 			renderEntityAttributes(canvas, ent, pos.x + 30, pos.y + 15, textColor);
 		});
 		

@@ -29,6 +29,7 @@ public abstract class Command {
 		this.movementCost = movementCost;
 	}
 	
+	
 	/**
 	 * @return the name
 	 */

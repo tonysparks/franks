@@ -5,16 +5,15 @@ package franks.game.action;
 
 import franks.game.Command;
 import franks.game.CommandAction;
+import franks.game.CommandQueue.CommandRequest;
 import franks.game.Game;
 import franks.game.PathPlanner;
 import franks.game.PreconditionResponse;
-import franks.game.CommandQueue.CommandRequest;
 import franks.game.entity.Entity;
 import franks.game.entity.Entity.Direction;
 import franks.game.entity.Entity.State;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
-import franks.map.MapTile;
 import franks.math.Vector2f;
 import franks.util.TimeStep;
 
@@ -77,6 +76,18 @@ public class MovementCommand extends Command {
 			boolean atDestination;
 			
 			@Override
+			public CommandAction start() {
+				entity.setCurrentState(State.WALKING);
+				return this;
+			}
+			
+			@Override
+			public CommandAction end() {
+				entity.setCurrentState(State.IDLE);
+				return this;
+			}
+			
+			@Override
 			public CompletionState getCurrentState() {
 				return atDestination ? CompletionState.Success :
 					isCancelled ? CompletionState.Cancelled : CompletionState.InProgress;
@@ -93,15 +104,14 @@ public class MovementCommand extends Command {
 				Vector2f waypoint = planner.nextWaypoint(entity);
 				if(waypoint==null) {
 					atDestination = true;
-					entity.setCurrentState(State.IDLE);
 					return;
 				}
-				
+
 				Vector2f pos = entity.getPos();
 				Vector2f vel = new Vector2f();
 				Vector2f.Vector2fNormalize(waypoint, vel);
 				
-				entity.setCurrentState(State.WALKING);
+				
 				entity.setCurrentDirection(Direction.getDirection(vel));
 				
 				
@@ -119,15 +129,8 @@ public class MovementCommand extends Command {
 				entity.moveTo(newX, newY);
 				
 				if(planner.atDestination()) {
-					if(Vector2f.Vector2fApproxEquals(entity.getCenterPos(), planner.getDestination(), 16f)) {
-						//entity.moveToCenter(planner.getDestination());
-						MapTile tile = game.getWorld().getMapTileByWorldPos(planner.getDestination());
-						if(tile!=null) {
-							//entity.moveTo(tile.getX(), tile.getY());
-						}
-						
+					if(Vector2f.Vector2fApproxEquals(entity.getCenterPos(), planner.getDestination(), 16f)) {						
 						atDestination = true;
-						entity.setCurrentState(State.IDLE);
 					}
 				}
 			}
@@ -137,15 +140,13 @@ public class MovementCommand extends Command {
 			 */
 			@Override
 			public void render(Canvas canvas, Camera camera, float alpha) {
-				Vector2f c = camera.getRenderPosition(alpha);
-				planner.getPath().forEach(node -> {
-					MapTile tile = node.getValue();
-					game.getWorld().getMap().renderIsoRect(canvas, tile.getIsoX()-c.x, tile.getIsoY()-c.y, tile.getWidth(), tile.getHeight(), 0xffffffff);
-					//game.getWorld().getMap().renderIsoRect(canvas, tile.getRenderX(), tile.getRenderY(), tile.getWidth(), tile.getHeight(), 0xffffffff);
-				});
-				//canvas.resizeFont(14f);
+//				Vector2f c = camera.getRenderPosition(alpha);
+//				planner.getPath().forEach(node -> {
+//					MapTile tile = node.getValue();
+//					game.getWorld().getMap().renderIsoRect(canvas, tile.getIsoX()-c.x, tile.getIsoY()-c.y, tile.getWidth(), tile.getHeight(), 0xffffffff);
+//					
+//				});
 				
-				//canvas.drawString(entity.getPos().toString(), entity.getPos().x-c.x, entity.getPos().y-c.y, 0xffffffff);
 			}
 		};
 	}

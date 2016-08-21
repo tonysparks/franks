@@ -18,6 +18,8 @@ public interface CommandAction extends Renderable {
 		Cancelled
 		;
 	}
+	default public CommandAction start() { return this; }
+	default public CommandAction end() { return this; }
 	
 	public void cancel();
 	public CompletionState getCurrentState();	

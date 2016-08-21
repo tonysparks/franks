@@ -5,7 +5,6 @@ package franks.map;
 
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
-import franks.math.Rectangle;
 import franks.math.Vector2f;
 
 /**
@@ -67,8 +66,8 @@ public class IsometricMap extends OrthoMap {
 //		this.startX = (vert - 1) * this.halfTileWidth;
 //		this.startY = 0;
 		
-		this.startX = (vert - 1) * this.halfTileWidth;
-		this.startY = 0;
+		this.startX = ((vert - 1) * this.halfTileWidth) + 300;
+		this.startY = 100;
 		
 		width = (horiz+vert) * (tileWidth / 2);
 		height = ((horiz+vert) * ((getTileHeight() - offsetTileHeight) / 2)) + startY;
@@ -82,7 +81,7 @@ public class IsometricMap extends OrthoMap {
 	 */
 	@Override
 	public MapTile getWorldTile(int layerIndex, float worldX, float worldY) {				
-		worldX -= this.vert * this.halfTileWidth;
+		worldX -= this.startX+this.halfTileWidth; //this.vert * this.halfTileWidth;
 		worldY -= this.startY;
 		
 		int x = (int)((worldY / this.baseTileHeight) + (worldX / this.tileWidth));
@@ -137,8 +136,8 @@ public class IsometricMap extends OrthoMap {
 	
 	
 	public Vector2f isoIndexToScreen(float isoX, float isoY, Vector2f out) {
-		float startX = (this.vert - 1) * this.halfTileWidth;
-		float startY = 0;//(this.vert-1) * this.halfTileHeight;
+		float startX = this.startX;//(this.vert - 1) * this.halfTileWidth;
+		float startY = this.startY;//(this.vert-1) * this.halfTileHeight;
 		out.x = startX + ((isoX - isoY) * this.halfTileWidth) + this.halfTileHeight;// - 192;
 		out.y = startY + ((isoX * this.halfTileHeight) + (isoY * this.halfTileHeight));// + 96;
 		
@@ -167,23 +166,44 @@ public class IsometricMap extends OrthoMap {
 //		canvas.drawString(x + "," + y, x, y, color);
 //		canvas.drawCircle(2, x, y, color);
 		
-		a.set(x,y+this.halfTileHeight);		
-		b.set(x+this.halfTileWidth, y);		
+		float hw = width;
+		float hh = height/2f;
+		
+		a.set(x,y+hh);//this.halfTileHeight);		
+		b.set(x+hw/*this.halfTileWidth*/, y);		
 		canvas.drawLine(a.x, a.y, b.x, b.y, color);
 		
 		
-		a.set(x+this.halfTileWidth,y);		
-		b.set(x+this.tileWidth, y+this.halfTileHeight);		
+		a.set(x+hw/*this.halfTileWidth*/,y);		
+		b.set(x+width*2f/*this.tileWidth*/, y+hh/*this.halfTileHeight*/);		
 		canvas.drawLine(a.x, a.y, b.x, b.y, color);
 		
 		
-		a.set(x+this.tileWidth, y+this.halfTileHeight);		
-		b.set(x+this.halfTileWidth, y+this.getTileHeight());		
+		a.set(x+width*2f/*this.tileWidth*/, y+hh/*this.halfTileHeight*/);		
+		b.set(x+hw/*this.halfTileWidth*/, y+height/*this.getTileHeight()*/);		
 		canvas.drawLine(a.x, a.y, b.x, b.y, color);
 		
-		a.set(x+this.halfTileWidth, y+this.getTileHeight());				
-		b.set(x, y+this.halfTileHeight);		
+		a.set(x+hw/*this.halfTileWidth*/, y+height/*this.getTileHeight()*/);				
+		b.set(x, y+hh/*this.halfTileHeight*/);		
 		canvas.drawLine(a.x, a.y, b.x, b.y, color);
+		
+//		a.set(x,y+hh);//this.halfTileHeight);		
+//		b.set(x+hw/*this.halfTileWidth*/, y);		
+//		canvas.drawLine(a.x, a.y, b.x, b.y, color);
+//		
+//		
+//		a.set(x+hw/*this.halfTileWidth*/,y);		
+//		b.set(x+width*2f/*this.tileWidth*/, y+hh/*this.halfTileHeight*/);		
+//		canvas.drawLine(a.x, a.y, b.x, b.y, color);
+//		
+//		
+//		a.set(x+width*2f/*this.tileWidth*/, y+hh/*this.halfTileHeight*/);		
+//		b.set(x+hw/*this.halfTileWidth*/, y+height/*this.getTileHeight()*/);		
+//		canvas.drawLine(a.x, a.y, b.x, b.y, color);
+//		
+//		a.set(x+hw/*this.halfTileWidth*/, y+height/*this.getTileHeight()*/);				
+//		b.set(x, y+hh/*this.halfTileHeight*/);		
+//		canvas.drawLine(a.x, a.y, b.x, b.y, color);
 	}
 
 	
@@ -193,8 +213,8 @@ public class IsometricMap extends OrthoMap {
 		int x = 0;
 		int y = 0;
 		
-		int w = getMapWidth();
-		int h = getMapHeight();
+		int w = getMapWidth() + startX;
+		int h = getMapHeight() + startY;
 		
 		int x0 = x - xbg + this.startX, // start x, y
 		    y0 = y - ybg + this.startY - this.offsetTileHeight;

@@ -18,6 +18,7 @@ import franks.gfx.Renderable;
 import franks.gfx.TextureUtil;
 import franks.math.Vector2f;
 import franks.util.TimeStep;
+import franks.util.Updatable;
 
 /**
  * @author Tony
@@ -25,10 +26,27 @@ import franks.util.TimeStep;
  */
 public class EntityModel implements Renderable {
 
+	private static class Model implements Updatable {
+		AnimatedImage animations;
+		float offsetX;
+		float offsetY;
+
+		public Model(AnimatedImage animations, float offsetX, float offsetY) {
+			this.animations = animations;
+			this.offsetX = offsetX;
+			this.offsetY = offsetY;
+		}
+		
+		@Override
+		public void update(TimeStep timeStep) {
+			this.animations.update(timeStep);		
+		}				
+	}
+	
 	private Game game;
 	private Entity entity;
 	
-	private AnimatedImage[][] animations;
+	private Model[][] animations;
 	private Vector2f renderPos;
 		
 	/**
@@ -39,17 +57,17 @@ public class EntityModel implements Renderable {
 		this.entity = entity;
 		
 		this.renderPos = new Vector2f();
-		this.animations = new AnimatedImage[Entity.State.values().length][];
+		this.animations = new Model[Entity.State.values().length][];
 		
 		graphics.sectionStates.forEach( (k,v) -> {
 			TextureRegion tex = game.getTextureCache().getTexture(v.filePath);			
-			tex = TextureUtil.subImage(tex, v.x, v.y, v.width, v.height);			
+			tex = TextureUtil.subImage(tex, v.x, v.y, v.getWidth(tex), v.getHeight(tex));			
 			int numberOfDirections = Direction.values().length;
 			int rowHeight = tex.getRegionHeight() / numberOfDirections; 
 			
-			animations[k.ordinal()] = new AnimatedImage[numberOfDirections];
+			animations[k.ordinal()] = new Model[numberOfDirections];
 			for(int dirIndex = 0; dirIndex < numberOfDirections; dirIndex++) {				
-				TextureRegion subTex = TextureUtil.subImageRegion(tex, 0, dirIndex * rowHeight, v.width, rowHeight);
+				TextureRegion subTex = TextureUtil.subImageRegion(tex, 0, dirIndex * rowHeight, v.getWidth(tex), rowHeight);
 				TextureRegion[] frames = TextureUtil.splitImageRegion(subTex, 1, v.numberOfFrames);				
 				AnimationFrame[] aFrames = new AnimationFrame[frames.length];
 				for(int i = 0; i < aFrames.length; i++) {
@@ -57,12 +75,15 @@ public class EntityModel implements Renderable {
 					aFrames[i] = new AnimationFrame(v.frameTime, i);
 				}
 				
-				AnimatedImage image = new AnimatedImage(frames, new FramedAnimation(aFrames));
-				animations[k.ordinal()][v.directions[dirIndex].ordinal()] = image;
+				AnimatedImage image = new AnimatedImage(frames, new FramedAnimation(aFrames)).loop(v.loop);
+				animations[k.ordinal()][v.directions[dirIndex].ordinal()] = new Model(image, v.offsetX, v.offsetY);
 			}
 		});
 	}
 
+	public void resetAnimation() {
+		this.animations[entity.getCurrentState().ordinal()][entity.getCurrentDirection().ordinal()].animations.getAnimation().reset();
+	}
 	
 	@Override
 	public void update(TimeStep timeStep) {
@@ -71,7 +92,8 @@ public class EntityModel implements Renderable {
 	
 	@Override
 	public void render(Canvas canvas, Camera camera, float alpha) {
-		TextureRegion tex = this.animations[entity.getCurrentState().ordinal()][entity.getCurrentDirection().ordinal()].getCurrentImage();
+		Model model = this.animations[entity.getCurrentState().ordinal()][entity.getCurrentDirection().ordinal()];
+		TextureRegion tex = model.animations.getCurrentImage();
 		
 		Vector2f cameraPos = camera.getRenderPosition(alpha);
 
@@ -105,8 +127,8 @@ public class EntityModel implements Renderable {
 		float tileY = (pos.y / world.getRegionHeight());
 		world.getMap().isoIndexToScreen(tileX, tileY, renderPos);
 		Vector2f.Vector2fSubtract(renderPos, cameraPos, renderPos);
-		dx = renderPos.x;
-		dy = renderPos.y;
+		dx = renderPos.x + model.offsetX;
+		dy = renderPos.y + model.offsetY;
 		dx -= 32;
 		dy -= 32;
 		

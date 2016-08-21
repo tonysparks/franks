@@ -87,25 +87,25 @@
 			<systemPath>${basedir}/lib/SoundSystem.jar</systemPath>
 		</dependency>
 		<dependency>
-            <groupId>com.paulscode</groupId>
-            <artifactId>Paulscode-SoundSystem-LWJGL</artifactId>
-            <version>2013.04.17</version>
-            <scope>system</scope>
-            <systemPath>${basedir}/lib/LibraryLWJGLOpenAL.jar</systemPath>
-        </dependency>
+			<groupId>com.paulscode</groupId>
+			<artifactId>Paulscode-SoundSystem-LWJGL</artifactId>
+			<version>2013.04.17</version>
+			<scope>system</scope>
+			<systemPath>${basedir}/lib/LibraryLWJGLOpenAL.jar</systemPath>
+		</dependency>
 		<dependency>
-            <groupId>com.paulscode</groupId>
-            <artifactId>Paulscode-SoundSystem-CodecWav</artifactId>
-            <version>2013.04.17</version>
-            <scope>system</scope>
-            <systemPath>${basedir}/lib/CodecWav.jar</systemPath>
-        </dependency>
-		
-		
+			<groupId>com.paulscode</groupId>
+			<artifactId>Paulscode-SoundSystem-CodecWav</artifactId>
+			<version>2013.04.17</version>
+			<scope>system</scope>
+			<systemPath>${basedir}/lib/CodecWav.jar</systemPath>
+		</dependency>
+
+
 		<dependency>
-		  <groupId>com.github.tonysparks.leola</groupId>
-		  <artifactId>leola</artifactId>
-		  <version>0.9.7</version>
+			<groupId>com.github.tonysparks.leola</groupId>
+			<artifactId>leola</artifactId>
+			<version>0.9.7</version>
 		</dependency>
 
 	</dependencies>
@@ -123,6 +123,36 @@
 					<source>1.8</source>
 					<target>1.8</target>
 				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>com.googlecode.mavennatives</groupId>
+				<artifactId>maven-nativedependencies-plugin</artifactId>
+				<version>0.0.7</version>
+				<executions>
+					<execution>
+						<id>unpacknatives</id>
+						<goals>
+							<goal>copy</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>install</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<includeScope>compile</includeScope>
+							<outputDirectory>${basedir}/template/lib</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 
 			<plugin>
