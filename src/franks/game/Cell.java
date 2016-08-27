@@ -31,15 +31,18 @@ public class Cell implements Renderable {
 	/**
 	 * 
 	 */
-	public Cell(Game game, Map map, int tileX, int tileY, int widthInTiles, int heightInTiles) {
+	public Cell(Game game, int tileX, int tileY, int widthInTiles, int heightInTiles) {
 		this.game = game;
 		
 		this.tileBounds = new Rectangle(tileX, tileY, widthInTiles, heightInTiles);
-		this.bounds = new Rectangle(map.getTileWidth() * tileX, 
-				                    map.getTileHeight() * tileY, 
-									widthInTiles * map.getTileWidth(), 
-									heightInTiles * map.getTileHeight());
-	
+		
+		// TODO
+//		this.bounds = new Rectangle(map.getTileWidth() * tileX, 
+//				                    map.getTileHeight() * tileY, 
+//									widthInTiles * map.getTileWidth(), 
+//									heightInTiles * map.getTileHeight());
+		this.bounds = new Rectangle();
+		
 		this.renderPos = new Vector2f();
 		this.centerPos = new Vector2f();
 		this.centerPos.set(bounds.x + bounds.width/2f, bounds.y + bounds.height/2f);
@@ -93,7 +96,8 @@ public class Cell implements Renderable {
 		
 		game.getMap().isoIndexToScreen(tileBounds.x, tileBounds.y, renderPos);
 		Vector2f.Vector2fSubtract(renderPos, c, renderPos);
-		this.game.getMap().renderIsoRect(canvas, renderPos.x-92, renderPos.y+24, bounds.width-16, bounds.height-16, 0xffffffff);
+		//this.game.getMap().renderIsoRect(canvas, renderPos.x, renderPos.y, bounds.width, bounds.height, 0xffffffff);
+		this.game.getMap().renderIsoRect(canvas, renderPos.x-48, renderPos.y, bounds.width+64, bounds.height+64, 0x2fffffff);
 		//this.game.getMap().renderIsoRect(canvas, renderPos.x-16, renderPos.y-24, bounds.width, bounds.height+32, 0xffffffff);
 	}
 }

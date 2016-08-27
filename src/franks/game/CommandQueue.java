@@ -19,22 +19,29 @@ import franks.util.Updatable;
 public class CommandQueue implements Updatable {
 
 	public static class CommandRequest {
-		public Optional<Entity> selectedEntity;
+		public Entity selectedEntity;
 		public Optional<Entity> targetEntity;
 		public String action;
-		
-		public CommandRequest(Game game, String action) {
-			this(game, action, game.getSelectedEntity().orElse(null), game.getEntityOverMouse());
-		}
-		
+				
 		public CommandRequest(Game game, String action, Entity selectedEntity) {
 			this(game, action, selectedEntity, game.getEntityOverMouse());
 		}
 		
 		public CommandRequest(Game game, String action, Entity selectedEntity, Entity targetEntity) {
 			this.action = action;
-			this.selectedEntity = Optional.ofNullable(selectedEntity);
+			this.selectedEntity = selectedEntity;
 			this.targetEntity = Optional.ofNullable(targetEntity);
+		}
+		
+		/**
+		 * Attempts to execute this {@link CommandRequest}
+		 * @param game
+		 * @return the built {@link CommandAction}
+		 */
+		public Optional<CommandAction> executeRequest(Game game) {
+			return Optional.ofNullable(selectedEntity).flatMap(ent -> ent.getCommand(action))
+					 								  .filter(cmd -> cmd.checkPreconditions(game, this).isMet())
+					 								  .map(cmd -> cmd.doAction(game, this).start());
 		}
 		
 	}
@@ -89,9 +96,10 @@ public class CommandQueue implements Updatable {
 		if(!currentAction.isPresent()) {
 			if(!queue.isEmpty()) {
 				CommandRequest request = queue.poll();
-				currentAction = game.executeCommandRequest(request);
-				if(currentAction.isPresent())
+				currentAction = request.executeRequest(game);
+				if(currentAction.isPresent()) {
 					System.out.println("executing: " + request.action);
+				}
 			}
 		}
 	}	

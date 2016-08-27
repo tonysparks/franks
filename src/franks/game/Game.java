@@ -20,13 +20,9 @@ import com.google.gson.GsonBuilder;
 import franks.FranksGame;
 import franks.game.CommandAction.CompletionState;
 import franks.game.CommandQueue.CommandRequest;
-import franks.game.entity.Building;
-import franks.game.entity.DataEntity;
 import franks.game.entity.Entity;
 import franks.game.entity.Entity.Direction;
-import franks.game.entity.Entity.Type;
 import franks.game.entity.EntityData;
-import franks.game.entity.ResourceEntity;
 import franks.gfx.Art;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
@@ -57,7 +53,7 @@ public class Game implements Renderable {
 	private FranksGame app;
 	private World world;
 	
-	private MovementMeter moveMeter;
+//	private MovementMeter moveMeter;
 	private Resources resources;
 	
 	private List<Entity> entities;
@@ -89,6 +85,8 @@ public class Game implements Renderable {
 	
 	private AssetWatcher watcher;
 	
+	private Team redTeam, greenTeam;
+	
 	private Comparator<Entity> renderOrder = new Comparator<Entity>() {
 		
 		@Override
@@ -107,7 +105,6 @@ public class Game implements Renderable {
 		this.cursor = app.getUiManager().getCursor();
 		this.world = new World(this); 
 		
-		this.moveMeter = new MovementMeter();
 		this.healthMeter = new HealthMeter();
 		this.resources = new Resources();
 		
@@ -125,12 +122,15 @@ public class Game implements Renderable {
 		
 		this.mouseWorldPos = new Vector2f();
 
-		this.currentTurn = new Turn(0, getMoveMeter());
+		this.currentTurn = new Turn(0);
 		
 		this.commandQueue = new CommandQueue(this);
 		
 		this.cameraController = new CameraController(world.getMap(), camera);
 	
+		this.redTeam = new Team("Red");
+		this.greenTeam = new Team("Green");
+		
 		this.gson = new GsonBuilder().create();
 		
 		try {
@@ -153,32 +153,83 @@ public class Game implements Renderable {
 			@Override
 			public void execute(Console console, String... args) {
 				entities.clear();
-								
-				newStone(6, 3);
-				newStone(4, 0);
-				newBerryBush(2, 2);
-				newBerryBush(3, 6);
 				
-				EntityData ent = loadEntity("assets/entities/archer.json");
-				for(int i = 0; i < 8; i++) {
-					DataEntity dataEnt = new DataEntity(Game.this, ent);
+				EntityData dwarf = loadEntity("assets/entities/dark_dwarf.json");
+				
+				EntityData greenArcher = loadEntity("assets/entities/green_archer.json");
+				EntityData greenKnight = loadEntity("assets/entities/green_knight.json");
+				
+				for(int i = 0; i < 8; i++) {					
+					Entity dataEnt = new Entity(Game.this, greenTeam, i%2==0 ? greenArcher : greenKnight);
 					dataEnt.moveToRegion(0, i);
 					dataEnt.setCurrentDirection(Direction.SOUTH_EAST);
+					dataEnt.setDesiredDirection(Direction.SOUTH_EAST);
 					addEntity(dataEnt);
-				}
+				}								
 				
-				EntityData knight = loadEntity("assets/entities/green_knight.json");
-				DataEntity dataKnight= new DataEntity(Game.this, knight);
-				dataKnight.moveToRegion(0, 10);
-				dataKnight.setCurrentDirection(Direction.SOUTH_EAST);
-				addEntity(dataKnight);
+				EntityData redArcher = loadEntity("assets/entities/red_archer.json");
+				EntityData redKnight = loadEntity("assets/entities/red_knight.json");
 				
 				for(int i = 0; i < 8; i++) {
-					DataEntity dataEnt = new DataEntity(Game.this, ent);
+					Entity dataEnt = new Entity(Game.this, redTeam, i%2==0 ? redArcher: redKnight);
 					dataEnt.moveToRegion(11, i);
 					dataEnt.setCurrentDirection(Direction.NORTH_WEST);
+					dataEnt.setDesiredDirection(Direction.NORTH_WEST);
 					addEntity(dataEnt);
 				}
+				
+
+				Entity dwarfEnt = new Entity(Game.this, greenTeam, dwarf);
+				dwarfEnt.moveToRegion(0, 9);
+				dwarfEnt.setCurrentDirection(Direction.SOUTH_EAST);
+				dwarfEnt.setDesiredDirection(Direction.SOUTH_EAST);
+				addEntity(dwarfEnt);
+				
+				
+				dwarfEnt = new Entity(Game.this, redTeam, dwarf);
+				dwarfEnt.moveToRegion(11, 9);
+				dwarfEnt.setCurrentDirection(Direction.NORTH_WEST);
+				dwarfEnt.setDesiredDirection(Direction.NORTH_WEST);
+				addEntity(dwarfEnt);
+				
+//				EntityData knight = loadEntity("assets/entities/green_knight.json");
+//				Entity dataKnight= new Entity(Game.this, redTeam, knight);
+//				dataKnight.moveToRegion(0, 0);
+//				dataKnight.setCurrentDirection(Direction.SOUTH_EAST);
+//				addEntity(dataKnight);
+//				
+//				dataKnight= new Entity(Game.this, redTeam, knight);
+//				dataKnight.moveToRegion(5, 0);
+//				dataKnight.setCurrentDirection(Direction.SOUTH_EAST);
+//				addEntity(dataKnight);
+//				
+//				dataKnight= new Entity(Game.this, redTeam, knight);
+//				dataKnight.moveToRegion(10, 0);
+//				dataKnight.setCurrentDirection(Direction.SOUTH_EAST);
+//				addEntity(dataKnight);
+//				
+//				dataKnight= new Entity(Game.this, redTeam, knight);
+//				dataKnight.moveToRegion(0, 5);
+//				dataKnight.setCurrentDirection(Direction.SOUTH_EAST);
+//				addEntity(dataKnight);
+//				
+//				dataKnight= new Entity(Game.this, redTeam, knight);
+//				dataKnight.moveToRegion(0, 10);
+//				dataKnight.setCurrentDirection(Direction.SOUTH_EAST);
+//				addEntity(dataKnight);
+//				
+//				
+//				dataKnight= new Entity(Game.this, redTeam, knight);
+//				dataKnight.moveToRegion(5, 5);
+//				dataKnight.setCurrentDirection(Direction.SOUTH_EAST);
+//				addEntity(dataKnight);
+//				
+//				dataKnight= new Entity(Game.this, redTeam, knight);
+//				dataKnight.moveToRegion(10, 10);
+//				dataKnight.setCurrentDirection(Direction.SOUTH_EAST);
+//				addEntity(dataKnight);
+				
+
 			}
 		});
 		app.getConsole().execute("reload");
@@ -224,35 +275,6 @@ public class Game implements Renderable {
 	}
 	
 	
-	public Entity newStone(int x, int y) {
-		Entity ent = new ResourceEntity(this, Type.STONE, "Stone", Art.stone, 40 + randomizer.nextInt(10));
-		ent.moveToRegion(x, y);
-		addEntity(ent);
-		return ent;
-	}
-	
-	public Entity newTree(int x, int y) {
-		Entity ent = new ResourceEntity(this, Type.TREE, "Wood", Art.tree, 120 + randomizer.nextInt(10));
-		ent.moveToRegion(x, y);
-		addEntity(ent);
-		return ent;
-	}
-	
-	public Entity newBerryBush(int x, int y) {
-		Entity ent = new ResourceEntity(this, Type.BERRY_BUSH, "Food", Art.berryBush, 30 + randomizer.nextInt(10));
-		ent.moveToRegion(x, y);
-		addEntity(ent);
-		return ent;
-	}
-	
-	public Entity newBuilding(int x, int y, int tileWidth, int tileHeight) {
-		Entity ent = new Building(this, tileWidth*World.RegionWidth, tileHeight*World.RegionHeight);
-		ent.moveToRegion(x, y);
-		addEntity(ent);
-		return ent;
-	}
-	
-	
 	public Game addEntity(Entity ent) {
 		this.entities.add(ent);
 		this.entities.sort(renderOrder);
@@ -283,9 +305,8 @@ public class Game implements Renderable {
 	
 	public Turn nextTurn() {
 		this.currentTurn.endTurn(this);
-		
-		this.moveMeter.reset(15 + randomizer.nextInt(5));
-		Turn next = new Turn(this.currentTurn.getNumber()+1, this.moveMeter);
+				
+		Turn next = new Turn(this.currentTurn.getNumber()+1);
 		this.healthMeter.calculate(this);
 		this.currentTurn = next;
 		return next;
@@ -298,28 +319,95 @@ public class Game implements Renderable {
 		return selectedEntity;
 	}
 	
+	public boolean hasSelectedEntities() {
+		return !this.selectedEntities.isEmpty();
+	}
+	
+	public boolean isSelected(Entity entity) {
+		return this.selectedEntities.contains(entity);
+	}
+	
+	/**
+	 * @return the selectedEntities
+	 */
+	public List<Entity> getSelectedEntities() {
+		return selectedEntities;
+	}
+	
+	public void deselectEntities() {
+		for(int i = 0; i < this.selectedEntities.size();i++) {
+			this.selectedEntities.get(i).isSelected(false);
+		}
+		this.selectedEntities.clear();
+	}
+	
 	public boolean selectEntity() {
-		selectedEntity.ifPresent(ent -> ent.isSelected(false));
-		selectedEntity = Optional.ofNullable(getEntityOverMouse());
-		selectedEntity.ifPresent(ent -> ent.isSelected(true));
-		return selectedEntity.isPresent();
+		deselectEntities();
+		
+		Entity selectedEntity = getEntityOverMouse();
+		if(selectedEntity != null) {
+			selectedEntity.isSelected(true);
+			this.selectedEntities.add(selectedEntity);
+			return true;
+		}
+		return false;
+	}
+	
+	public boolean addSelectEntity() {		
+		Entity selectedEntity = getEntityOverMouse();
+		if(selectedEntity != null) {
+			if(selectedEntity.isSelected()) {
+				selectedEntity.isSelected(false);
+				selectedEntities.remove(selectedEntity);
+			}
+			else {
+				selectedEntity.isSelected(true);
+				selectedEntities.add(selectedEntity);
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	public boolean selectRegion(Vector2f startPos, Vector2f endPos) {
 		Vector2f worldStart = world.screenToWorldCoordinates(startPos);
 		Vector2f worldEnd = world.screenToWorldCoordinates(endPos);
 		
-		int width = (int)Math.abs(worldEnd.x - worldStart.x);
-		int height = (int)Math.abs(worldEnd.y - worldStart.y);
+		IsometricMap map = world.getMap();
+		map.screenToIsoIndex(worldStart, worldStart);
+		map.screenToIsoIndex(worldEnd, worldEnd);
+		
+		// convert to world
+		worldStart.x *= World.TileWidth;
+		worldStart.y *= World.TileHeight;
+		
+		worldEnd.x *= World.TileWidth;
+		worldEnd.y *= World.TileHeight;
+		
+		float deltaX = worldEnd.x - worldStart.x;
+		float deltaY = worldEnd.y - worldStart.y;
+		int width = (int)Math.abs(deltaX);
+		int height = (int)Math.abs(deltaY);
 		Rectangle region = new Rectangle(width, height);
+		if(deltaX < 0f) {
+			worldStart.x = worldEnd.x;
+		}
+		if(deltaY < 0f) {
+			worldStart.y = worldEnd.y;
+		}
+		
 		region.setLocation(worldStart);
+		System.out.println(region);
 
 		this.selectedEntities.clear();
 		for(Entity ent : this.entities) {
 			if(ent.isAlive()) {
+				System.out.print("checking: " + ent.getBounds() + ":" + ent.getTilePos() + " vs." + (int)worldStart.x+","+(int)worldStart.y + " intersects: ");
 				if(ent.getBounds().intersects(region)) {
 					this.selectedEntities.add(ent);
+					System.out.println("true");
 				}
+				else System.out.println("false");
 			}
 		}
 		
@@ -333,7 +421,7 @@ public class Game implements Renderable {
 	
 	public Entity getEntityOverMouse() {				
 		Vector2f worldPos = getMouseWorldPos();
-		MapTile tile = world.getMapTileByWorldPos(worldPos);
+		MapTile tile = world.getMapTileByScreenPos(worldPos);
 		if(tile!=null) {
 			Rectangle bounds = tile.getBounds();
 			for(Entity ent : this.entities) {
@@ -349,15 +437,9 @@ public class Game implements Renderable {
 	
 	public Cell getCellOverMouse() {				
 		Vector2f worldPos = getMouseWorldPos();
-		MapTile tile = world.getMapTileByWorldPos(worldPos);
+		MapTile tile = world.getMapTileByScreenPos(worldPos);
 		if(tile!=null) {
-			Rectangle bounds = tile.getBounds();
-			for(Cell cell : world.getCells()) {
-				if(bounds.intersects(cell.getBounds()) ||
-				   bounds.contains(cell.getCenterPos())) {
-					return cell;
-				}
-			}
+			return tile.getCell();
 		}
 		
 		return null;
@@ -365,7 +447,7 @@ public class Game implements Renderable {
 	
 	public MapTile getTileOverMouse() {
 		Vector2f worldPos = getMouseWorldPos();
-		MapTile tile = world.getMapTileByWorldPos(worldPos);
+		MapTile tile = world.getMapTileByScreenPos(worldPos);
 		return tile;
 	}
 	
@@ -386,81 +468,57 @@ public class Game implements Renderable {
 	public Vector2f getMouseWorldPos() {
 		return world.screenToWorldCoordinates(cursor.getCursorPos(), mouseWorldPos);		
 	}
-	
-	public CommandRequest makeRequest(String action) {
-		return new CommandRequest(this, action);
-	}
-	
-	public Optional<CommandAction> executeCommandRequest(CommandRequest request) {
-		return request.selectedEntity.flatMap(ent -> ent.getCommand(request.action))
-									 .filter(cmd -> cmd.checkPreconditions(this, request).isMet())
-									 .map(cmd -> cmd.doAction(this, request).start());
+			
+	private void dispatchCommands(String action) {
+		for(int i = 0; i < this.selectedEntities.size();i++) {
+			Entity entity = this.selectedEntities.get(i);
+			entity.queueAction(new CommandRequest(this, action, entity));
+		}
 	}
 	
 	public void queueCommand() {
-		Entity resource = getEntityOverMouse();
 		
-		if(resource!=null) {
-			if(getSelectedEntity().isPresent()) {
-				if(getSelectedEntity().get() == resource) {
-					return;
-				}
-			}
-			
+		if(!hasSelectedEntities()) {
+			return;
+		}
+		
+		Entity target = getEntityOverMouse();
+		if(target!=null && !isSelected(target)) {
+						
 			// TODO make generic!!
-			switch(resource.getType()) {
-				case BERRY_BUSH:
-					this.commandQueue.add(makeRequest("collectFood"));
-					break;
-				case STONE:
-					this.commandQueue.add(makeRequest("collectStone"));
-					break;
-				case TREE:
-					this.commandQueue.add(makeRequest("collectWood"));
-					break;
-				case HUMAN:
-					this.commandQueue.add(makeRequest("attack"));		
+			switch(target.getType()) {				
+				case HUMAN:					
+					dispatchCommands("attack");
 					break;
 				default: // throw new IllegalArgumentException("Unsupported type: " + resource.getType());
-					Cons.println("Unsupported type: " + resource.getType());
+					Cons.println("Unsupported type: " + target.getType());
 			}
 			
 		}
 		else {
-			this.commandQueue.add(makeRequest("moveTo"));			
-			
+			//this.commandQueue.add(makeRequest("moveTo"));						
 			//this.commandQueue.add(makeRequest("die"));
+			dispatchCommands("moveTo");
 		}
 	}
 	
 	// TODO create a menu over target entity, to display dispatch
 	// command to do
-	public void dispatchCommand() {
-		Entity resource = getEntityOverMouse();
-		if(resource!=null) {
-			dispatchCommand("collectWood");
-		}
-		else {
-			dispatchCommand("moveTo");
-		}
-	}
+//	public void dispatchCommand() {
+//		Entity resource = getEntityOverMouse();
+//		if(resource!=null) {
+//			dispatchCommand("collectWood");
+//		}
+//		else {
+//			dispatchCommand("moveTo");
+//		}
+//	}
 	
-	public void dispatchCommand(final String cmdName) {
-		final CommandRequest request = makeRequest(cmdName);
-		executeCommandRequest(request);
-//		selectedEntity.flatMap(ent -> ent.getCommand(cmdName))
-//					  .filter(cmd -> cmd.checkPreconditions(this, request).isMet())
-//					  .ifPresent(cmd -> actions.add(cmd.doAction(this, request)));
-	}
-	
-	
-	/**
-	 * @return the moveMeter
-	 */
-	public MovementMeter getMoveMeter() {
-		return moveMeter;
-	}
-	
+//	public void dispatchCommand(final String cmdName) {
+//		final CommandRequest request = makeRequest(cmdName);
+//		executeCommandRequest(request);
+//	}
+		
 	/**
 	 * @return the resources
 	 */
@@ -533,6 +591,10 @@ public class Game implements Renderable {
 				}
 			}
 		}
+				
+		float healthPer = ((float)entity.getHealth() / (float)entity.getMaxHealth()) * 100f;
+		RenderFont.drawShadedString(canvas, "Health: " + (int) healthPer + "%" , x, y, textColor);
+		RenderFont.drawShadedString(canvas, "Moves: " + entity.getMeter().getMovementAmount(), x, y+15, textColor);
 	}
 	
 	/* (non-Javadoc)
@@ -542,7 +604,9 @@ public class Game implements Renderable {
 	public void render(Canvas canvas, Camera camera, float alpha) {
 		this.world.render(canvas, camera, alpha);
 		this.actions.forEach(action -> action.render(canvas, camera, alpha));
-			
+		
+		drawMouseHover(canvas, camera, alpha);
+		
 		Vector2f c = camera.getRenderPosition(alpha);
 		IsometricMap map = world.getMap();
 		this.selectedEntity.ifPresent(ent -> {
@@ -573,7 +637,7 @@ public class Game implements Renderable {
 		
 		float y = 600;
 		float x = 10;
-		RenderFont.drawShadedString(canvas, "Movements: " + moveMeter.getMovementAmount(), x, y, textColor);
+		//RenderFont.drawShadedString(canvas, "Movements: " + moveMeter.getMovementAmount(), x, y, textColor);
 		RenderFont.drawShadedString(canvas, "Health: " + healthMeter.getHealth(), x, y+=15f, textColor);
 		RenderFont.drawShadedString(canvas, "Happiness: " + healthMeter.getHappiness(), x, y+=15f, textColor);
 		RenderFont.drawShadedString(canvas, "Actions: " + actions.size(), x, y+=15f, textColor);
@@ -602,5 +666,59 @@ public class Game implements Renderable {
 		});
 		
 		
+	}
+	
+	private void drawMouseHover(Canvas canvas, Camera camera, float alpha) {
+		Vector2f pos = cursor.getCenterPos();
+		pos = world.screenToWorldCoordinates(pos.x, pos.y);
+		
+		IsometricMap map = world.getMap();
+		MapTile tile = map.getWorldTile(0, pos.x, pos.y);
+		
+		//this.cells.forEach(cell -> cell.render(canvas, camera, alpha));
+		//this.cells.get(0).render(canvas, camera, alpha);
+		
+		//canvas.drawString( "Screen: " + (int)cursor.getCenterPos().x+","+ (int)cursor.getCenterPos().y, cursor.getX()-50, cursor.getY()+40, 0xffffffff);
+		//canvas.drawString( "World:  " + (int)pos.x+","+ (int)pos.y, cursor.getX()-50, cursor.getY()+60, 0xffffffff);
+		
+		if(tile != null) {
+			//canvas.drawString( "IsoPos:  " + (int)tile.getIsoX()+","+ (int)tile.getIsoY(), cursor.getX()-50, cursor.getY()+80, 0xffffffff);
+			//canvas.drawString( "TileIndex:  " + (int)tile.getXIndex()+","+ (int)tile.getYIndex(), cursor.getX()-50, cursor.getY()+100, 0xffffffff);
+			//canvas.drawString( "TilePos:  " + (int)tile.getX()+","+ (int)tile.getY(), cursor.getX()-50, cursor.getY()+120, 0xffffffff);
+			
+			//canvas.drawRect(tile.getRenderX(), tile.getRenderY(), tile.getWidth(), tile.getHeight(), 0xffffffff);
+			Vector2f c = camera.getRenderPosition(alpha);
+			
+			int color = 0x5fffffff;
+			
+			cursor.setCursorImg(Art.normalCursorImg);
+			
+			if(selectedEntities.size() == 1) {
+				Entity ent = selectedEntities.get(0);
+				int moves = ent.getMeter().getMovementAmount();				
+				
+				
+				
+				int distance = ent.distanceFrom(tile);
+				if(distance <= moves && moves > 0) {
+					color = 0x5f0000ff;
+					
+					Entity enemy = getEntityOverMouse();
+					if(enemy!=null && !enemy.getTeam().equals(ent.getTeam())) {
+						if( (moves - ((distance-1) + ent.attackCost())) > 0 ) {
+							cursor.setCursorImg(Art.attackCursorImg);
+						}
+					}
+					
+				}
+				else {
+					color = 0x5fff0000;
+				}
+				
+			}
+			
+			map.renderIsoRect(canvas, tile.getIsoX()-c.x, tile.getIsoY()-c.y, tile.getWidth(), tile.getHeight(), color);
+			//canvas.drawString( tile.getRenderX()+","+tile.getRenderY(), 10, 70, 0xffffffff);
+		}
 	}
 }

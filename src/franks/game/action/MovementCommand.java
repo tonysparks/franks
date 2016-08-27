@@ -24,8 +24,6 @@ import franks.util.TimeStep;
 public class MovementCommand extends Command {
 
 	private PathPlanner<Void> planner;
-	private Entity entity;
-	
 	private int movementSpeed;
 	
 	/**
@@ -33,8 +31,7 @@ public class MovementCommand extends Command {
 	 * @param movementCost
 	 */
 	public MovementCommand(Game game, Entity entity, int movementSpeed) {
-		super("moveTo", -1);		
-		this.entity = entity;
+		super("moveTo", -1, entity);				
 		this.movementSpeed = movementSpeed;
 		this.planner = new PathPlanner<>(game, game.getWorld().getGraph(), entity);
 	}
@@ -48,7 +45,7 @@ public class MovementCommand extends Command {
 		
 		Vector2f dst = game.getWorld().snapMapTilePos(game.getMouseWorldPos());
 		if(dst!=null) {
-			this.planner.findPath(entity.getCenterPos(), dst);		
+			this.planner.findPath(getEntity().getCenterPos(), dst);		
 			setMovementCost(this.planner.getPath().size());
 		}
 		else {
@@ -65,12 +62,9 @@ public class MovementCommand extends Command {
 		return response;
 	}
 
-	/* (non-Javadoc)
-	 * @see newera.game.Action#doAction(newera.game.Game)
-	 */
 	@Override
-	public CommandAction doAction(Game game, CommandRequest request) {
-		game.getMoveMeter().decrementMovement(getMovementCost());
+	protected CommandAction doActionImpl(Game game, CommandRequest request) {
+		Entity entity = getEntity();				
 		return new CommandAction() {
 			boolean isCancelled;
 			boolean atDestination;
@@ -84,6 +78,7 @@ public class MovementCommand extends Command {
 			@Override
 			public CommandAction end() {
 				entity.setCurrentState(State.IDLE);
+				entity.setToDesiredDirection();
 				return this;
 			}
 			

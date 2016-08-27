@@ -392,6 +392,16 @@ public class Rectangle {
 		RectangleAdd(this, b, this);
 	}
 	
+	
+	/**
+	 * Surface area
+	 * 
+	 * @return the surface area
+	 */
+	public int area() {
+		return this.width * this.height;
+	}
+	
 	/*
 	 * The below is from the LWJGL implementation.
 	 */

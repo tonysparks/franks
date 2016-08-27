@@ -56,16 +56,16 @@ public class InGameScreen implements Screen {
 		public boolean touchDragged(int x, int y, int button) {
 			//System.out.println(pointer + ": " + x + "," + y);
 			if(button==0 && !isSelecting) {
-				selectStartPos.set(x,y);
-				game.getWorld().screenToWorldCoordinates(selectStartPos, selectStartPos);
+				selectStartPos.set(cursor.getCursorPos());
+				//game.getWorld().screenToWorldCoordinates(selectStartPos, selectStartPos);
 				
 				//selectEndPos.set(x,y);
 				isSelecting = true;
 			}
 			
 			if (isSelecting) {
-				selectEndPos.set(x,y);
-				game.getWorld().screenToWorldCoordinates(selectEndPos, selectEndPos);
+				selectEndPos.set(cursor.getCursorPos());
+				//game.getWorld().screenToWorldCoordinates(selectEndPos, selectEndPos);
 			}
 			
 			return mouseMoved(x,y);				
@@ -75,8 +75,8 @@ public class InGameScreen implements Screen {
 		public boolean touchUp(int x, int y, int pointer, int button) {
 			if(button == 0) {
 				if(isSelecting) {
-					selectEndPos.set(x,y);
-					game.getWorld().screenToWorldCoordinates(selectEndPos, selectEndPos);
+					selectEndPos.set(cursor.getCursorPos());
+					//game.getWorld().screenToWorldCoordinates(selectEndPos, selectEndPos);
 					
 					if(game.selectRegion(selectStartPos, selectEndPos)) {
 						Sounds.playGlobalSound(Sounds.uiSelect);
@@ -173,8 +173,9 @@ public class InGameScreen implements Screen {
 		this.game.render(canvas, camera, alpha);
 		this.panel.render(canvas, camera, alpha);
 		
-		if(isSelecting) {
-			canvas.drawRect(selectStartPos.x, selectStartPos.y, selectEndPos.x - selectStartPos.x, selectEndPos.y - selectStartPos.y, 0xffffffff);
+		if(isSelecting) {			
+			canvas.drawRect(selectStartPos.x, selectStartPos.y, 
+					(selectEndPos.x - selectStartPos.x), (selectEndPos.y - selectStartPos.y), 0xffffffff);
 		}
 		
 		this.cursor.render(canvas);

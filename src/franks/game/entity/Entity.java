@@ -12,9 +12,17 @@ import franks.game.Command;
 import franks.game.CommandQueue;
 import franks.game.CommandQueue.CommandRequest;
 import franks.game.Game;
+import franks.game.MovementMeter;
+import franks.game.Team;
 import franks.game.World;
+import franks.game.action.AttackCommand;
+import franks.game.action.CollectResourceCommand2;
+import franks.game.action.DieCommand;
+import franks.game.action.MovementCommand;
+import franks.game.entity.EntityData.ActionData;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
+import franks.gfx.Colors;
 import franks.gfx.Renderable;
 import franks.map.Map;
 import franks.map.MapTile;
@@ -30,7 +38,7 @@ import leola.vm.types.LeoObject;
  */
 public class Entity implements Renderable {
 
-	private static float MaxNeighborDistance = (float)Math.sqrt(World.RegionWidth*World.RegionWidth + World.RegionHeight*World.RegionHeight);
+	private static float MaxNeighborDistance = (float)Math.sqrt(World.TileWidth*World.TileWidth + World.TileHeight*World.TileHeight);
 	/**
 	 * Type of entity this is
 	 * 
@@ -56,6 +64,35 @@ public class Entity implements Renderable {
 		WEST,
 		NORTH_WEST,
 		;
+		
+		
+		public Direction cardinalPerp() {
+			switch(toCardinal()) {
+				case EAST:
+					return NORTH;					
+				case NORTH:
+					return EAST;					
+				case SOUTH:
+					return WEST;					
+				case WEST:
+					return SOUTH;
+				default: return SOUTH;
+			}
+		}
+		
+		public Direction toCardinal() {
+			switch(this) {
+				case NORTH_EAST:
+				case NORTH_WEST:
+					return NORTH;
+					
+				case SOUTH_EAST:
+				case SOUTH_WEST:
+					return SOUTH;
+				default:
+					return this;
+			}
+		}
 		
 		public static Direction getDirection(Vector2f v) {
 			return getDirection(v.x, v.y);
@@ -119,7 +156,10 @@ public class Entity implements Renderable {
 	private Vector2f centerPos;
 	private Vector2f tilePos;
 	protected Vector2f scratch;
+	
 	protected Rectangle bounds;
+	protected Rectangle tileBounds;
+	
 	private boolean isSelected;
 	
 	private List<Command> availableCommands;
@@ -134,39 +174,84 @@ public class Entity implements Renderable {
 		
 	private State currentState;
 	private Direction currentDirection;
+	private Direction desiredDirection;
+	 
+	
+	private EntityModel model;
+	
+	private MovementMeter meter;
 	
 	private CommandQueue commandQueue;
+	private Team team;
 	
-	public Entity(Game game, Type type, Vector2f pos, int width, int height) {
-		this(game, type.name(), type, pos, width, height);
-	}
-	
-	public Entity(Game game, String name, Type type, Vector2f pos, int width, int height) {
+	private EntityData data;
+				
+	public Entity(Game game, Team team, EntityData data) {
 		this.game = game;
-		this.name = name;
-		this.type = type;	
-		this.pos = pos;
+		this.team = team;
+		this.data = data;
+		
+		this.name = data.name;
+		this.type = data.type;	
+		
+		this.world = game.getWorld();
+		
+		this.meter = new MovementMeter(data.movements);
+		this.commandQueue = new CommandQueue(game);
+		
+		this.pos = new Vector2f();
 		this.centerPos = new Vector2f();
 		this.renderPos = new Vector2f();
 		this.scratch = new Vector2f();
 		
 		this.tilePos = new Vector2f();
 		
-		this.bounds = new Rectangle(width, height);
+		this.tileBounds = new Rectangle(data.width/World.TileWidth, data.height/World.TileHeight);
+		this.tileBounds.setLocation(getTilePos());
+		this.bounds = new Rectangle(data.width, data.height);
 		this.bounds.setLocation(pos);
 		
 		this.availableCommands = new ArrayList<>();
 		this.attributes = new LeoMap();
 		this.isDeleted = false;
 		
-		this.world = game.getWorld();
-		
-		this.commandQueue = new CommandQueue(game);
-		
 		this.currentState = State.IDLE;
 		this.currentDirection = Direction.SOUTH;
+		this.desiredDirection = Direction.SOUTH;
 		
 		this.health = 5;
+		
+		this.team.addMember(this);
+		
+		this.model = new EntityModel(game, this, data.graphics);
+		
+		this.health = data.health;
+		
+		if(data.availableActions!=null) {
+			data.availableActions.forEach(action -> {
+				switch(action.action) {
+					case "movement": {
+						addAvailableAction(new MovementCommand(game, this, action.getNumber("movementSpeed", 50D).intValue() ));
+						break;
+					}
+					case "collect": {
+						addAvailableAction(new CollectResourceCommand2(action.getStr("resource", "wood"), this));
+						break;
+					}
+					case "attack": {
+						addAvailableAction(new AttackCommand(this, 
+								action.getNumber("cost", 1D).intValue(),
+								action.getNumber("attackDistance", 1D).intValue(),
+								action.getNumber("hitPercentage", 50D).intValue()) );
+						break;
+					}
+					case "die" : {
+						addAvailableAction(new DieCommand(this));
+						break;
+					}
+				}
+			});
+		}
 	}
 	
 	/**
@@ -182,6 +267,27 @@ public class Entity implements Renderable {
 	public CommandQueue getCommandQueue() {
 		return commandQueue;
 	}
+	
+	/**
+	 * @return the meter
+	 */
+	public MovementMeter getMeter() {
+		return meter;
+	}
+	
+	public boolean canAttack() {
+		return type.equals(Type.HUMAN);
+	}
+	
+	public int attackCost() {
+		for(ActionData data :this.data.availableActions) {
+			if(data.action.equals("attack")) {
+				return data.getNumber("cost", 1D).intValue();
+			}
+		}
+		return 1;
+	}
+	
 	
 	/**
 	 * @return the currentDirection
@@ -204,11 +310,30 @@ public class Entity implements Renderable {
 		this.currentDirection = currentDirection;
 	}
 	
+	public void setToDesiredDirection() {
+		setCurrentDirection(getDesiredDirection());
+	}
+	
+	/**
+	 * @return the desiredDirection
+	 */
+	public Direction getDesiredDirection() {
+		return desiredDirection;
+	}
+	
+	/**
+	 * @param desiredDirection the desiredDirection to set
+	 */
+	public void setDesiredDirection(Direction desiredDirection) {
+		this.desiredDirection = desiredDirection;
+	}
+	
 	/**
 	 * @param currentState the currentState to set
 	 */
 	public void setCurrentState(State currentState) {
-		this.currentState = currentState;		
+		this.currentState = currentState;
+		this.model.resetAnimation();
 	}
 	
 	//public void consumeResource(String resource)
@@ -230,6 +355,10 @@ public class Entity implements Renderable {
 		return health;
 	}
 	
+	public int getMaxHealth() {
+		return 5;
+	}
+	
 	/**
 	 * @return the isAlive
 	 */
@@ -239,6 +368,7 @@ public class Entity implements Renderable {
 	
 	public void delete() {
 		this.isDeleted = true;
+		this.team.removeMember(this);
 	}
 	
 	public boolean isDeleted() {
@@ -438,6 +568,13 @@ public class Entity implements Renderable {
 	}
 	
 	/**
+	 * @return the team
+	 */
+	public Team getTeam() {
+		return team;
+	}
+	
+	/**
 	 * @return the type
 	 */
 	public Type getType() {
@@ -453,6 +590,7 @@ public class Entity implements Renderable {
 		tilePos.set(tileX, tileY);
 		return tilePos;
 	}
+	
 	
 	/**
 	 * @return the pos
@@ -470,8 +608,15 @@ public class Entity implements Renderable {
 	 * @return the bounds
 	 */
 	public Rectangle getBounds() {
+		//bounds.setLocation(getPos());
 		return bounds;
 	}
+	
+	public Rectangle getTileBounds() {
+		tileBounds.setLocation(getTilePos());
+		return tileBounds;
+	}
+	
 	
 	public int getZOrder() {
 		World world = game.getWorld();		
@@ -513,6 +658,12 @@ public class Entity implements Renderable {
 		return (int)Math.sqrt((centerX - tileX) * (centerX - tileX) + (centerY - tileY) * (centerY - tileY));		
 	}
 	
+	public int distanceFrom(MapTile tile) {
+		Vector2f tilePos = getTilePos();
+		return (int)Math.sqrt((tile.getXIndex() - tilePos.x) * (tile.getXIndex() - tilePos.x) + 
+				              (tile.getYIndex() - tilePos.y) * (tile.getYIndex() - tilePos.y));
+	}
+	
 	public int distanceFrom(Entity other) {
 		Vector2f centerPos = getCenterPos();
 		
@@ -530,74 +681,6 @@ public class Entity implements Renderable {
 	public float getDiameter() {
 		return (float)Math.sqrt(bounds.width*bounds.width + bounds.height*bounds.height);
 	}
-
-	/* (non-Javadoc)
-	 * @see newera.gfx.Renderable#update(newera.util.TimeStep)
-	 */
-	@Override
-	public void update(TimeStep timeStep) {
-		this.commandQueue.update(timeStep);
-	}
-	
-	/* (non-Javadoc)
-	 * @see newera.gfx.Renderable#render(newera.gfx.Canvas, newera.gfx.Camera, float)
-	 */
-	@Override
-	public void render(Canvas canvas, Camera camera, float alpha) {
-		Vector2f cameraPos = camera.getRenderPosition(alpha);
-//		float dx = pos.x - cameraPos.x;
-//		float dy = pos.y - cameraPos.y;
-		
-		float dx = -1;
-		float dy = -1;
-		
-//		Vector2f pos = new Vector2f(getCenterPos());
-//		pos.x += 64 * 32;
-//		//pos.y -= 16;
-//		
-//		MapTile tile = world.getMapTileByWorldPos(pos);
-//		if(tile!=null) {
-//			dx = tile.getRenderX();//-cameraPos.x;
-//			dy = tile.getRenderY();//-cameraPos.y;
-//		}
-		
-		Vector2f pos = getPos();
-		int isoX = (int) (pos.x / world.getRegionWidth());
-		int isoY = (int) (pos.y / world.getRegionHeight());
-		
-		MapTile tile = world.getMap().getTile(0, isoX, isoY);
-		if(tile!=null) {
-			dx = tile.getIsoX() + 16 - cameraPos.x;
-			dy = tile.getIsoY() -  8 - cameraPos.y;
-		}
-		
-//		
-//		renderPos.zeroOut();
-//		world.isoIndexToWorld(isoX, isoY, renderPos);
-//				
-//		
-//		float dx = this.renderPos.x - cameraPos.x;
-//		float dy = this.renderPos.y - cameraPos.y;
-//	
-//	    canvas.drawString((int)renderPos.x+","+ (int)renderPos.y, dx, dy, 0xffffffff);
-		
-		doRender(dx, dy, canvas, camera, alpha);
-	}
-	
-
-	/**
-	 * @param dx
-	 * @param dy
-	 * @param canvas
-	 * @param camera
-	 * @param alpha
-	 */
-	protected void doRender(float dx, float dy, Canvas canvas, Camera camera, float alpha) {
-		if(isSelected()) {
-			canvas.fillCircle(getDiameter()/2.8f, dx, dy, 0xcfffffff);
-		}
-		//canvas.drawImage(this.image, dx, dy, null);
-	}
 	
 	public Vector2f getRenderPosition(Camera camera, float alpha) {
 		Vector2f cameraPos = camera.getRenderPosition(alpha);
@@ -612,6 +695,80 @@ public class Entity implements Renderable {
 		renderPos.y -= 32;
 		
 		return renderPos;
+	}
+
+	public void endTurn() {
+		this.meter.reset(data.movements);
+	}
+	
+	/* (non-Javadoc)
+	 * @see newera.gfx.Renderable#update(newera.util.TimeStep)
+	 */
+	@Override
+	public void update(TimeStep timeStep) {
+		this.commandQueue.update(timeStep);
+		this.model.update(timeStep);
+	}
+	
+	/* (non-Javadoc)
+	 * @see newera.gfx.Renderable#render(newera.gfx.Canvas, newera.gfx.Camera, float)
+	 */
+	@Override
+	public void render(Canvas canvas, Camera camera, float alpha) {	
+		model.render(canvas, camera, alpha);
+		
+		if(getType().equals(Type.HUMAN)) {
+			Vector2f pos = getRenderPosition(camera, alpha);
+			int health = getHealth();
+//			for(int i = 0; i < health; i++) {
+//				canvas.drawString("*", pos.x+23 + (i*10), pos.y+68, 0xffffffff);
+//			}
+			
+			drawMeter(canvas, pos.x + 42, pos.y + 68, health, getMaxHealth(), 0x9fFF0000, 0xffafFFaf);
+			drawMeter(canvas, pos.x + 42, pos.y + 74, meter.getMovementAmount(), data.movements, 0x8f4a5f8f, 0xff3a9aFF);
+			
+			//canvas.resizeFont(12f);
+			//canvas.drawString("x" + this.meter.getMovementAmount(), pos.x, pos.y+72, 0xffffffff);
+			
+			//canvas.drawString("WorldPos: " + (int)getPos().x+","+(int)getPos().y,pos.x, pos.y+72, 0xffffffff);
+			//canvas.drawString("ScreenPos: " + (int)pos.x+","+(int)pos.y,pos.x, pos.y+92, 0xffffffff);
+		}
+	}
+	
+	
+	private void drawMeter(Canvas canvas, float px, float py, int metric, int max, int backgroundColor, int foregroundColor) {
+		int x = (int) px;
+		int y = (int) py;
+		
+		int width = 30;
+		int height = 5;		
+		
+		//0xff9aFF1a
+//		int backgroundColor = isSelected ? 0x9fFF0000 : 0x0fFF0000;
+//		int foregroundColor = isSelected ? 0xffafFFaf : 0x7f9aFF1a;
+		
+		backgroundColor = isSelected ? backgroundColor : Colors.setAlpha(backgroundColor, 0x0f);
+		foregroundColor = isSelected ? foregroundColor : Colors.setAlpha(foregroundColor, 0x7f);
+		
+		canvas.fillRect( x, y, width, height, backgroundColor );
+		if (health > 0) {
+			canvas.fillRect( x, y, (width * metric/max), height, foregroundColor );
+		}
+		canvas.drawRect( x-1, y, width+1, height, 0xff000000 );
+		
+		// add a shadow effect
+		canvas.drawLine( x, y+1, x+width, y+1, 0x8f000000 );
+		canvas.drawLine( x, y+2, x+width, y+2, 0x5f000000 );
+		canvas.drawLine( x, y+3, x+width, y+3, 0x2f000000 );
+		canvas.drawLine( x, y+4, x+width, y+4, 0x0f000000 );
+		canvas.drawLine( x, y+5, x+width, y+5, 0x0b000000 );
+		
+		y = y+height;
+		canvas.drawLine( x, y-5, x+width, y-5, 0x0b000000 );
+		canvas.drawLine( x, y-4, x+width, y-4, 0x0f000000 );
+		canvas.drawLine( x, y-3, x+width, y-3, 0x2f000000 );
+		canvas.drawLine( x, y-2, x+width, y-2, 0x5f000000 );
+		canvas.drawLine( x, y-1, x+width, y-1, 0x8f000000 );				
 	}
 }
 

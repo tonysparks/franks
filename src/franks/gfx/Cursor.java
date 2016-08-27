@@ -28,7 +28,7 @@ public class Cursor {
 	/**
 	 */
 	public Cursor() {
-		this(Art.cursorImg);
+		this(Art.normalCursorImg);
 	}
 	
 	/**
@@ -43,6 +43,13 @@ public class Cursor {
 		this.mouseSensitivity = 1.0f;
 	}
 
+	/**
+	 * @param cursorImg the cursorImg to set
+	 */
+	public void setCursorImg(TextureRegion cursorImg) {
+		this.cursorImg = cursorImg;
+	}
+	
 	/**
 	 * @param mouseSensitivity the mouseSensitivity to set
 	 */

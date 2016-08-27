@@ -93,6 +93,8 @@ public class EntityData {
 	public String name;
 	public Map<String, Object> attributes;
 	public int width, height;
+	public int movements;	
+	public int health;
 	
 	public List<ActionData> availableActions;
 	

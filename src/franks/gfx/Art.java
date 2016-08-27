@@ -33,7 +33,8 @@ public class Art {
      *----------------------------------------------------------------*/
 	 
 	
-	public static  TextureRegion cursorImg = null;		
+	public static  TextureRegion normalCursorImg = null;
+	public static  TextureRegion attackCursorImg = null;		
 	public static  TextureRegion soldier = null;
 	public static  TextureRegion tree = null;
 	public static  TextureRegion stone = null;
@@ -60,7 +61,8 @@ public class Art {
 			BLACK_IMAGE.setTexture(new Texture(map));
 		}
 		
-		cursorImg = loadImage("./assets/gfx/cursors/default_cursor.png");
+		normalCursorImg = loadImage("./assets/gfx/cursors/default_cursor.png");
+		attackCursorImg = loadImage("./assets/gfx/cursors/attack_cursor.png");
 		soldier = loadImage("./assets/gfx/soldier.png");
 		tree = loadImage("./assets/gfx/tree01.png");
 		stone = loadImage("./assets/gfx/stone.png");

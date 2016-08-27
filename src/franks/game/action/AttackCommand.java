@@ -23,8 +23,6 @@ import franks.util.Timer;
  */
 public class AttackCommand extends Command {
 
-
-	private Entity attacker;
 	private int attackPoints;
 	private int attackDistance;
 	/**
@@ -32,9 +30,7 @@ public class AttackCommand extends Command {
 	 * @param movementCost
 	 */
 	public AttackCommand(Entity attacker, int movementPoints, int attackDistance, int attackPoints) {
-		super("attack",  movementPoints);
-		
-		this.attacker = attacker;
+		super("attack",  movementPoints, attacker);
 		
 		this.attackDistance = attackDistance;
 		this.attackPoints = attackPoints;
@@ -48,6 +44,7 @@ public class AttackCommand extends Command {
 	public PreconditionResponse checkPreconditions(Game game, CommandRequest request) {
 		PreconditionResponse response = new PreconditionResponse();
 		
+		Entity attacker = getEntity();
 		if(!attacker.canDo(getName())) {
 			response.addFailure("This entity can not attack");
 		}
@@ -57,6 +54,11 @@ public class AttackCommand extends Command {
 			response.addFailure("No enemy target");
 		}
 		else {
+			
+			if(enemy.getTeam().equals(attacker.getTeam())) {
+				response.addFailure("Can't attack team member");
+			}
+			
 			int numberOfTilesAway = attacker.distanceFrom(enemy);
 			if(numberOfTilesAway > attackDistance) {
 				response.addFailure("Enemy target is too far away");
@@ -67,12 +69,10 @@ public class AttackCommand extends Command {
 		return response;
 	}
 
-	/* (non-Javadoc)
-	 * @see franks.game.Command#doAction(franks.game.Game, franks.game.CommandQueue.CommandRequest)
-	 */
 	@Override
-	public CommandAction doAction(Game game, CommandRequest request) {
-		MapTile tile = game.getTileOverMouse();		
+	protected CommandAction doActionImpl(Game game, CommandRequest request) {
+		MapTile tile = game.getTileOverMouse();
+		Entity attacker = getEntity();
 		Entity enemy = game.getEntityOverMouse();
 		return new CommandAction() {
 			
@@ -82,7 +82,7 @@ public class AttackCommand extends Command {
 			public CommandAction start() {
 				timer.start();
 				
-
+				
 				if(tile != null) {
 					attacker.lookAt(tile);//tile.getX(), tile.getY());
 				}
@@ -96,7 +96,7 @@ public class AttackCommand extends Command {
 
 				Randomizer rand = game.getRandomizer();
 				int x = rand.nextInt(100);
-				System.out.println("x=" + x);
+				//System.out.println("x=" + x);
 				if( x <= attackPoints) {
 					enemy.damage();
 				}

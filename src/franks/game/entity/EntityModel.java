@@ -103,30 +103,12 @@ public class EntityModel implements Renderable {
 		float dy = -1;
 		
 		Vector2f pos = entity.getPos();
-//		Vector2f cameraIsoPos = new Vector2f();
-		//world.worldToIso(cameraPos.x, cameraPos.y, cameraIsoPos);
-		//Vector2f.Vector2fCopy(pos, renderPos);
-//		world.worldToIso(pos.x, pos.y, renderPos);
-		
-//		float sx = renderPos.x;
-//		float sy = renderPos.y;
-//		
-//		Vector2f.Vector2fSubtract(renderPos, cameraPos, renderPos);
-//		
-//		int isoX = (int) (pos.x / world.getRegionWidth());
-//		int isoY = (int) (pos.y / world.getRegionHeight());
-//		
-//		MapTile tile = world.getMap().getTile(0, isoX, isoY);
-		//if(tile!=null) {
-//			dx = tile.getIsoX() + 16 - cameraPos.x;
-//			dy = tile.getIsoY() -  8 - cameraPos.y;
-			//world.getMap().iso
-		//}
 		
 		float tileX = (pos.x / world.getRegionWidth());
 		float tileY = (pos.y / world.getRegionHeight());
 		world.getMap().isoIndexToScreen(tileX, tileY, renderPos);
 		Vector2f.Vector2fSubtract(renderPos, cameraPos, renderPos);
+
 		dx = renderPos.x + model.offsetX;
 		dy = renderPos.y + model.offsetY;
 		dx -= 32;

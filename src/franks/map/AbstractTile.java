@@ -3,6 +3,7 @@
  */
 package franks.map;
 
+import franks.game.Cell;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
 import franks.math.Rectangle;
@@ -36,6 +37,8 @@ public class AbstractTile implements MapTile {
 
 	protected boolean isDestroyed;
 
+	protected Cell cell;
+	
 	/**
 	 * 
 	 */
@@ -358,6 +361,22 @@ public class AbstractTile implements MapTile {
 		return this.isoY;
 	}
 
+	/* (non-Javadoc)
+	 * @see franks.map.MapTile#getCell()
+	 */
+	@Override
+	public Cell getCell() {	
+		return this.cell;
+	}
+	
+	
+	/* (non-Javadoc)
+	 * @see franks.map.MapTile#setCell(franks.game.Cell)
+	 */
+	@Override
+	public void setCell(Cell cell) {
+		this.cell = cell;
+	}
 	/*
 	 * (non-Javadoc)
 	 * 

@@ -3,6 +3,7 @@
  */
 package franks.map;
 
+import franks.game.Cell;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
 import franks.math.Circle;
@@ -1270,6 +1271,9 @@ public interface MapTile {
 	int getIsoY();
 	void setIsoPosition(int x, int y);
 
+	void setCell(Cell cell);
+	Cell getCell();
+	
 	/**
 	 * @return the xIndex
 	 */

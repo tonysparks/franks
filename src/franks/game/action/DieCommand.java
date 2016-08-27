@@ -21,12 +21,8 @@ import franks.util.Timer;
  */
 public class DieCommand extends Command {
 
-
-	private Entity entity;
-
 	public DieCommand(Entity entity) {
-		super("die",  0);
-		this.entity = entity;
+		super("die",  0, entity);		
 	}
 
 	/* (non-Javadoc)
@@ -36,7 +32,7 @@ public class DieCommand extends Command {
 	public PreconditionResponse checkPreconditions(Game game, CommandRequest request) {
 		PreconditionResponse response = new PreconditionResponse();
 		
-		if(!entity.canDo(getName())) {
+		if(!getEntity().canDo(getName())) {
 			response.addFailure("This entity can not die");
 		}
 		
@@ -44,11 +40,9 @@ public class DieCommand extends Command {
 		return response;
 	}
 
-	/* (non-Javadoc)
-	 * @see franks.game.Command#doAction(franks.game.Game, franks.game.CommandQueue.CommandRequest)
-	 */
+	
 	@Override
-	public CommandAction doAction(Game game, CommandRequest request) {			
+	protected CommandAction doActionImpl(Game game, CommandRequest request) {			
 		return new CommandAction() {
 			
 			Timer timer = new Timer(false, 13*120);
@@ -56,13 +50,13 @@ public class DieCommand extends Command {
 			@Override
 			public CommandAction start() {
 				timer.start();
-				entity.setCurrentState(State.DEAD);
+				getEntity().setCurrentState(State.DEAD);
 				return this;
 			}
 			
 			@Override
 			public CommandAction end() {
-				//entity.delete();
+				getEntity().delete();
 				// TODO: Once a 'map' is over, clean up the 
 				// dead bodies???
 				return this;

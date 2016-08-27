@@ -5,9 +5,9 @@ package franks.game.action;
 
 import franks.game.Command;
 import franks.game.CommandAction;
+import franks.game.CommandQueue.CommandRequest;
 import franks.game.Game;
 import franks.game.PreconditionResponse;
-import franks.game.CommandQueue.CommandRequest;
 import franks.game.entity.Entity;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
@@ -30,7 +30,7 @@ public class CollectResourceCommand2 extends Command {
 	 * @param movementCost
 	 */
 	public CollectResourceCommand2(String resourceName, Entity collector) {
-		super("collect" + resourceName, 1);
+		super("collect" + resourceName, 1, collector);
 		this.resourceName = resourceName;	
 		this.collector = collector;
 	}
@@ -73,12 +73,8 @@ public class CollectResourceCommand2 extends Command {
 		return response;
 	}
 
-	/* (non-Javadoc)
-	 * @see newera.game.Command#doAction(newera.game.Game)
-	 */
 	@Override
-	public CommandAction doAction(Game game, CommandRequest request) {
-		game.getMoveMeter().decrementMovement(getMovementCost());
+	protected CommandAction doActionImpl(Game game, CommandRequest request) {		
 		return new CommandAction() {
 			boolean isCancelled = false;
 			boolean isCompleted = false;
@@ -109,7 +105,7 @@ public class CollectResourceCommand2 extends Command {
 				if(!isCancelled) {
 					if(deltaAmount == -1) {
 						int total = resource.attributeAsInt(resourceName);
-						Entity collector = request.selectedEntity.get();
+						Entity collector = request.selectedEntity;
 						int power = collector.getResourceCollectionPower(resourceName);
 						deltaAmount = Math.min(total, power);						
 						total -= deltaAmount;

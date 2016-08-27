@@ -16,8 +16,8 @@ public class MovementMeter {
 	/**
 	 * 
 	 */
-	public MovementMeter() {
-		this.movementAmount = 10000;
+	public MovementMeter(int startingAmount) {
+		this.movementAmount = startingAmount;
 	}
 	
 	public void reset(int movementAount) {

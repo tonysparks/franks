@@ -12,15 +12,13 @@ import franks.game.entity.Entity.Type;
  */
 public class Turn {
 
-	private MovementMeter movementMeter;
 	private int number;
 	
 	/**
 	 * 
 	 */
-	public Turn(int number, MovementMeter meter) {
+	public Turn(int number) {
 		this.number = number;
-		this.movementMeter = meter;
 	}
 	
 	/**
@@ -30,12 +28,6 @@ public class Turn {
 		return number;
 	}
 	
-	/**
-	 * @return the movementMeter
-	 */
-	public MovementMeter getMovementMeter() {
-		return movementMeter;
-	}
 	
 	public void endTurn(Game game) {
 		Resources resources = game.getResources();
@@ -52,6 +44,10 @@ public class Turn {
 			ent.calculateStatus();
 		}
 		
+		
+		for(Entity ent : game.getEntities()) {
+			ent.endTurn();
+		}
 		
 	}
 
