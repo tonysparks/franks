@@ -4,7 +4,6 @@
 package franks.game;
 
 import franks.game.entity.Entity;
-import franks.game.entity.Entity.Type;
 
 /**
  * @author Tony
@@ -27,28 +26,16 @@ public class Turn {
 	public int getNumber() {
 		return number;
 	}
+
 	
-	
+	/**
+	 * Ends the current turn
+	 * @param game
+	 */
 	public void endTurn(Game game) {
-		Resources resources = game.getResources();
-		
-		// apply the food		
-		for(Entity ent : game.getEntities()) {
-			if(ent.getType() == Type.HUMAN) {
-				resources.feed(ent);
-			}
-		}
-		
-		// finally calculate their status
-		for(Entity ent : game.getEntities()) {
-			ent.calculateStatus();
-		}
-		
-		
 		for(Entity ent : game.getEntities()) {
 			ent.endTurn();
 		}
-		
 	}
 
 }

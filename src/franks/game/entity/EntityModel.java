@@ -6,8 +6,6 @@ package franks.game.entity;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
 import franks.game.Game;
-import franks.game.World;
-import franks.game.entity.Entity.Direction;
 import franks.game.entity.EntityData.GraphicData;
 import franks.gfx.AnimatedImage;
 import franks.gfx.AnimationFrame;
@@ -43,20 +41,17 @@ public class EntityModel implements Renderable {
 		}				
 	}
 	
-	private Game game;
 	private Entity entity;
-	
 	private Model[][] animations;
-	private Vector2f renderPos;
 		
 	/**
-	 * 
+	 * @param game
+	 * @param entity
+	 * @param graphics
 	 */
 	public EntityModel(Game game, Entity entity, GraphicData graphics) {
-		this.game = game;		
 		this.entity = entity;
 		
-		this.renderPos = new Vector2f();
 		this.animations = new Model[Entity.State.values().length][];
 		
 		graphics.sectionStates.forEach( (k,v) -> {
@@ -81,44 +76,35 @@ public class EntityModel implements Renderable {
 		});
 	}
 
+	
+	private Model getCurrentModel() {
+		return this.animations[entity.getCurrentState().ordinal()][entity.getCurrentDirection().ordinal()];
+	}
+	
+	/**
+	 * Resets the animation to the beginning frame
+	 */
 	public void resetAnimation() {
-		this.animations[entity.getCurrentState().ordinal()][entity.getCurrentDirection().ordinal()].animations.getAnimation().reset();
+		getCurrentModel().animations.getAnimation().reset();
 	}
 	
 	@Override
 	public void update(TimeStep timeStep) {
-		this.animations[entity.getCurrentState().ordinal()][entity.getCurrentDirection().ordinal()].update(timeStep);
+		getCurrentModel().update(timeStep);
 	}
 	
 	@Override
 	public void render(Canvas canvas, Camera camera, float alpha) {
-		Model model = this.animations[entity.getCurrentState().ordinal()][entity.getCurrentDirection().ordinal()];
+		Model model = getCurrentModel();
 		TextureRegion tex = model.animations.getCurrentImage();
-		
-		Vector2f cameraPos = camera.getRenderPosition(alpha);
-
-		World world = game.getWorld();
 		
 		float dx = -1;
 		float dy = -1;
 		
-		Vector2f pos = entity.getPos();
-		
-		float tileX = (pos.x / world.getRegionWidth());
-		float tileY = (pos.y / world.getRegionHeight());
-		world.getMap().isoIndexToScreen(tileX, tileY, renderPos);
-		Vector2f.Vector2fSubtract(renderPos, cameraPos, renderPos);
-
+		Vector2f renderPos = entity.getRenderPosition(camera, alpha);
 		dx = renderPos.x + model.offsetX;
 		dy = renderPos.y + model.offsetY;
-		dx -= 32;
-		dy -= 32;
 		
 		canvas.drawImage(tex, dx, dy, 0xffffffff);
-//		canvas.drawString(dx+","+dy, dx, dy + 70, 0xffffffff);
-//		canvas.drawString(sx+","+sy, dx, dy + 90, 0xffffffff);
-//		if(tile!=null) {
-//			canvas.drawString(tile.getXIndex()+","+tile.getYIndex(), dx, dy + 110, 0xffffffff);	
-//		}
 	}
 }

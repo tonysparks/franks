@@ -8,7 +8,6 @@ import java.util.Map;
 
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
-import franks.game.entity.Entity.Direction;
 import franks.game.entity.Entity.State;
 
 /**
@@ -68,7 +67,7 @@ public class EntityData {
 	
 	public static class StateData {
 		public Entity.State state;
-		public Map<Entity.Direction, List<FrameData>> animation;
+		public Map<Direction, List<FrameData>> animation;
 	}
 	
 	public static class GraphicData {

@@ -3,8 +3,6 @@
  */
 package franks.game;
 
-import java.util.function.Consumer;
-
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
 import franks.gfx.Camera;
@@ -37,16 +35,13 @@ public class World implements Renderable {
 	public static final int CellWidth = TileWidth * CellTileWidth;
 	public static final int CellHeight = TileHeight * CellTileHeight;
 	
-	
-	private Region[][] regions;
 	private IsometricMap map;
 	private Camera camera;
-	
-	private Cell[][] cells;
 	
 	private MapGraph<Void> graph;
 	
 	private Vector2f cacheVector;
+	
 	/**
 	 * 
 	 */
@@ -54,70 +49,37 @@ public class World implements Renderable {
 		this.camera = game.getCamera();				
 		this.cacheVector = new Vector2f();
 		
-		this.regions = new Region[12][12];
-		for(int y = 0; y < this.regions.length; y++) {
-			for(int x = 0; x < this.regions[y].length; x++) {
-				this.regions[y][x] = new Region(x,y, TileWidth, TileHeight);
-			}
-		}
-		
+		int numberOfTilesX = 12;
+		int numberOfTilesY = 12;
+				
 		int tileWidth = TileWidth*2;
 		int tileHeight = TileHeight;
 		
 		SceneDef scene = new SceneDef();
-		//scene.setTileWidth(tileWidth);
-		//scene.setTileHeight(tileHeight);
-		scene.setTileWidth(TileWidth*2);
-		scene.setTileHeight(TileHeight);
-		Layer background = new Layer("ground", false, false, false, false, true, 0, 0, this.regions.length);
-		scene.setDimensionY(this.regions.length);
-		scene.setDimensionX(this.regions[0].length);
+		scene.setTileWidth(tileWidth);
+		scene.setTileHeight(tileHeight);
+		
+		Layer background = new Layer("ground", false, false, false, false, true, 0, 0, numberOfTilesY);
+		scene.setDimensionX(numberOfTilesX);
+		scene.setDimensionY(numberOfTilesY);
 		scene.setBackgroundLayers(new Layer[] { background });
 		scene.setForegroundLayers(new Layer[] {});
 		
 		int xrow = 1024 / tileWidth;
 		int xcol = 1024 / tileHeight;
+		
 		TextureRegion tex = TextureUtil.loadImage("./assets/gfx/tiles.png", xrow, xcol);
 		TextureRegion texTile = new TextureRegion(tex.getTexture(), 0, 0, tileWidth, tileHeight);
-		
-		int numberOfXCells = scene.getDimensionX() / CellTileWidth;
-		int numberOfYCells = scene.getDimensionY() / CellTileHeight;
-		this.cells = new Cell[numberOfYCells][];
-		
-		for(int y = 0; y < numberOfYCells; y++) {
-			this.cells[y] = new Cell[numberOfXCells];
-			for(int x = 0; x < numberOfXCells; x++) {		
-				this.cells[y][x] = new Cell(game, x*CellTileWidth, y*CellTileHeight, CellTileWidth, CellTileHeight); 				
-			}
-		}
-		
-		int cellY = 0;
-		int cellX = 0;
-		
-		for(int y = 0; y < this.regions.length; y++) {
-			MapTile[] row = new MapTile[this.regions[0].length];
-
-			if(y>0 && y%CellTileHeight==0) {
-				cellY++;
-			}
-			cellX = 0;
-			
-			for(int x = 0; x < this.regions[0].length; x++ ) {
-				if(x>0 && x%CellTileWidth==0) {
-					cellX++;
-				}
 				
-				//MapTile tile = new ColoredTile(0xff81aa81, 0xff000000, 0, RegionWidth, RegionHeight);
-				//tile.setPosition(x*RegionWidth, y*RegionHeight);
-				MapTile tile = new ImageTile(texTile, 0, TileWidth, TileHeight); //tileWidth, tileHeight);
-				//tile.setPosition(x*tileWidth, y*tileHeight);
+		for(int y = 0; y < numberOfTilesY; y++) {
+			MapTile[] row = new MapTile[numberOfTilesX];
+		
+			for(int x = 0; x < numberOfTilesX; x++ ) {
+				MapTile tile = new ImageTile(texTile, 0, TileWidth, TileHeight);
 				tile.setPosition(x*TileWidth, y*TileHeight);
 				tile.setIndexPosition(x, y);
 				
-				tile.setCell(this.cells[cellY][cellX]);
 				row[x] = tile;
-				
-				
 			}
 			
 			
@@ -125,8 +87,7 @@ public class World implements Renderable {
 		}
 
 		
-		this.map =// new OrthoMap(true); 
-				new IsometricMap(true);
+		this.map = new IsometricMap(true);
 		this.map.init(scene);
 		
 		this.graph = this.map.createMapGraph(new GraphNodeFactory<Void>() {
@@ -162,41 +123,32 @@ public class World implements Renderable {
 		return graph;
 	}
 	
-	
-	public void foreachRegion(Consumer<Region> f) {
-		for(int y = 0; y < this.regions.length; y++) {
-			for(int x = 0; x < this.regions[y].length; x++) {
-				f.accept(this.regions[y][x]);
-			}
-		}
-	}
-	
-	public Region getRegion(int x, int y) {
-		return this.regions[y][x];
-	}
-	
-	public Cell getCell(Vector2f worldPos) {
-		int x = (int) worldPos.x / World.TileWidth;
-		int y = (int) worldPos.y / World.TileHeight;
 		
-		if(map.checkTileBounds(x, y)) {
-		
-			MapTile tile = map.getTile(0, x, y);
-			if(tile!=null) {
-				return tile.getCell();
-			}
-		}
-		
-		return null;
-	}
-	
-	public MapTile getMapTileByScreenPos(Vector2f pos) {
-		MapTile tile = this.map.getWorldTile(0, pos.x, pos.y);
+	/**
+	 * This will internally adjust the supplied screen coordinates by the current 
+	 * camera position and return the {@link MapTile} underneath the position
+	 * 
+	 * @param screenPos the screen position 
+	 * @return the {@link MapTile} underneath the supplied screen position, or null
+	 * if no {@link MapTile}
+	 */
+	public MapTile getMapTileByScreenPos(Vector2f screenPos) {
+		screenRelativeToCamera(screenPos, cacheVector);
+		MapTile tile = this.map.getWorldTile(0, cacheVector.x, cacheVector.y);
 		return tile;
 	}
 	
-	public Vector2f snapMapTilePos(Vector2f pos) {
-		MapTile tile = this.map.getWorldTile(0, pos.x, pos.y);
+	/**
+	 * This will internally adjust the supplied screen coordinates by the current 
+	 * camera position and return the {@link MapTile} tile coordinates underneath the position
+	 * 
+	 * @param screenPos the screen position 
+	 * @return the {@link MapTile} tile coordinates underneath the supplied screen position, or null
+	 * if no {@link MapTile}
+	 */
+	public Vector2f getMapTilePosByScreenPos(Vector2f screenPos) {
+		screenRelativeToCamera(screenPos, cacheVector);
+		MapTile tile = this.map.getWorldTile(0, cacheVector.x, cacheVector.y);
 		if(tile != null) {
 			//return new Vector2f(tile.getX() /*+ tile.getWidth()/2f*/, tile.getY() /*+ tile.getHeight()/2f*/);
 			cacheVector.set(tile.getX(), tile.getY());
@@ -205,66 +157,64 @@ public class World implements Renderable {
 		return null;
 	}
 	
-	
-	public Vector2f screenToWorldCoordinates(Vector2f pos) {
-		return screenToWorldCoordinates(pos.x, pos.y);
+	/**
+	 * Get the screen position given the supplied tile coordinates
+	 * 
+	 * @param tilePos the tile position
+	 * @param out the screen coordinates for the supplied tile coordinates
+	 * @return the screen coordinates for the supplied tile coordinates
+	 */
+	public Vector2f getScreenPosByMapTileIndex(Vector2f tilePos, Vector2f out) {
+		return map.isoIndexToScreen(tilePos.x, tilePos.y, out);
 	}
-	public Vector2f screenToWorldCoordinates(Vector2f pos, Vector2f out) {
-		return screenToWorldCoordinates(pos.x, pos.y, out);
+	
+	/**
+	 * Get the screen position given the supplied tile coordinates
+	 * 
+	 * @param tileX the tile position x
+	 * @param tileY the tile position y
+	 * @param out the screen coordinates for the supplied tile coordinates
+	 * @return the screen coordinates for the supplied tile coordinates
+	 */
+	public Vector2f getScreenPosByMapTileIndex(float tileX, float tileY, Vector2f out) {
+		return map.isoIndexToScreen(tileX, tileY, out);
+	}
+	
+	
+	public Vector2f screenRelativeToCamera(Vector2f pos) {
+		return screenRelativeToCamera(pos.x, pos.y);
+	}
+	public Vector2f screenRelativeToCamera(Vector2f pos, Vector2f out) {
+		return screenRelativeToCamera(pos.x, pos.y, out);
 	}
 	
 	/**
 	 * @param x - screen x position
 	 * @param y - screen y position
-	 * @return the x and y converted to world coordinates
+	 * @return the x and y relative to the current camera position
 	 */
-	public Vector2f screenToWorldCoordinates(float x, float y) {
-		return screenToWorldCoordinates(x, y, cacheVector);
+	public Vector2f screenRelativeToCamera(float x, float y) {
+		return screenRelativeToCamera(x, y, cacheVector);
 	}
 	
 	/**
 	 * @param x - screen x position
 	 * @param y - screen y position
 	 * @param out
-	 * @return the x and y converted to world coordinates
+	 * @return the x and y relative to the current camera position
 	 */
-	public Vector2f screenToWorldCoordinates(float x, float y, Vector2f out) {
+	public Vector2f screenRelativeToCamera(float x, float y, Vector2f out) {
 		Vector2f pos = camera.getPosition();
 		out.set(x + pos.x, y + pos.y);
 		return out;
 	}
-	
-//	public Vector2f worldToScreen(float worldX, float worldY, Vector2f out) {
-//		Vector2f pos = camera.getPosition();
-//		out.set(worldX - pos.x, worldY - pos.y);
-//		return out;
-//	}
-	
-//	public Vector2f worldToIso(float worldX, float worldY, Vector2f out) {
-//		//worldToScreen(worldX, worldY, out);
-//		this.map.screenToIsoPosition(worldX, worldY, out);
-//		//this.map.worldToIsoIndex(worldX, worldY, out);
-//		//Vector2f.Vector2fSubtract(out, camera.getPosition(), out);
-//		return out;
-//	}
-	
-//	public Vector2f isoIndexToWorld(int isoX, int isoY, Vector2f out) {
-//		this.map.isoIndexToWorld(isoX, isoY, out); 
-//		return out;
-//	}
-	
+		
 	/* (non-Javadoc)
 	 * @see newera.gfx.Renderable#update(newera.util.TimeStep)
 	 */
 	@Override
 	public void update(TimeStep timeStep) {
-		this.map.update(timeStep);
-		
-//		for(int y = 0; y < this.regions.length; y++) {
-//			for(int x = 0; x < this.regions[y].length; x++) {
-//				this.regions[y][x].update(timeStep);
-//			}
-//		}
+		this.map.update(timeStep);		
 	}
 	
 	/* (non-Javadoc)
@@ -272,24 +222,6 @@ public class World implements Renderable {
 	 */
 	@Override
 	public void render(Canvas canvas, Camera camera, float alpha) {
-		this.map.render(canvas, camera, alpha);
-		
-//		for(int y = 0; y < cells.length; y++) {			
-//			for(int x = 0; x < cells[y].length; x++) {		
-//				cells[y][x].render(canvas, camera, alpha); 				
-//			}
-//		}
-		
-
-		
-		//canvas.drawImage(tileImg, 10, canvas.getHeight() - 100, null);
-		//canvas.drawCircle(2, 10, canvas.getHeight() - 100, 0xffffffff);
-		//canvas.drawRect(10, canvas.getHeight()-100, tileImg.getRegionWidth(), tileImg.getRegionHeight(), 0xffffffff);
-		//canvas.drawCircle(2, cursor.getCenterPos().x, cursor.getCenterPos().y, 0xffffffff);
-//		for(int y = 0; y < this.regions.length; y++) {
-//			for(int x = 0; x < this.regions[y].length; x++) {
-//				this.regions[y][x].render(canvas, camera, alpha);
-//			}
-//		}
+		this.map.render(canvas, camera, alpha);		
 	}
 }

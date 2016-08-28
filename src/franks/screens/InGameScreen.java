@@ -37,49 +37,23 @@ public class InGameScreen implements Screen {
 	private Button endTurnBtn;
 	
 	private PanelView<Renderable> panel;
-//	private Vector2f selectStartPos;
-//	private Vector2f selectEndPos;
-//	private boolean isSelecting;
 	
 	private Inputs inputs = new KeyboardGameController() {
 		
 		@Override
 		public boolean mouseMoved(int x, int y) {
-			cursor.moveTo(x, y);
-			if(game.hoveringOverEntity()) {
-				//Sounds.playGlobalSound(Sounds.uiHover);
-			}
+			cursor.moveTo(x, y);			
 			return super.mouseMoved(x, y);
 		}				
 		
 		@Override
 		public boolean touchDragged(int x, int y, int button) {
-//			if(button==0 && !isSelecting) {
-//				selectStartPos.set(cursor.getCursorPos());
-//				isSelecting = true;
-//			}
-//			
-//			if (isSelecting) {
-//				selectEndPos.set(cursor.getCursorPos());
-//			}
-			
 			return mouseMoved(x,y);				
 		}
 		
 		@Override
 		public boolean touchUp(int x, int y, int pointer, int button) {
 			if(button == 0) {
-//				if(isSelecting) {
-//					selectEndPos.set(cursor.getCursorPos());
-//					//game.getWorld().screenToWorldCoordinates(selectEndPos, selectEndPos);
-//					
-//					if(game.selectRegion(selectStartPos, selectEndPos)) {
-//						Sounds.playGlobalSound(Sounds.uiSelect);
-//					}
-//				}
-//				else if(game.selectEntity()) {
-//					Sounds.playGlobalSound(Sounds.uiSelect);
-//				}
 				if(game.selectEntity()) {
 					Sounds.playGlobalSound(Sounds.uiSelect);
 				}			
@@ -88,21 +62,15 @@ public class InGameScreen implements Screen {
 				game.queueCommand();
 			}
 			
-//			isSelecting = false;
-			
 			return super.touchUp(x, y, pointer, button);
 		}
 	};
-	/**
-	 * 
-	 */
+	
+	
 	public InGameScreen(FranksGame app) {
 		this.app = app;
 		this.camera = newCamera(1024*3, 1024*3);
 		this.game = new Game(app, this.camera);
-		
-//		this.selectStartPos = new Vector2f();
-//		this.selectEndPos = new Vector2f();
 		
 		this.cursor = app.getUiManager().getCursor();
 		
@@ -168,12 +136,7 @@ public class InGameScreen implements Screen {
 	public void render(Canvas canvas, float alpha) {
 		this.game.render(canvas, camera, alpha);
 		this.panel.render(canvas, camera, alpha);
-		
-//		if(isSelecting) {			
-//			canvas.drawRect(selectStartPos.x, selectStartPos.y, 
-//					(selectEndPos.x - selectStartPos.x), (selectEndPos.y - selectStartPos.y), 0xffffffff);
-//		}
-		
+				
 		this.cursor.render(canvas);
 	}
 	

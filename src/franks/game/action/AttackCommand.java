@@ -160,6 +160,6 @@ public class AttackCommand extends Command {
 	public int calculateDefencePercentage(Entity defender) {
 		Randomizer rand = game.getRandomizer();
 		int d10 = rand.nextInt(10) * 10;						
-		return d10 + defender.defenseScore();
+		return d10 + defender.calculateDefenseScore();
 	}
 }

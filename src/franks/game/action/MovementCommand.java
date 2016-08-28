@@ -11,8 +11,8 @@ import franks.game.CommandQueue.CommandRequest;
 import franks.game.Game;
 import franks.game.PathPlanner;
 import franks.game.PreconditionResponse;
+import franks.game.entity.Direction;
 import franks.game.entity.Entity;
-import franks.game.entity.Entity.Direction;
 import franks.game.entity.Entity.State;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
@@ -50,11 +50,11 @@ public class MovementCommand extends Command {
 	
 	private int calculateCost(PathPlanner<Void> planner, Vector2f destination) {
 		if(destination != null) {
-			Vector2f dst = game.getWorld().snapMapTilePos(destination);
+			Vector2f dst = game.getWorld().getMapTilePosByScreenPos(destination);
 			if(dst!=null) {
 				planner.findPath(getEntity().getCenterPos(), dst);				
 				List<GraphNode<MapTile, Void>>  path = planner.getPath();
-				return path.size() * getEntity().movementCost();
+				return path.size() * getEntity().movementBaseCost();
 //				
 //				int numberOfCellsToCross = 0;
 //				
@@ -90,7 +90,7 @@ public class MovementCommand extends Command {
 //			response.addFailure("Invalid destination");
 //		}
 		
-		int cost = calculateCost(planner, game.getMouseWorldPos());
+		int cost = calculateCost(planner, game.getCursorPos());
 		if(cost < 0) {
 			response.addFailure("Invalid destination");
 		}

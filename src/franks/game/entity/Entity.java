@@ -8,12 +8,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
-import franks.game.Cell;
+import franks.game.ActionMeter;
 import franks.game.Command;
 import franks.game.CommandQueue;
 import franks.game.CommandQueue.CommandRequest;
 import franks.game.Game;
-import franks.game.ActionMeter;
 import franks.game.Team;
 import franks.game.World;
 import franks.game.action.AttackCommand;
@@ -24,21 +23,18 @@ import franks.gfx.Canvas;
 import franks.gfx.Colors;
 import franks.gfx.Renderable;
 import franks.map.IsometricMap;
-import franks.map.Map;
 import franks.map.MapTile;
 import franks.math.Rectangle;
 import franks.math.Vector2f;
 import franks.util.TimeStep;
-import leola.vm.types.LeoMap;
-import leola.vm.types.LeoObject;
 
 /**
  * @author Tony
  *
  */
 public class Entity implements Renderable {
-
 	private static float MaxNeighborDistance = (float)Math.sqrt(World.TileWidth*World.TileWidth + World.TileHeight*World.TileHeight);
+	
 	/**
 	 * Type of entity this is
 	 * 
@@ -53,122 +49,18 @@ public class Entity implements Renderable {
 		
 		BUILDING,
 	}
-	
-	public static enum Direction {
-		NORTH(0, 1),
-		NORTH_EAST(1, 1),
-		EAST(1, 0),
-		SOUTH_EAST(1, -1),
-		SOUTH(0, -1),
-		SOUTH_WEST(-1, -1),
-		WEST(-1, 0),
-		NORTH_WEST(-1, 1),
-		;
 		
-		private Vector2f facing;
-		
-		private Direction(float x, float y) {
-			this.facing = new Vector2f(x, y);
-		}
-		
-		/**
-		 * @return the facing
-		 */
-		public Vector2f getFacing() {
-			return facing;
-		}
-		
-		public int getX() {
-			return (int) facing.x;
-		}
-		
-		public int getY() {
-			return (int) facing.y;
-		}
-		
-		public Direction cardinalPerp() {
-			switch(toCardinal()) {
-				case EAST:
-					return NORTH;					
-				case NORTH:
-					return EAST;					
-				case SOUTH:
-					return WEST;					
-				case WEST:
-					return SOUTH;
-				default: return SOUTH;
-			}
-		}
-		
-		public Direction toCardinal() {
-			switch(this) {
-				case NORTH_EAST:
-				case NORTH_WEST:
-					return NORTH;
-					
-				case SOUTH_EAST:
-				case SOUTH_WEST:
-					return SOUTH;
-				default:
-					return this;
-			}
-		}
-		
-		public static final Direction[] values = values();
-		
-		public static Direction getDirection(Vector2f v) {
-			return getDirection(v.x, v.y);
-		}
-		
-		public static Direction getDirection(float x, float y) {
-//			Vector2f v = new Vector2f(x,y);
-//			if(!v.isZero())System.out.println(v);
-			
-			final float threshold = 0.5f;
-			if(y > threshold) {
-				if(x > threshold) {
-					return Direction.SOUTH;
-				}
-				else if(x < -threshold) {
-					return Direction.WEST;
-				}
-				else {
-					return Direction.SOUTH_WEST;
-				}
-			}
-			else if(y < -threshold) {
-				if(x > threshold) {
-					return Direction.EAST;
-				}
-				else if(x < -threshold) {
-					return Direction.NORTH;
-				}
-				else {
-					return Direction.NORTH_EAST;
-				}
-			}
-			else {
-				if(x > threshold) {
-					return Direction.SOUTH_EAST;
-				}
-				else if(x < -threshold) {
-					return Direction.NORTH_WEST;
-				}
-				else {
-					return Direction.SOUTH;
-				}
-			}
-		}
-	}
-	
+	/**
+	 * The state the Entity can be in
+	 * 
+	 * @author Tony
+	 *
+	 */
 	public static enum State {
 		IDLE,
 		WALKING,
-		COLLECTING,
-		DROPPING,
-		//DYING,
-		DEAD,
 		ATTACKING,
+		DEAD,
 	}
 	
 	private Type type;
@@ -188,8 +80,6 @@ public class Entity implements Renderable {
 	
 	protected Game game;
 	protected World world;
-	
-	private LeoMap attributes;
 	
 	protected int health;
 		
@@ -235,7 +125,6 @@ public class Entity implements Renderable {
 		this.bounds.setLocation(pos);
 		
 		this.availableCommands = new HashMap<>();
-		this.attributes = new LeoMap();
 		this.isDeleted = false;
 		
 		this.currentState = State.IDLE;
@@ -295,6 +184,16 @@ public class Entity implements Renderable {
 		return data;
 	}
 	
+	
+	/**
+	 * Calculates the defensive score.
+	 * 
+	 * @return the total defense score
+	 */
+	public int calculateDefenseScore() {
+		return data.defense.defensePercentage + calculateAdjacentBonus();
+	}
+	
 	/**
 	 * Calculates the movement cost for this Unit to move to the desired screen position
 	 * 
@@ -310,6 +209,13 @@ public class Entity implements Renderable {
 		return -1;
 	}
 	
+	
+	/**
+	 * Calculates the total cost of attacking the supplied enemy
+	 * 
+	 * @param enemy
+	 * @return the total cost of attacking the supplied entity, or -1 if invalid
+	 */
 	public int calculateAttackCost(Entity enemy) {
 		Command cmd = this.availableCommands.get("attack");
 		if(cmd instanceof AttackCommand) {
@@ -320,10 +226,14 @@ public class Entity implements Renderable {
 	}
 	
 	public boolean canAttack() {
-		return type.equals(Type.HUMAN);
+		return data.attackAction != null;
 	}
 	
-	public int attackCost() {
+	public boolean canMove() {
+		return data.moveAction != null;
+	}
+	
+	public int attackBaseCost() {
 		if(data.attackAction!=null) {
 			return data.attackAction.cost;
 		}
@@ -338,19 +248,20 @@ public class Entity implements Renderable {
 		return 0;
 	}
 	
-	public int movementCost() {
+	public int movementBaseCost() {
 		if(data.moveAction!=null) {
 			return data.moveAction.cost;
 		}
 		return Integer.MAX_VALUE;
 	}
 	
-	public int defenseScore() {
-		return data.defense.defensePercentage + calculateAdjacentBonus();
-	}
+
 	
-	
-	public int getRemainingActionPoints() {
+	/**
+	 * Action points remaining for this unit
+	 * @return Action points remaining for this unit
+	 */
+	public int remainingActionPoints() {
 		return this.meter.remaining();
 	}
 	
@@ -376,6 +287,10 @@ public class Entity implements Renderable {
 		this.currentDirection = currentDirection;
 	}
 	
+	
+	/**
+	 * Sets the current direction to the desired direction
+	 */
 	public void setToDesiredDirection() {
 		setCurrentDirection(getDesiredDirection());
 	}
@@ -402,7 +317,7 @@ public class Entity implements Renderable {
 		this.model.resetAnimation();
 	}
 	
-	public int calculateAdjacentBonus() {
+	private int calculateAdjacentBonus() {
 		Vector2f tilePos = getTilePos();
 		int tileX = (int) tilePos.x;
 		int tileY = (int) tilePos.y;
@@ -431,25 +346,21 @@ public class Entity implements Renderable {
 		return 0;
 	}
 	
-	//public void consumeResource(String resource)
-	
-	public void calculateStatus() {
-		
-	}
-	
 	/**
-	 * Check to see the status of this entity
-	 */
-	public void checkStatus() {		
-	}
-	
-	/**
+	 * The current health of this unit
+	 * 
 	 * @return the health
 	 */
 	public int getHealth() {
 		return health;
 	}
 	
+	
+	/**
+	 * The maximum health this unit can obtain
+	 * 
+	 * @return The maximum health this unit can obtain
+	 */
 	public int getMaxHealth() {
 		return 5;
 	}
@@ -461,45 +372,63 @@ public class Entity implements Renderable {
 		return !this.currentState.equals(State.DEAD);
 	}
 	
+	
+	/**
+	 * Delete removes this unit from the world entirely
+	 */
 	public void delete() {
 		this.isDeleted = true;
 		this.team.removeMember(this);
 	}
 	
+	/**
+	 * Determine if this unit should be removed from the world
+	 * 
+	 * @return Determine if this unit should be removed from the world
+	 */
 	public boolean isDeleted() {
 		return this.isDeleted;
 	}
 	
-	
+	/**
+	 * Place this unit in the DEAD state, which is still
+	 * part of the game world
+	 */
 	public void kill() {
 		if(this.isAlive()) {
 			doAction(new CommandRequest(game, "die", this));
 		}
 	}
 	
+	
+	/**
+	 * Damage this unit.  If the health get to zero, the unit
+	 * is placed in the DEAD state.
+	 */
 	public void damage() {
 		this.health--;
 		if(this.health<=0) {
 			kill();
 		}
 	}
-	
+
 	/**
-	 * @return the attributes
+	 * If the other {@link Entity} is within a tile's length away
+	 * 
+	 * @param other
+	 * @return true if within a tiles length away
 	 */
-	public LeoMap getAttributes() {
-		return attributes;
-	}
-	
-	public boolean hasAttribute(String name) {
-		return LeoObject.isTrue(attributes.getByString(name));
-	}
-	
 	public boolean isWithinRange(Entity other) {
 		Vector2f delta = getPos().subtract(other.getPos());
 		return delta.length() <= MaxNeighborDistance;
 	}
 	
+	/**
+	 * If this entity and the supplied entity are team mates.
+	 * 
+	 * @param other
+	 * @return true if they are team mates
+	 */
 	public boolean isTeammate(Entity other) {
 		if(other!=null) {
 			if(other.team != null && team!=null) {
@@ -510,64 +439,7 @@ public class Entity implements Renderable {
 	}
 	
 	
-	public int getResourceCollectionPower(String resource) {
-		LeoObject value = attributes.getByString("resourceCollectionPower" + resource);
-		if(LeoObject.isTrue(value)) {
-			return value.asInt();
-		}
-		return 0;
-	}
-	
-	public int deltaAttribute(String attr, int delta) {
-		int value = attributeAsInt(attr);
-		value += delta;
-		if(value<0) {
-			value = 0;
-		}
-		
-		attribute(attr, value);
-		return value;
-	}
-	
-	public Entity attribute(String name, int value) {
-		attributes.putByString(name, LeoObject.valueOf(value));
-		return this;
-	}
-	
-	public Entity attribute(String name, float value) {
-		attributes.putByString(name, LeoObject.valueOf(value));
-		return this;
-	}
-	
-	public Entity attribute(String name, String value) {
-		attributes.putByString(name, LeoObject.valueOf(value));
-		return this;
-	}
-	
-	public String attributeAsString(String name) {
-		LeoObject value = attributes.getByString(name);
-		if(LeoObject.isTrue(value)) {
-			return value.toString();
-		}
-		return null;
-	}
-	
-	public int attributeAsInt(String name) {
-		LeoObject value = attributes.getByString(name);
-		if(LeoObject.isTrue(value)) {
-			return value.asInt();
-		}
-		return 0;
-	}
-	
-	public float attributeAsFloat(String name) {
-		LeoObject value = attributes.getByString(name);
-		if(LeoObject.isTrue(value)) {
-			return value.asFloat();
-		}
-		return 0.0f;
-	}
-	
+
 	/**
 	 * @return the game
 	 */
@@ -729,34 +601,6 @@ public class Entity implements Renderable {
 //		return -1;
 	}
 	
-	/**
-	 * Test to see if this Entity currently resides in the supplied {@link Cell}
-	 * @param cell
-	 * @return true if this entity is inside the supplied cell
-	 */
-	public boolean inCell(Cell cell) {
-		return cell.getBounds().contains(getCenterPos());
-	}
-	
-	
-	/**
-	 * Returns the distance of this Entity to the Cell in tile units
-	 * @param cell
-	 * @return the number of tiles that separate these two
-	 */
-	public int distanceFrom(Cell cell) {
-		Rectangle r = cell.getTileBounds();
-		int centerX = r.x + r.width / 2;
-		int centerY = r.y + r.height / 2;
-		
-		Vector2f centerPos = getCenterPos();
-		
-		Map map = game.getMap();
-		int tileX = map.worldToTileX((int)centerPos.x);
-		int tileY = map.worldToTileY((int)centerPos.y);
-		
-		return (int)Math.sqrt((centerX - tileX) * (centerX - tileX) + (centerY - tileY) * (centerY - tileY));		
-	}
 	
 	public int distanceFrom(MapTile tile) {
 		Vector2f tilePos = getTilePos();
@@ -781,7 +625,7 @@ public class Entity implements Renderable {
 		World world = game.getWorld();
 		Vector2f tilePos = getTilePos();
 		
-		world.getMap().isoIndexToScreen(tilePos.x, tilePos.y, renderPos);
+		world.getScreenPosByMapTileIndex(tilePos, renderPos);		
 		Vector2f.Vector2fSubtract(renderPos, cameraPos, renderPos);
 		
 		renderPos.x -= 32;

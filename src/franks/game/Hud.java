@@ -3,8 +3,8 @@
  */
 package franks.game;
 
+import franks.game.entity.Direction;
 import franks.game.entity.Entity;
-import franks.game.entity.Entity.Direction;
 import franks.gfx.Art;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
@@ -30,9 +30,6 @@ public class Hud implements Renderable {
 	private World world;
 	private IsometricMap map;
 	
-	private Resources resources;
-	
-	
 	private MovementCostAnalyzer movementAnalyzer;
 	private AttackCostAnalyzer attackAnalyzer;
 	
@@ -50,10 +47,6 @@ public class Hud implements Renderable {
 		this.cursor = game.getCursor();
 		this.world = game.getWorld();
 		this.map = game.getMap();
-		
-		this.resources = game.getResources();
-		
-		
 	}
 
 	@Override
@@ -92,9 +85,6 @@ public class Hud implements Renderable {
 			RenderFont.drawShadedString(canvas, "Selected: " + selectedEntity.getName(), sx, sy, textColor);
 			renderEntityAttributes(canvas, selectedEntity, sx, sy + 15, textColor);
 		}
-						
-		
-		this.resources.render(canvas, camera, alpha);
 				
 		Entity hoveredOverEntity = game.getEntityOverMouse();
 		if(hoveredOverEntity != null) {
@@ -122,13 +112,13 @@ public class Hud implements Renderable {
 				
 		float healthPer = ((float)entity.getHealth() / (float)entity.getMaxHealth()) * 100f;
 		RenderFont.drawShadedString(canvas, "Health: " + (int) healthPer + "%" , x, y, textColor);
-		RenderFont.drawShadedString(canvas, "Defense: " + entity.defenseScore(), x, y+15, textColor);
+		RenderFont.drawShadedString(canvas, "Defense: " + entity.calculateDefenseScore(), x, y+15, textColor);
 		RenderFont.drawShadedString(canvas, "ActionPoints: " + entity.getMeter().remaining(), x, y+30, textColor);
 	}
 	
 	private void drawMouseHover(Canvas canvas, Camera camera, float alpha) {
 		Vector2f pos = cursor.getCenterPos();
-		pos = world.screenToWorldCoordinates(pos.x, pos.y);
+		pos = world.screenRelativeToCamera(pos.x, pos.y);
 		
 		IsometricMap map = world.getMap();
 		MapTile tile = map.getWorldTile(0, pos.x, pos.y);
@@ -173,8 +163,8 @@ public class Hud implements Renderable {
 	
 	private void drawAttackRange(Canvas canvas, Entity selectedEntity, Vector2f cameraPos) {
 		
-		int remainingPoints = selectedEntity.getRemainingActionPoints();
-		int attackCost = selectedEntity.attackCost();
+		int remainingPoints = selectedEntity.remainingActionPoints();
+		int attackCost = selectedEntity.attackBaseCost();
 		if(remainingPoints >= attackCost) {
 			Vector2f tilePos = selectedEntity.getTilePos();
 			int tileX = (int)tilePos.x;
