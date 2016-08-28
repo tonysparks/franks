@@ -23,19 +23,25 @@ import franks.util.Timer;
  */
 public class AttackCommand extends Command {
 
-	private int attackPoints;
+	private int hitPercentage;
 	private int attackDistance;
+	
+	private Game game;
+	
 	/**
 	 * @param name
 	 * @param movementCost
 	 */
-	public AttackCommand(Entity attacker, int movementPoints, int attackDistance, int attackPoints) {
-		super("attack",  movementPoints, attacker);
+	public AttackCommand(Game game, Entity attacker, int cost, int attackDistance, int hitPercentage) {
+		super("attack",  cost, attacker);
+		
+		this.game = game;
 		
 		this.attackDistance = attackDistance;
-		this.attackPoints = attackPoints;
+		this.hitPercentage = hitPercentage;
 		
 	}
+
 
 	/* (non-Javadoc)
 	 * @see franks.game.Command#checkPreconditions(franks.game.Game, franks.game.CommandQueue.CommandRequest)
@@ -55,7 +61,7 @@ public class AttackCommand extends Command {
 		}
 		else {
 			
-			if(enemy.getTeam().equals(attacker.getTeam())) {
+			if(enemy.isTeammate(attacker)) {
 				response.addFailure("Can't attack team member");
 			}
 			
@@ -65,7 +71,7 @@ public class AttackCommand extends Command {
 			}			
 		}
 		
-		checkMovement(response, game);
+		checkCost(response, game);
 		return response;
 	}
 
@@ -76,7 +82,7 @@ public class AttackCommand extends Command {
 		Entity enemy = game.getEntityOverMouse();
 		return new CommandAction() {
 			
-			Timer timer = new Timer(false, 14*120);
+			Timer timer = new Timer(false, attacker.getData().getAnimationTime(State.ATTACKING));
 						
 			@Override
 			public CommandAction start() {
@@ -96,10 +102,18 @@ public class AttackCommand extends Command {
 
 				Randomizer rand = game.getRandomizer();
 				int x = rand.nextInt(100);
-				//System.out.println("x=" + x);
-				if( x <= attackPoints) {
+
+				if( x <= hitPercentage) {
 					enemy.damage();
 				}
+				
+				int attackPercentage = calculateAttackPercentage(attacker);
+				int defensePercentage = calculateDefencePercentage(enemy);
+				
+				if(attackPercentage >= defensePercentage) {
+					enemy.damage();
+				}
+				
 				
 				attacker.setCurrentState(State.IDLE);
 				return this;
@@ -127,5 +141,25 @@ public class AttackCommand extends Command {
 		};
 	}
 
+
 	
+	public int calculateCost(Entity enemy) {
+		int numberOfTilesAway = getEntity().distanceFrom(enemy);
+		if(numberOfTilesAway <= attackDistance) {
+			return getActionCost();
+		}
+		return -1;
+	}
+
+	public int calculateAttackPercentage(Entity attacker) {
+		Randomizer rand = game.getRandomizer();
+		int d10 = rand.nextInt(10) * 10;						
+		return d10 + hitPercentage;
+	}
+	
+	public int calculateDefencePercentage(Entity defender) {
+		Randomizer rand = game.getRandomizer();
+		int d10 = rand.nextInt(10) * 10;						
+		return d10 + defender.defenseScore();
+	}
 }

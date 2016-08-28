@@ -3,6 +3,8 @@
  */
 package franks.game.action;
 
+import java.util.List;
+
 import franks.game.Command;
 import franks.game.CommandAction;
 import franks.game.CommandQueue.CommandRequest;
@@ -14,6 +16,8 @@ import franks.game.entity.Entity.Direction;
 import franks.game.entity.Entity.State;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
+import franks.graph.GraphNode;
+import franks.map.MapTile;
 import franks.math.Vector2f;
 import franks.util.TimeStep;
 
@@ -23,19 +27,53 @@ import franks.util.TimeStep;
  */
 public class MovementCommand extends Command {
 
-	private PathPlanner<Void> planner;
+	private PathPlanner<Void> planner, costPlanner;
 	private int movementSpeed;
-	
+	private Game game;
 	/**
 	 * @param name
 	 * @param movementCost
 	 */
 	public MovementCommand(Game game, Entity entity, int movementSpeed) {
-		super("moveTo", -1, entity);				
+		super("moveTo", -1, entity);
+		this.game = game;
+		
 		this.movementSpeed = movementSpeed;
 		this.planner = new PathPlanner<>(game, game.getWorld().getGraph(), entity);
+		this.costPlanner = new PathPlanner<>(game, game.getWorld().getGraph(), entity);
 	}
 
+	
+	public int calculateCost(Vector2f destination) {
+		return calculateCost(costPlanner, destination);
+	}
+	
+	private int calculateCost(PathPlanner<Void> planner, Vector2f destination) {
+		if(destination != null) {
+			Vector2f dst = game.getWorld().snapMapTilePos(destination);
+			if(dst!=null) {
+				planner.findPath(getEntity().getCenterPos(), dst);				
+				List<GraphNode<MapTile, Void>>  path = planner.getPath();
+				return path.size() * getEntity().movementCost();
+//				
+//				int numberOfCellsToCross = 0;
+//				
+//				Vector2f tilePos = getEntity().getTilePos();
+//				Cell cell = game.getMap().getTile(0, (int)tilePos.x, (int)tilePos.y).getCell();
+//				for(GraphNode<MapTile, Void> node : path) {
+//					if( node.getValue().getCell() != cell) {
+//						numberOfCellsToCross++;
+//						cell = node.getValue().getCell();
+//					}
+//				}
+//				
+//				return numberOfCellsToCross;
+			}
+		}
+		
+		return -1;
+	}
+	
 	/* (non-Javadoc)
 	 * @see newera.game.Action#checkPreconditions(newera.game.Game)
 	 */
@@ -43,20 +81,29 @@ public class MovementCommand extends Command {
 	public PreconditionResponse checkPreconditions(Game game, CommandRequest request) {
 		PreconditionResponse response = new PreconditionResponse();
 		
-		Vector2f dst = game.getWorld().snapMapTilePos(game.getMouseWorldPos());
-		if(dst!=null) {
-			this.planner.findPath(getEntity().getCenterPos(), dst);		
-			setMovementCost(this.planner.getPath().size());
-		}
-		else {
+//		Vector2f dst = game.getWorld().snapMapTilePos(game.getMouseWorldPos());
+//		if(dst!=null) {
+//			this.planner.findPath(getEntity().getCenterPos(), dst);		
+//			setMovementCost(this.planner.getPath().size());
+//		}
+//		else {
+//			response.addFailure("Invalid destination");
+//		}
+		
+		int cost = calculateCost(planner, game.getMouseWorldPos());
+		if(cost < 0) {
 			response.addFailure("Invalid destination");
 		}
+		else {
+			setActionCost(cost);
+		}
+		
 		
 		if(!this.planner.hasPath()) {
 			response.addFailure("Invalid destination");
 		}
 		else {
-			checkMovement(response, game);
+			checkCost(response, game);
 		}
 		
 		return response;
@@ -105,14 +152,7 @@ public class MovementCommand extends Command {
 				Vector2f pos = entity.getPos();
 				Vector2f vel = new Vector2f();
 				Vector2f.Vector2fNormalize(waypoint, vel);
-				
-				
-				entity.setCurrentDirection(Direction.getDirection(vel));
-				
-				
-//				double dt = timeStep.asFraction();
-//				int newX = (int)Math.round(pos.x + vel.x * movementSpeed * dt);
-//				int newY = (int)Math.round(pos.y + vel.y * movementSpeed * dt);
+				entity.setCurrentDirection(Direction.getDirection(vel));				
 				
 				float dt = (float)timeStep.asFraction();			
 				float deltaX = (vel.x * movementSpeed * dt);

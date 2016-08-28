@@ -6,7 +6,6 @@ package franks.game;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import franks.game.entity.Entity;
 import franks.graph.AStarGraphSearch;
@@ -66,11 +65,8 @@ public class PathPlanner<E> {
 		@Override
 		protected boolean shouldIgnore(GraphNode<MapTile, E> node) {
 			MapTile tile = node.getValue();
-			Optional<Entity> ent = game.getEntityOnTile(tile);
-			if(ent.isPresent()) {
-				return ent.get() != entity;
-			}
-			return false;
+			Entity ent = game.getEntityOnTile(tile);
+			return (ent!=null);
 		}
 	}
 	

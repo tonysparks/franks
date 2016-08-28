@@ -14,22 +14,24 @@ public abstract class Command {
 
 	private Entity entity;
 	private String name;
-	private int movementCost;
+	private int actionCost;
+	
+	
 	/**
 	 * 
 	 */
-	public Command(String name, int movementCost, Entity entity) {
+	public Command(String name, int actionCost, Entity entity) {
 		this.name = name;
-		this.movementCost = movementCost;
+		this.actionCost = actionCost;
 		this.entity = entity;
 				
 	}
 	
 	/**
-	 * @param movementCost the movementCost to set
+	 * @param actionCost the movementCost to set
 	 */
-	protected void setMovementCost(int movementCost) {
-		this.movementCost = movementCost;
+	protected void setActionCost(int actionCost) {
+		this.actionCost = actionCost;
 	}
 	
 	
@@ -41,10 +43,10 @@ public abstract class Command {
 	}
 	
 	/**
-	 * @return the movementCost
+	 * @return the actionCost
 	 */
-	public int getMovementCost() {
-		return movementCost;
+	public int getActionCost() {
+		return actionCost;
 	}
 	
 	/**
@@ -56,12 +58,12 @@ public abstract class Command {
 	
 	protected PreconditionResponse newResponse(Game game) {
 		PreconditionResponse response = new PreconditionResponse();
-		checkMovement(response, game);
+		checkCost(response, game);
 		return response;
 	}
 	
-	protected void checkMovement(PreconditionResponse response, Game game) {		
-		if(!entity.getMeter().hasEnough(getMovementCost())) {
+	protected void checkCost(PreconditionResponse response, Game game) {		
+		if(!entity.getMeter().hasEnough(getActionCost())) {
 			response.addFailure("Not enough movement points");
 		}		
 	}
@@ -70,7 +72,7 @@ public abstract class Command {
 	protected abstract CommandAction doActionImpl(Game game, CommandRequest request);
 	
 	public CommandAction doAction(Game game, CommandRequest request) {
-		getEntity().getMeter().decrementMovement(getMovementCost());
+		getEntity().getMeter().decrementBy(getActionCost());
 		return doActionImpl(game, request);
 	}
 

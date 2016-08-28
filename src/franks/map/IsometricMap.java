@@ -76,6 +76,9 @@ public class IsometricMap extends OrthoMap {
 		width = (horiz+vert) * (tileWidth / 2);
 		height = ((horiz+vert) * ((getTileHeight() - offsetTileHeight) / 2)) + startY;
 		
+		mapWidth = width + startX;
+		mapHeight = height + startY + 200;//100;
+		
 		initRenderPositions();
 	}
 	

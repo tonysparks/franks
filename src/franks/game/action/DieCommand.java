@@ -36,7 +36,7 @@ public class DieCommand extends Command {
 			response.addFailure("This entity can not die");
 		}
 		
-		checkMovement(response, game);
+		checkCost(response, game);
 		return response;
 	}
 
@@ -45,7 +45,7 @@ public class DieCommand extends Command {
 	protected CommandAction doActionImpl(Game game, CommandRequest request) {			
 		return new CommandAction() {
 			
-			Timer timer = new Timer(false, 13*120);
+			Timer timer = new Timer(false, getEntity().getData().getAnimationTime(State.DEAD));
 			
 			@Override
 			public CommandAction start() {

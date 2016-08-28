@@ -32,12 +32,12 @@ public class OrthoMap implements Map {
 	/**
 	 * Scene Width
 	 */
-	private int mapWidth;
+	protected int mapWidth;
 
 	/**
 	 * Scene Width
 	 */
-	private int mapHeight;
+	protected int mapHeight;
 
 	/**
 	 * Tile width 

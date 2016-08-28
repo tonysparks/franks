@@ -10,7 +10,6 @@ import franks.game.entity.Entity;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
 import franks.gfx.Renderable;
-import franks.map.Map;
 import franks.math.Rectangle;
 import franks.math.Vector2f;
 import franks.util.TimeStep;

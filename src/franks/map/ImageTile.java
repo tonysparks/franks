@@ -97,6 +97,10 @@ public class ImageTile extends AbstractTile {
 	    if(!this.isDestroyed) {
 	    	sprite.setPosition(renderX, renderY);
 	    	canvas.drawRawSprite(sprite);
+//	    	if(cell!=null) {
+//	    		Rectangle b = cell.getTileBounds();
+//	    		canvas.drawString(b.x +"," + b.y, renderX+16, renderY+16, 0xffffffff);
+//	    	}
 	       // canvas.drawScaledImage(image, renderX, renderY, width, height, 0xFFFFFFFF);
 
 //	    	Vector2f pos = camera.getRenderPosition(alpha);

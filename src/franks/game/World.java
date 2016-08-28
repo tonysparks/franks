@@ -9,7 +9,6 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
-import franks.gfx.Cursor;
 import franks.gfx.Renderable;
 import franks.gfx.TextureUtil;
 import franks.graph.GraphNode;
@@ -41,23 +40,20 @@ public class World implements Renderable {
 	
 	private Region[][] regions;
 	private IsometricMap map;
-	private Cursor cursor;
 	private Camera camera;
 	
 	private Cell[][] cells;
 	
 	private MapGraph<Void> graph;
 	
-	private TextureRegion tileImg;
 	private Vector2f cacheVector;
 	/**
 	 * 
 	 */
 	public World(Game game) {
-		this.camera = game.getCamera();
-		this.cursor = game.getCursor();
-				
+		this.camera = game.getCamera();				
 		this.cacheVector = new Vector2f();
+		
 		this.regions = new Region[12][12];
 		for(int y = 0; y < this.regions.length; y++) {
 			for(int x = 0; x < this.regions[y].length; x++) {
@@ -83,10 +79,6 @@ public class World implements Renderable {
 		int xcol = 1024 / tileHeight;
 		TextureRegion tex = TextureUtil.loadImage("./assets/gfx/tiles.png", xrow, xcol);
 		TextureRegion texTile = new TextureRegion(tex.getTexture(), 0, 0, tileWidth, tileHeight);
-		tileImg = texTile;
-		
-		
-		
 		
 		int numberOfXCells = scene.getDimensionX() / CellTileWidth;
 		int numberOfYCells = scene.getDimensionY() / CellTileHeight;
@@ -104,7 +96,17 @@ public class World implements Renderable {
 		
 		for(int y = 0; y < this.regions.length; y++) {
 			MapTile[] row = new MapTile[this.regions[0].length];
+
+			if(y>0 && y%CellTileHeight==0) {
+				cellY++;
+			}
+			cellX = 0;
+			
 			for(int x = 0; x < this.regions[0].length; x++ ) {
+				if(x>0 && x%CellTileWidth==0) {
+					cellX++;
+				}
+				
 				//MapTile tile = new ColoredTile(0xff81aa81, 0xff000000, 0, RegionWidth, RegionHeight);
 				//tile.setPosition(x*RegionWidth, y*RegionHeight);
 				MapTile tile = new ImageTile(texTile, 0, TileWidth, TileHeight); //tileWidth, tileHeight);
@@ -116,15 +118,8 @@ public class World implements Renderable {
 				row[x] = tile;
 				
 				
-				if(x>0 && x%CellTileWidth==0) {
-					cellX++;
-				}				
 			}
 			
-			if(y>0 && y%CellTileHeight==0) {
-				cellY++;
-			}
-			cellX = 0;
 			
 			background.addRow(y, row);
 		}
@@ -203,7 +198,9 @@ public class World implements Renderable {
 	public Vector2f snapMapTilePos(Vector2f pos) {
 		MapTile tile = this.map.getWorldTile(0, pos.x, pos.y);
 		if(tile != null) {
-			return new Vector2f(tile.getX() /*+ tile.getWidth()/2f*/, tile.getY() /*+ tile.getHeight()/2f*/);
+			//return new Vector2f(tile.getX() /*+ tile.getWidth()/2f*/, tile.getY() /*+ tile.getHeight()/2f*/);
+			cacheVector.set(tile.getX(), tile.getY());
+			return cacheVector;
 		}
 		return null;
 	}
@@ -277,11 +274,11 @@ public class World implements Renderable {
 	public void render(Canvas canvas, Camera camera, float alpha) {
 		this.map.render(canvas, camera, alpha);
 		
-		for(int y = 0; y < cells.length; y++) {			
-			for(int x = 0; x < cells[y].length; x++) {		
-				cells[y][x].render(canvas, camera, alpha); 				
-			}
-		}
+//		for(int y = 0; y < cells.length; y++) {			
+//			for(int x = 0; x < cells[y].length; x++) {		
+//				cells[y][x].render(canvas, camera, alpha); 				
+//			}
+//		}
 		
 
 		

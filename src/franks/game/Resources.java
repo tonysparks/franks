@@ -61,10 +61,10 @@ public class Resources implements Renderable {
 	@Override
 	public void render(Canvas canvas, Camera camera, float alpha) {
 		int textColor = 0xff00ff00;
-		
-		RenderFont.drawShadedString(canvas, "Food: " + this.food, 10, 540, textColor);
-		RenderFont.drawShadedString(canvas, "Wood: " + this.wood, 10, 555, textColor);
-		RenderFont.drawShadedString(canvas, "Stone: " + this.stone, 10, 570, textColor);
-		RenderFont.drawShadedString(canvas, "Gold: " + this.gold, 10, 585, textColor);
+		int y = 690;
+		RenderFont.drawShadedString(canvas, "Food: " + this.food, 10, y, textColor);
+		RenderFont.drawShadedString(canvas, "Wood: " + this.wood, 10, y+=15, textColor);
+		RenderFont.drawShadedString(canvas, "Stone: " + this.stone, 10, y+=15, textColor);
+		RenderFont.drawShadedString(canvas, "Gold: " + this.gold, 10, y+=15, textColor);
 	}
 }

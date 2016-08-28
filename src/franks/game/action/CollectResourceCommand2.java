@@ -63,7 +63,7 @@ public class CollectResourceCommand2 extends Command {
 				response.addFailure("The selected entity is unable to collect the " + resourceName);	
 			}			
 			
-			checkMovement(response, game);
+			checkCost(response, game);
 			
 			if(!collector.isWithinRange(resource)) {
 				response.addFailure("The selected entity must be within range to collect the " + resourceName);

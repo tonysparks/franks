@@ -9,6 +9,7 @@ import java.util.Map;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
 import franks.game.entity.Entity.Direction;
+import franks.game.entity.Entity.State;
 
 /**
  * @author Tony
@@ -75,18 +76,36 @@ public class EntityData {
 		public Map<Entity.State, SectionData> sectionStates;
 	}
 	
-	public static class ActionData {
-		public String action;
-		public Map<String, Object> params;
+//	public static class ActionData {
+//		public String action;
+//		public Map<String, Object> params;
+//	
+//		public Double getNumber(String key, Double defaultValue) {
+//			return EntityData.getNumber(params, key, defaultValue);
+//		}
+//		
+//		public String getStr(String key, String defaultValue) {
+//			return EntityData.getStr(params, key, defaultValue);
+//		}
+//	}
 	
-		public Double getNumber(String key, Double defaultValue) {
-			return EntityData.getNumber(params, key, defaultValue);
-		}
-		
-		public String getStr(String key, String defaultValue) {
-			return EntityData.getStr(params, key, defaultValue);
-		}
-
+	public static class AttackActionData {
+		public int cost;
+		public int hitPercentage;
+		public int attackRange;
+	}
+	
+	public static class MoveActionData {
+		public int cost;
+		public int movementSpeed;		
+	}
+	
+	public static class DieActionData {		
+	}
+	
+	public static class DefenseData {
+		public int defensePercentage;
+		public int groupBonusPercentage;
 	}
 	
 	public Entity.Type type;
@@ -96,7 +115,11 @@ public class EntityData {
 	public int movements;	
 	public int health;
 	
-	public List<ActionData> availableActions;
+	public DefenseData defense;
+	
+	public AttackActionData attackAction;
+	public MoveActionData moveAction;
+	public DieActionData dieAction;
 	
 	
 	public GraphicData graphics;
@@ -128,6 +151,31 @@ public class EntityData {
 			return params.get(key).toString();
 		}
 		return defaultValue;
+	}
+	
+	public long getAnimationTime(State state) {
+		if( graphics.sectionStates != null) {
+			SectionData states = graphics.sectionStates.get(state);
+			if(states!=null) {
+				return states.frameTime * states.numberOfFrames;
+			}
+		}
+		
+		if(graphics.states != null) {
+			StateData stateData = graphics.states.get(state);
+			if (stateData!=null) {
+				List<FrameData> frames = stateData.animation.get(Direction.SOUTH);
+				if(frames != null) {
+					long animationTime = 0;
+					for(FrameData frame : frames) {
+						animationTime += frame.frameTime;
+					}
+					return animationTime;
+				}
+			}
+		}
+		
+		return 0;
 	}
 
 }

@@ -4,6 +4,7 @@
 package franks.game.entity;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
@@ -12,18 +13,17 @@ import franks.game.Command;
 import franks.game.CommandQueue;
 import franks.game.CommandQueue.CommandRequest;
 import franks.game.Game;
-import franks.game.MovementMeter;
+import franks.game.ActionMeter;
 import franks.game.Team;
 import franks.game.World;
 import franks.game.action.AttackCommand;
-import franks.game.action.CollectResourceCommand2;
 import franks.game.action.DieCommand;
 import franks.game.action.MovementCommand;
-import franks.game.entity.EntityData.ActionData;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
 import franks.gfx.Colors;
 import franks.gfx.Renderable;
+import franks.map.IsometricMap;
 import franks.map.Map;
 import franks.map.MapTile;
 import franks.math.Rectangle;
@@ -55,16 +55,36 @@ public class Entity implements Renderable {
 	}
 	
 	public static enum Direction {
-		NORTH,
-		NORTH_EAST,
-		EAST,
-		SOUTH_EAST,
-		SOUTH,
-		SOUTH_WEST,
-		WEST,
-		NORTH_WEST,
+		NORTH(0, 1),
+		NORTH_EAST(1, 1),
+		EAST(1, 0),
+		SOUTH_EAST(1, -1),
+		SOUTH(0, -1),
+		SOUTH_WEST(-1, -1),
+		WEST(-1, 0),
+		NORTH_WEST(-1, 1),
 		;
 		
+		private Vector2f facing;
+		
+		private Direction(float x, float y) {
+			this.facing = new Vector2f(x, y);
+		}
+		
+		/**
+		 * @return the facing
+		 */
+		public Vector2f getFacing() {
+			return facing;
+		}
+		
+		public int getX() {
+			return (int) facing.x;
+		}
+		
+		public int getY() {
+			return (int) facing.y;
+		}
 		
 		public Direction cardinalPerp() {
 			switch(toCardinal()) {
@@ -93,6 +113,8 @@ public class Entity implements Renderable {
 					return this;
 			}
 		}
+		
+		public static final Direction[] values = values();
 		
 		public static Direction getDirection(Vector2f v) {
 			return getDirection(v.x, v.y);
@@ -162,7 +184,7 @@ public class Entity implements Renderable {
 	
 	private boolean isSelected;
 	
-	private List<Command> availableCommands;
+	private java.util.Map<String, Command> availableCommands;
 	
 	protected Game game;
 	protected World world;
@@ -170,6 +192,7 @@ public class Entity implements Renderable {
 	private LeoMap attributes;
 	
 	protected int health;
+		
 	private boolean isDeleted;
 		
 	private State currentState;
@@ -179,7 +202,7 @@ public class Entity implements Renderable {
 	
 	private EntityModel model;
 	
-	private MovementMeter meter;
+	private ActionMeter meter;
 	
 	private CommandQueue commandQueue;
 	private Team team;
@@ -196,7 +219,7 @@ public class Entity implements Renderable {
 		
 		this.world = game.getWorld();
 		
-		this.meter = new MovementMeter(data.movements);
+		this.meter = new ActionMeter(data.movements);
 		this.commandQueue = new CommandQueue(game);
 		
 		this.pos = new Vector2f();
@@ -211,7 +234,7 @@ public class Entity implements Renderable {
 		this.bounds = new Rectangle(data.width, data.height);
 		this.bounds.setLocation(pos);
 		
-		this.availableCommands = new ArrayList<>();
+		this.availableCommands = new HashMap<>();
 		this.attributes = new LeoMap();
 		this.isDeleted = false;
 		
@@ -227,30 +250,20 @@ public class Entity implements Renderable {
 		
 		this.health = data.health;
 		
-		if(data.availableActions!=null) {
-			data.availableActions.forEach(action -> {
-				switch(action.action) {
-					case "movement": {
-						addAvailableAction(new MovementCommand(game, this, action.getNumber("movementSpeed", 50D).intValue() ));
-						break;
-					}
-					case "collect": {
-						addAvailableAction(new CollectResourceCommand2(action.getStr("resource", "wood"), this));
-						break;
-					}
-					case "attack": {
-						addAvailableAction(new AttackCommand(this, 
-								action.getNumber("cost", 1D).intValue(),
-								action.getNumber("attackDistance", 1D).intValue(),
-								action.getNumber("hitPercentage", 50D).intValue()) );
-						break;
-					}
-					case "die" : {
-						addAvailableAction(new DieCommand(this));
-						break;
-					}
-				}
-			});
+		
+		if(data.attackAction!=null) {			
+			addAvailableAction(new AttackCommand(game, this, 
+									data.attackAction.cost,
+									data.attackAction.attackRange,
+									data.attackAction.hitPercentage));
+		}
+		
+		if(data.moveAction != null) {
+			addAvailableAction(new MovementCommand(game, this, data.moveAction.movementSpeed));
+		}
+		
+		if(data.dieAction != null) {
+			addAvailableAction(new DieCommand(this));
 		}
 	}
 	
@@ -271,8 +284,39 @@ public class Entity implements Renderable {
 	/**
 	 * @return the meter
 	 */
-	public MovementMeter getMeter() {
+	public ActionMeter getMeter() {
 		return meter;
+	}
+	
+	/**
+	 * @return the data
+	 */
+	public EntityData getData() {
+		return data;
+	}
+	
+	/**
+	 * Calculates the movement cost for this Unit to move to the desired screen position
+	 * 
+	 * @param screenCameraPos
+	 * @return the movement cost of moving, or -1 if invalid
+	 */
+	public int calculateMovementCost(Vector2f screenCameraPos) {
+		Command cmd = this.availableCommands.get("moveto");
+		if(cmd instanceof MovementCommand) {
+			MovementCommand moveCmd = (MovementCommand)cmd;
+			return moveCmd.calculateCost(screenCameraPos);
+		}
+		return -1;
+	}
+	
+	public int calculateAttackCost(Entity enemy) {
+		Command cmd = this.availableCommands.get("attack");
+		if(cmd instanceof AttackCommand) {
+			AttackCommand attackCmd = (AttackCommand) cmd;
+			return attackCmd.calculateCost(enemy);
+		}
+		return -1;
 	}
 	
 	public boolean canAttack() {
@@ -280,12 +324,34 @@ public class Entity implements Renderable {
 	}
 	
 	public int attackCost() {
-		for(ActionData data :this.data.availableActions) {
-			if(data.action.equals("attack")) {
-				return data.getNumber("cost", 1D).intValue();
-			}
+		if(data.attackAction!=null) {
+			return data.attackAction.cost;
 		}
-		return 1;
+		
+		return Integer.MAX_VALUE;
+	}
+	
+	public int attackRange() {
+		if(data.attackAction!=null) {
+			return data.attackAction.attackRange;
+		}
+		return 0;
+	}
+	
+	public int movementCost() {
+		if(data.moveAction!=null) {
+			return data.moveAction.cost;
+		}
+		return Integer.MAX_VALUE;
+	}
+	
+	public int defenseScore() {
+		return data.defense.defensePercentage + calculateAdjacentBonus();
+	}
+	
+	
+	public int getRemainingActionPoints() {
+		return this.meter.remaining();
 	}
 	
 	
@@ -334,6 +400,35 @@ public class Entity implements Renderable {
 	public void setCurrentState(State currentState) {
 		this.currentState = currentState;
 		this.model.resetAnimation();
+	}
+	
+	public int calculateAdjacentBonus() {
+		Vector2f tilePos = getTilePos();
+		int tileX = (int) tilePos.x;
+		int tileY = (int) tilePos.y;
+		
+		int bonusSum = 0;
+		bonusSum += calculateAdjacentBonus(Direction.NORTH, tileX, tileY);
+		bonusSum += calculateAdjacentBonus(Direction.EAST, tileX, tileY);
+		bonusSum += calculateAdjacentBonus(Direction.SOUTH, tileX, tileY);
+		bonusSum += calculateAdjacentBonus(Direction.WEST, tileX, tileY);
+		
+		return bonusSum;		
+	}
+	
+	private int calculateAdjacentBonus(Direction dir, int tileX, int tileY) {
+		tileX += dir.getX();
+		tileY += dir.getY();
+		
+		IsometricMap map = game.getMap();
+		if(!map.checkTileBounds(tileX, tileY)) {
+			MapTile tile = map.getTile(0, tileX, tileY);
+			Entity ent = game.getEntityOnTile(tile);
+			if(ent!=null && ent.isTeammate(this)) {
+				return data.defense.groupBonusPercentage;
+			}
+		}
+		return 0;
 	}
 	
 	//public void consumeResource(String resource)
@@ -404,6 +499,16 @@ public class Entity implements Renderable {
 		Vector2f delta = getPos().subtract(other.getPos());
 		return delta.length() <= MaxNeighborDistance;
 	}
+	
+	public boolean isTeammate(Entity other) {
+		if(other!=null) {
+			if(other.team != null && team!=null) {
+				return other.team.equals(team);
+			}
+		}
+		return false;
+	}
+	
 	
 	public int getResourceCollectionPower(String resource) {
 		LeoObject value = attributes.getByString("resourceCollectionPower" + resource);
@@ -479,7 +584,7 @@ public class Entity implements Renderable {
 	}
 	
 	public Optional<Command> getCommand(final String name) {
-		return this.availableCommands.stream().filter(cmd -> cmd.getName().equalsIgnoreCase(name)).findFirst();
+		return Optional.ofNullable(this.availableCommands.get(name.toLowerCase()));
 	}
 	
 	public Entity moveToRegion(int x, int y) {
@@ -530,12 +635,7 @@ public class Entity implements Renderable {
 	}
 	
 	public boolean hasAction(String actionName) {
-		for(Command cmd : this.availableCommands) {
-			if(cmd.getName().equals(actionName)) {
-				return true;
-			}
-		}
-		return false;
+		return this.availableCommands.get(actionName.toLowerCase()) != null;
 	}
 	
 	public void queueAction(CommandRequest request) {
@@ -552,7 +652,7 @@ public class Entity implements Renderable {
 	}
 	
 	public Entity addAvailableAction(Command action) {
-		this.availableCommands.add(action);
+		this.availableCommands.put(action.getName().toLowerCase(), action);
 		return this;
 	}
 	
@@ -564,7 +664,7 @@ public class Entity implements Renderable {
 	 * @return the availableActions
 	 */
 	public List<Command> getAvailableActions() {
-		return availableCommands;
+		return new ArrayList<>(availableCommands.values());
 	}
 	
 	/**
@@ -665,17 +765,10 @@ public class Entity implements Renderable {
 	}
 	
 	public int distanceFrom(Entity other) {
-		Vector2f centerPos = getCenterPos();
+		Vector2f tilePos = getTilePos();
+		Vector2f otherTilePos = other.getTilePos();
 		
-		Map map = game.getMap();
-		int meX = map.worldToTileX((int)centerPos.x);
-		int meY = map.worldToTileY((int)centerPos.y);
-		
-		centerPos = other.getCenterPos();
-		int otherX = map.worldToTileX((int)centerPos.x);
-		int otherY = map.worldToTileY((int)centerPos.y);
-		
-		return (int)Math.sqrt((otherX - meX) * (otherX - meX) + (otherY - meY) * (otherY - meY));
+		return (int)Math.sqrt((otherTilePos.x - tilePos.x) * (otherTilePos.x - tilePos.x) + (otherTilePos.y - tilePos.y) * (otherTilePos.y - tilePos.y));
 	}
 	
 	public float getDiameter() {
@@ -725,7 +818,9 @@ public class Entity implements Renderable {
 //			}
 			
 			drawMeter(canvas, pos.x + 42, pos.y + 68, health, getMaxHealth(), 0x9fFF0000, 0xffafFFaf);
-			drawMeter(canvas, pos.x + 42, pos.y + 74, meter.getMovementAmount(), data.movements, 0x8f4a5f8f, 0xff3a9aFF);
+			drawMeter(canvas, pos.x + 42, pos.y + 74, meter.remaining(), data.movements, 0x8f4a5f8f, 0xff3a9aFF);
+			
+			
 			
 			//canvas.resizeFont(12f);
 			//canvas.drawString("x" + this.meter.getMovementAmount(), pos.x, pos.y+72, 0xffffffff);

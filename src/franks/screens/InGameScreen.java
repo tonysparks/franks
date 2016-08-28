@@ -37,9 +37,9 @@ public class InGameScreen implements Screen {
 	private Button endTurnBtn;
 	
 	private PanelView<Renderable> panel;
-	private Vector2f selectStartPos;
-	private Vector2f selectEndPos;
-	private boolean isSelecting;
+//	private Vector2f selectStartPos;
+//	private Vector2f selectEndPos;
+//	private boolean isSelecting;
 	
 	private Inputs inputs = new KeyboardGameController() {
 		
@@ -54,19 +54,14 @@ public class InGameScreen implements Screen {
 		
 		@Override
 		public boolean touchDragged(int x, int y, int button) {
-			//System.out.println(pointer + ": " + x + "," + y);
-			if(button==0 && !isSelecting) {
-				selectStartPos.set(cursor.getCursorPos());
-				//game.getWorld().screenToWorldCoordinates(selectStartPos, selectStartPos);
-				
-				//selectEndPos.set(x,y);
-				isSelecting = true;
-			}
-			
-			if (isSelecting) {
-				selectEndPos.set(cursor.getCursorPos());
-				//game.getWorld().screenToWorldCoordinates(selectEndPos, selectEndPos);
-			}
+//			if(button==0 && !isSelecting) {
+//				selectStartPos.set(cursor.getCursorPos());
+//				isSelecting = true;
+//			}
+//			
+//			if (isSelecting) {
+//				selectEndPos.set(cursor.getCursorPos());
+//			}
 			
 			return mouseMoved(x,y);				
 		}
@@ -74,25 +69,26 @@ public class InGameScreen implements Screen {
 		@Override
 		public boolean touchUp(int x, int y, int pointer, int button) {
 			if(button == 0) {
-				if(isSelecting) {
-					selectEndPos.set(cursor.getCursorPos());
-					//game.getWorld().screenToWorldCoordinates(selectEndPos, selectEndPos);
-					
-					if(game.selectRegion(selectStartPos, selectEndPos)) {
-						Sounds.playGlobalSound(Sounds.uiSelect);
-					}
-				}
-				else if(game.selectEntity()) {
+//				if(isSelecting) {
+//					selectEndPos.set(cursor.getCursorPos());
+//					//game.getWorld().screenToWorldCoordinates(selectEndPos, selectEndPos);
+//					
+//					if(game.selectRegion(selectStartPos, selectEndPos)) {
+//						Sounds.playGlobalSound(Sounds.uiSelect);
+//					}
+//				}
+//				else if(game.selectEntity()) {
+//					Sounds.playGlobalSound(Sounds.uiSelect);
+//				}
+				if(game.selectEntity()) {
 					Sounds.playGlobalSound(Sounds.uiSelect);
-				}								
+				}			
 			}
 			if(button == 1) {
-				//game.dispatchCommand("moveTo");
-				//game.dispatchCommand();
 				game.queueCommand();
 			}
 			
-			isSelecting = false;
+//			isSelecting = false;
 			
 			return super.touchUp(x, y, pointer, button);
 		}
@@ -102,11 +98,11 @@ public class InGameScreen implements Screen {
 	 */
 	public InGameScreen(FranksGame app) {
 		this.app = app;
-		this.camera = newCamera(512, 512);
+		this.camera = newCamera(1024*3, 1024*3);
 		this.game = new Game(app, this.camera);
 		
-		this.selectStartPos = new Vector2f();
-		this.selectEndPos = new Vector2f();
+//		this.selectStartPos = new Vector2f();
+//		this.selectEndPos = new Vector2f();
 		
 		this.cursor = app.getUiManager().getCursor();
 		
@@ -162,7 +158,7 @@ public class InGameScreen implements Screen {
 	@Override
 	public void update(TimeStep timeStep) {	
 		this.game.update(timeStep);		
-		this.panel.update(timeStep);
+		this.panel.update(timeStep);		
 	}
 
 	/* (non-Javadoc)
@@ -173,10 +169,10 @@ public class InGameScreen implements Screen {
 		this.game.render(canvas, camera, alpha);
 		this.panel.render(canvas, camera, alpha);
 		
-		if(isSelecting) {			
-			canvas.drawRect(selectStartPos.x, selectStartPos.y, 
-					(selectEndPos.x - selectStartPos.x), (selectEndPos.y - selectStartPos.y), 0xffffffff);
-		}
+//		if(isSelecting) {			
+//			canvas.drawRect(selectStartPos.x, selectStartPos.y, 
+//					(selectEndPos.x - selectStartPos.x), (selectEndPos.y - selectStartPos.y), 0xffffffff);
+//		}
 		
 		this.cursor.render(canvas);
 	}
