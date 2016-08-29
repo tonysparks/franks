@@ -108,6 +108,13 @@
 			<version>0.9.7</version>
 		</dependency>
 
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-server</artifactId>
+			<version>9.4.0.M1</version>
+		</dependency>
+
+
 	</dependencies>
 
 

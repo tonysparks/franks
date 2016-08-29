@@ -5,12 +5,12 @@ package franks.game.action;
 
 import java.util.List;
 
-import franks.game.Command;
-import franks.game.CommandAction;
-import franks.game.CommandQueue.CommandRequest;
 import franks.game.Game;
 import franks.game.PathPlanner;
 import franks.game.PreconditionResponse;
+import franks.game.commands.Command;
+import franks.game.commands.CommandAction;
+import franks.game.commands.CommandQueue.CommandRequest;
 import franks.game.entity.Direction;
 import franks.game.entity.Entity;
 import franks.game.entity.Entity.State;
@@ -35,7 +35,7 @@ public class MovementCommand extends Command {
 	 * @param movementCost
 	 */
 	public MovementCommand(Game game, Entity entity, int movementSpeed) {
-		super("moveTo", -1, entity);
+		super(CommandType.Move, -1, entity);
 		this.game = game;
 		
 		this.movementSpeed = movementSpeed;

@@ -75,19 +75,6 @@ public class EntityData {
 		public Map<Entity.State, SectionData> sectionStates;
 	}
 	
-//	public static class ActionData {
-//		public String action;
-//		public Map<String, Object> params;
-//	
-//		public Double getNumber(String key, Double defaultValue) {
-//			return EntityData.getNumber(params, key, defaultValue);
-//		}
-//		
-//		public String getStr(String key, String defaultValue) {
-//			return EntityData.getStr(params, key, defaultValue);
-//		}
-//	}
-	
 	public static class AttackActionData {
 		public int cost;
 		public int hitPercentage;
@@ -119,7 +106,8 @@ public class EntityData {
 	public AttackActionData attackAction;
 	public MoveActionData moveAction;
 	public DieActionData dieAction;
-	
+
+	public String dataFile;
 	
 	public GraphicData graphics;
 	

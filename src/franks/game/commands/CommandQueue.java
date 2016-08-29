@@ -1,14 +1,17 @@
 /*
  * see license.txt 
  */
-package franks.game;
+package franks.game.commands;
 
 import java.util.LinkedList;
 import java.util.Optional;
 import java.util.Queue;
 
-import franks.game.CommandAction.CompletionState;
+import franks.game.Game;
+import franks.game.commands.Command.CommandType;
+import franks.game.commands.CommandAction.CompletionState;
 import franks.game.entity.Entity;
+import franks.game.net.NetCommandRequest;
 import franks.util.TimeStep;
 import franks.util.Updatable;
 
@@ -21,14 +24,18 @@ public class CommandQueue implements Updatable {
 	public static class CommandRequest {
 		public Entity selectedEntity;
 		public Optional<Entity> targetEntity;
-		public String action;
-				
-		public CommandRequest(Game game, String action, Entity selectedEntity) {
-			this(game, action, selectedEntity, game.getEntityOverMouse());
+		public CommandType type;
+		
+		public CommandRequest(Game game, NetCommandRequest request) {
+			this(game, request.type, game.getEntityById(request.selectedEntityId), game.getEntityById(request.targetEntityId));
 		}
 		
-		public CommandRequest(Game game, String action, Entity selectedEntity, Entity targetEntity) {
-			this.action = action;
+		public CommandRequest(Game game, CommandType type, Entity selectedEntity) {
+			this(game, type, selectedEntity, game.getEntityOverMouse());
+		}
+		
+		public CommandRequest(Game game, CommandType type, Entity selectedEntity, Entity targetEntity) {
+			this.type = type;
 			this.selectedEntity = selectedEntity;
 			this.targetEntity = Optional.ofNullable(targetEntity);
 		}
@@ -39,9 +46,22 @@ public class CommandQueue implements Updatable {
 		 * @return the built {@link CommandAction}
 		 */
 		public Optional<CommandAction> executeRequest(Game game) {
-			return Optional.ofNullable(selectedEntity).flatMap(ent -> ent.getCommand(action))
+			return Optional.ofNullable(selectedEntity).flatMap(ent -> ent.getCommand(type))
 					 								  .filter(cmd -> cmd.checkPreconditions(game, this).isMet())
 					 								  .map(cmd -> cmd.doAction(game, this).start());
+		}
+		
+		public NetCommandRequest getNetCommandRequest() {
+			NetCommandRequest cmd = new NetCommandRequest();
+			cmd.type = type;
+			cmd.selectedEntityId = selectedEntity.getId();
+			if(targetEntity.isPresent()) {
+				cmd.targetEntityId = targetEntity.get().getId();
+			}
+			else {
+				cmd.targetEntityId = -1;
+			}
+			return cmd;
 		}
 		
 	}
@@ -96,10 +116,7 @@ public class CommandQueue implements Updatable {
 		if(!currentAction.isPresent()) {
 			if(!queue.isEmpty()) {
 				CommandRequest request = queue.poll();
-				currentAction = request.executeRequest(game);
-				if(currentAction.isPresent()) {
-					System.out.println("executing: " + request.action);
-				}
+				currentAction = request.executeRequest(game);				
 			}
 		}
 	}	

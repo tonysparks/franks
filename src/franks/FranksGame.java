@@ -53,15 +53,15 @@ public class FranksGame implements ApplicationListener {
 	private static final String HEADER = 
 			"=============================================================================\n" +
 			"                                                                             \n" +
-			"                             === The Seventh ===                             \n" +
-			"                                5d Studios (c)                               \n" +
+			"                             === Franks ===                                  \n" +
+			"                             5d Studios (c)                                  \n" +
 			"                                                                             \n" +
 			"                                                                             \n" +
 			"=============================================================================\n" +
 			"                                                                             \n" 
 			;
 	
-	private static final String VERSION = "v0.1.0-BETA";
+	private static final String VERSION = "v0.0.1-TOY";
 	public static final int DEFAULT_MINIMIZED_SCREEN_WIDTH = 1024;
 	public static final int DEFAULT_MINIMIZED_SCREEN_HEIGHT = 768;
 	
@@ -170,22 +170,6 @@ public class FranksGame implements ApplicationListener {
 				Art.reload();
 			}
 		});
-		
-//		console.addCommand(new Command("v_reload_animation") {			
-//			@Override
-//			public void execute(Console console, String... args) {
-//				try {
-//					Art.debugAnimations(new Leola());
-//				} catch (Exception e) {
-//					console.println("*** Error loading animations: " + e);
-//				}
-//			}
-//		});
-		
-
-		
-
-		
 		
 		console.addCommand(new Command("mouse_sensitivity") {
 			

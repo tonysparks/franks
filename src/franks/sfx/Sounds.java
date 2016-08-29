@@ -31,162 +31,33 @@ public class Sounds {
 							
 	public static final int[] die = {0,1,2};
 	public static final int[] hit = {3,4,5};
-			
-//	public static final int[] normalWalk = {6,7,8,9};
-	public static final int[] weaponDrop = {6,7};
-	public static final int[] uiHover = {8};
-	public static final int[] uiSelect = {9};
-	public static final int[] gib = {10,11};
+				
+	public static final int[] uiHover = {6};
+	public static final int[] uiSelect = {7};
 	
-	public static final int[] bombTick = {12};
-	public static final int[] bombPlant = {13};	
-	public static final int[] bombDisarm = {14};
+	public static final int[] logAlert = {8};
 	
-	public static final int[] logAlert = {15};
-	public static final int[] weaponPickupSnd = {16};
+	public static final int[] ruffle = {9,10,11};
 	
-	public static final int[] explodeSnd = {17,18,19};
-	public static final int[] emptyFireSnd = {20};
-	public static final int[] ammoPickupSnd = {21};
-	public static final int[] respawnSnd = {22};	
-	public static final int[] weaponSwitch = {23};
-
-	public static final int[] ruffle = {24,25,26};
-
-	public static final int[] thompsonFire = {27};
-	public static final int[] thompsonReload = {28};
+	public static final int[] meleeSwing = {12,13};
+	public static final int[] meleeHit = {14,15};
 	
-
-	public static final int[] shotgunFire = {29};
-	public static final int[] shotgunPump = {30};
-	public static final int[] shotgunReload = {31};
+	public static final int[] normalWalk = {16,17,18,19};
+	public static final int[] dirtWalk = {20,21,22,23};
+	public static final int[] grassWalk = {24,25,26,27};
+	public static final int[] metalWalk = {28,29,30,31};
+	public static final int[] waterWalk = {32,33,34,35};
+	public static final int[] woodWalk = {36,37,38,39};
 	
-	public static final int[] springfieldFire = {32};
-	public static final int[] springfieldReload = {33};
-	public static final int[] springfieldRechamber = {34};
-	
-	public static final int[] m1Fire = {35};
-	public static final int[] m1FireLast = {36};
-	public static final int[] m1Reload = {37};
-	
-	public static final int[] grenadePinPulled = {38};
-	public static final int[] grenadeThrow = {39};
-	
-	public static final int[] rocketFire = {40};
-	
-	// TODO:
-	public static final int[] kar98Fire = {41};
-	public static final int[] kar98Reload = {42};
-	public static final int[] kar98Rechamber = {43};
-	
-	public static final int[] mp44Fire = {44};
-	public static final int[] mp44Reload = {45};
-	
-	public static final int[] mp40Fire = {46};
-	public static final int[] mp40Reload = {47};
-	
-	public static final int[] meleeSwing = {48,49};
-	public static final int[] meleeHit = {50,51};
-	
-	public static final int[] normalWalk = {52, 53, 54, 55};
-	public static final int[] dirtWalk = {56,57,58,59};
-	public static final int[] grassWalk = {60,61,62,63};
-	public static final int[] metalWalk = {64,65,66,67};
-	public static final int[] waterWalk = {68,69,70,71};
-	public static final int[] woodWalk = {72,73,74,75};
-	
-	public static final int[] uiNavigate = {76,77};
-	public static final int[] uiKeyType = {78, 79, 80};
-	
-	public static final int[] pistolFire = {81};
-	public static final int[] pistolReload = {82};
-	
-	
-	public static final int[] impactMetal = {83,84,85,86,87};
-	public static final int[] impactWood = {88,89,90,91,92};
-	public static final int[] impactFoliage = {93,94,95,96,97};
-	public static final int[] impactDefault = {98,99,100,101,102};
-	
-	public static final int[] riskerFire = {103};
-	public static final int[] riskerReload = {104};
-	public static final int[] riskerRechamber = {105};
-	
-	public static final int[] mechForwardFootstep = {106};
-	public static final int[] mechRetractFootstep = {107};
-	public static final int[] mechTorsoMove = {108};
-	
-	public static final int[] breadthLite = {109,110,111};
-	public static final int[] breadthHeavy = {112,113,114};
-	
-	public static final int[] bulletZing = {115,116,117};
-	
-	//public static final int[] tankStart = {118};
-	//public static final int[] tankMove = {119};
-	public static final int[] healthPackPickup = {120};
-
-	public static final int[] alliedSpeechAttack = {121};
-	public static final int[] alliedSpeechCoverMe = {122};
-	public static final int[] alliedSpeechFollowMe = {123};
-	public static final int[] alliedSpeechGetOutOfMyWay = {124};
-	public static final int[] alliedSpeechGetUsKilled = {125};
-	public static final int[] alliedSpeechHoldPosition = {126};
-	public static final int[] alliedSpeechIllCoverYou = {127};
-	public static final int[] alliedSpeechTakingFire = {128};
-	public static final int[] alliedSpeechYouTakeLead = {129};
-
-	public static final int[] axisSpeechAttack = {130};
-	public static final int[] axisSpeechCoverMe = {131};
-	public static final int[] axisSpeechFollowMe = {132};
-	public static final int[] axisSpeechGetOutOfMyWay = {133};
-	public static final int[] axisSpeechGetUsKilled = {134};
-	public static final int[] axisSpeechHoldPosition = {135};
-	public static final int[] axisSpeechIllCoverYou = {136};
-	public static final int[] axisSpeechTakingFire = {137};
-	public static final int[] axisSpeechYouTakeLead = {138};
-
-	public static final int[] tankOn = {139};
-	public static final int[] tankOff = {140};
-	public static final int[] tankIdle = {141};
-	public static final int[] tankShift = {142,143,144};
-	public static final int[] tankRevUp = {145};
-	public static final int[] tankRevDown = {146};
-	public static final int[] tankTurret = {147};
-	public static final int[] tankMove = {148};
-	public static final int[] tankFire = {149};
-	
-	public static final int[] flagCaptured = {150};
-	public static final int[] flagStolen = {151};
-	public static final int[] flagReturned = {152};
-	public static final int[] enemyFlagCaptured = {153};
-	public static final int[] enemyFlagStolen = {154};
-	
-	public static final int[] mg42Fire = {155,156};	
-	public static final int[] radioStatic = {157,158};
-	
-	public static final int[][] alliedSpeeches = {
-			alliedSpeechAttack,
-			alliedSpeechCoverMe,
-			alliedSpeechFollowMe,
-			alliedSpeechGetOutOfMyWay,
-			alliedSpeechGetUsKilled,
-			alliedSpeechHoldPosition,
-			alliedSpeechIllCoverYou,
-			alliedSpeechTakingFire,
-			alliedSpeechYouTakeLead,		
-	};
-	
-	public static final int[][] axisSpeeches = {
-			axisSpeechAttack,
-			axisSpeechCoverMe,
-			axisSpeechFollowMe,
-			axisSpeechGetOutOfMyWay,
-			axisSpeechGetUsKilled,
-			axisSpeechHoldPosition,
-			axisSpeechIllCoverYou,
-			axisSpeechTakingFire,
-			axisSpeechYouTakeLead,		
-	};
-	
+	public static final int[] uiNavigate = {40,41};
+	public static final int[] uiKeyType = {42,43,44};
+		
+	public static final int[] flagCaptured = {45};
+	public static final int[] flagStolen = {46};
+	public static final int[] flagReturned = {47};
+	public static final int[] enemyFlagCaptured = {48};
+	public static final int[] enemyFlagStolen = {49};
+		
 	private static final Random random = new Random();
 	private static Map<String, SoundBuffer> loadedSounds = new ConcurrentHashMap<>();
 	private static Sound[][] channels = new Sound[16][];
@@ -202,204 +73,66 @@ public class Sounds {
 			loadSound("./assets/sfx/player/hit1.wav") ,   // 3
 			loadSound("./assets/sfx/player/hit2.wav") ,   // 4
 			loadSound("./assets/sfx/player/hit3.wav") ,   // 5												
-
-			loadSound("./assets/sfx/weapon_drop01.wav") ,   // 6,
-			loadSound("./assets/sfx/weapon_drop02.wav") ,   // 7,			
-			loadSound("./assets/sfx/ui/element_hover.wav") ,   // 8,
-			loadSound("./assets/sfx/ui/element_select.wav") ,   // 9,
-			loadSound("./assets/sfx/player/body_explode1.wav"), // 10
-			loadSound("./assets/sfx/player/body_explode2.wav"), // 11						
-			loadSound("./assets/sfx/bomb_tick.wav"), // 12
-			loadSound("./assets/sfx/bomb_plant.wav"), // 13
-			loadSound("./assets/sfx/bomb_disarm.wav"), // 14
+					
+			loadSound("./assets/sfx/ui/element_hover.wav") ,   // 6,
+			loadSound("./assets/sfx/ui/element_select.wav") ,   // 7,
 			
 			// UI stuff
-			loadSound("./assets/sfx/log_alert.wav"), // 15
-			loadSound("./assets/sfx/player/weapon_pickup.wav"), //16
+			loadSound("./assets/sfx/log_alert.wav"), // 8
 															
-			// misc.
-			loadSound("./assets/sfx/explosion1.wav") ,   // 17
-			loadSound("./assets/sfx/explosion2.wav") ,   // 18		
-			loadSound("./assets/sfx/explosion3.wav") ,   // 19		
-			loadSound("./assets/sfx/empty_fire.wav") ,   // 20
-			loadSound("./assets/sfx/player/ammo_pickup.wav") ,   // 21									
-			loadSound("./assets/sfx/respawn.wav") ,   // 22
-			loadSound("./assets/sfx/weapon_switch.wav") ,   // 23
-			loadSound("./assets/sfx/player/ruffle1.wav"), // 24
-			loadSound("./assets/sfx/player/ruffle2.wav"), // 25
-			loadSound("./assets/sfx/player/ruffle3.wav"), // 26
-			
-			loadSound("./assets/sfx/thompson/thompson_fire.wav") ,   // 27
-			loadSound("./assets/sfx/thompson/thompson_reload.wav") ,   // 28
-				
-			loadSound("./assets/sfx/shotgun/shotgun_fire.wav") ,		// 29
-			loadSound("./assets/sfx/shotgun/shotgun_pump.wav") ,   // 30
-			loadSound("./assets/sfx/shotgun/shotgun_reload.wav") ,   // 31
-			
-			loadSound("./assets/sfx/springfield/springfield_fire.wav") ,   // 32
-			loadSound("./assets/sfx/springfield/springfield_reload.wav") ,   // 33
-			loadSound("./assets/sfx/springfield/springfield_rechamber.wav") ,   // 34
-		
-			loadSound("./assets/sfx/m1garand/m1garand_fire.wav") ,   // 35
-			loadSound("./assets/sfx/m1garand/m1garand_fire_last.wav") ,   // 36
-			loadSound("./assets/sfx/m1garand/m1garand_reload.wav") ,   // 37
-			
-
-			loadSound("./assets/sfx/grenade/grenade_pinpull.wav") ,   // 38
-			loadSound("./assets/sfx/grenade/grenade_throw.wav") ,   // 39
-			
-			loadSound("./assets/sfx/rocket/rocket_fire.wav") ,   // 40
-			
-			loadSound("./assets/sfx/kar98/kar98_fire.wav") ,   // 41
-			loadSound("./assets/sfx/kar98/kar98_reload.wav") ,   // 42
-			loadSound("./assets/sfx/kar98/kar98_rechamber.wav") ,   // 43
-			
-			loadSound("./assets/sfx/mp44/mp44_fire.wav") ,   // 44
-			loadSound("./assets/sfx/mp44/mp44_reload.wav") ,   // 45
-			
-			loadSound("./assets/sfx/mp40/mp40_fire.wav") ,   // 46
-			loadSound("./assets/sfx/mp40/mp40_reload.wav") ,   // 47
-			
-			loadSound("./assets/sfx/melee/melee_swing01.wav") ,   // 48
-			loadSound("./assets/sfx/melee/melee_swing02.wav") ,   // 49
-			loadSound("./assets/sfx/melee/melee_hit01.wav") ,   // 50
-			loadSound("./assets/sfx/melee/melee_hit02.wav") ,   // 51
+			// misc.			
+			loadSound("./assets/sfx/player/ruffle1.wav"), // 9
+			loadSound("./assets/sfx/player/ruffle2.wav"), // 10
+			loadSound("./assets/sfx/player/ruffle3.wav"), // 11
+						
+			loadSound("./assets/sfx/melee/melee_swing01.wav") ,   // 12
+			loadSound("./assets/sfx/melee/melee_swing02.wav") ,   // 13
+			loadSound("./assets/sfx/melee/melee_hit01.wav") ,   // 14
+			loadSound("./assets/sfx/melee/melee_hit02.wav") ,   // 15
 			
 			// footsteps
-			loadSound("./assets/sfx/player/footsteps/foot_normal01.wav") ,   // 52
-			loadSound("./assets/sfx/player/footsteps/foot_normal02.wav") ,   // 53
-			loadSound("./assets/sfx/player/footsteps/foot_normal03.wav") ,   // 54
-			loadSound("./assets/sfx/player/footsteps/foot_normal04.wav") ,   // 55
+			loadSound("./assets/sfx/player/footsteps/foot_normal01.wav") ,   // 16
+			loadSound("./assets/sfx/player/footsteps/foot_normal02.wav") ,   // 17
+			loadSound("./assets/sfx/player/footsteps/foot_normal03.wav") ,   // 18
+			loadSound("./assets/sfx/player/footsteps/foot_normal04.wav") ,   // 19
 			
-			loadSound("./assets/sfx/player/footsteps/foot_dirt01.wav") ,   // 56
-			loadSound("./assets/sfx/player/footsteps/foot_dirt02.wav") ,   // 57
-			loadSound("./assets/sfx/player/footsteps/foot_dirt03.wav") ,   // 58
-			loadSound("./assets/sfx/player/footsteps/foot_dirt04.wav") ,   // 59
+			loadSound("./assets/sfx/player/footsteps/foot_dirt01.wav") ,   // 20
+			loadSound("./assets/sfx/player/footsteps/foot_dirt02.wav") ,   // 21
+			loadSound("./assets/sfx/player/footsteps/foot_dirt03.wav") ,   // 22
+			loadSound("./assets/sfx/player/footsteps/foot_dirt04.wav") ,   // 23
 			
-			loadSound("./assets/sfx/player/footsteps/foot_grass01.wav") ,   // 60
-			loadSound("./assets/sfx/player/footsteps/foot_grass02.wav") ,   // 61
-			loadSound("./assets/sfx/player/footsteps/foot_grass03.wav") ,   // 62
-			loadSound("./assets/sfx/player/footsteps/foot_grass04.wav") ,   // 63
+			loadSound("./assets/sfx/player/footsteps/foot_grass01.wav") ,   // 24
+			loadSound("./assets/sfx/player/footsteps/foot_grass02.wav") ,   // 25
+			loadSound("./assets/sfx/player/footsteps/foot_grass03.wav") ,   // 26
+			loadSound("./assets/sfx/player/footsteps/foot_grass04.wav") ,   // 27
 			
-			loadSound("./assets/sfx/player/footsteps/foot_metal01.wav") ,   // 64
-			loadSound("./assets/sfx/player/footsteps/foot_metal02.wav") ,   // 65
-			loadSound("./assets/sfx/player/footsteps/foot_metal03.wav") ,   // 66
-			loadSound("./assets/sfx/player/footsteps/foot_metal04.wav") ,   // 67
+			loadSound("./assets/sfx/player/footsteps/foot_metal01.wav") ,   // 28
+			loadSound("./assets/sfx/player/footsteps/foot_metal02.wav") ,   // 29
+			loadSound("./assets/sfx/player/footsteps/foot_metal03.wav") ,   // 30
+			loadSound("./assets/sfx/player/footsteps/foot_metal04.wav") ,   // 31
 			
-			loadSound("./assets/sfx/player/footsteps/foot_water01.wav") ,   // 68
-			loadSound("./assets/sfx/player/footsteps/foot_water02.wav") ,   // 69
-			loadSound("./assets/sfx/player/footsteps/foot_water03.wav") ,   // 70
-			loadSound("./assets/sfx/player/footsteps/foot_water04.wav") ,   // 71
+			loadSound("./assets/sfx/player/footsteps/foot_water01.wav") ,   // 32
+			loadSound("./assets/sfx/player/footsteps/foot_water02.wav") ,   // 33
+			loadSound("./assets/sfx/player/footsteps/foot_water03.wav") ,   // 34
+			loadSound("./assets/sfx/player/footsteps/foot_water04.wav") ,   // 35
 			
-			loadSound("./assets/sfx/player/footsteps/foot_wood01.wav") ,   // 72
-			loadSound("./assets/sfx/player/footsteps/foot_wood02.wav") ,   // 73
-			loadSound("./assets/sfx/player/footsteps/foot_wood03.wav") ,   // 74
-			loadSound("./assets/sfx/player/footsteps/foot_wood04.wav") ,   // 75
+			loadSound("./assets/sfx/player/footsteps/foot_wood01.wav") ,   // 36
+			loadSound("./assets/sfx/player/footsteps/foot_wood02.wav") ,   // 37
+			loadSound("./assets/sfx/player/footsteps/foot_wood03.wav") ,   // 38
+			loadSound("./assets/sfx/player/footsteps/foot_wood04.wav") ,   // 39
 			
-			loadSound("./assets/sfx/ui/navigate01.wav") ,   // 76			
-			loadSound("./assets/sfx/ui/navigate02.wav") ,   // 77
+			loadSound("./assets/sfx/ui/navigate01.wav") ,   // 40
+			loadSound("./assets/sfx/ui/navigate02.wav") ,   // 41
 			
-			loadSound("./assets/sfx/ui/key_type01.wav") ,   // 78
-			loadSound("./assets/sfx/ui/key_type02.wav") ,   // 79
-			loadSound("./assets/sfx/ui/key_type03.wav") ,   // 80
+			loadSound("./assets/sfx/ui/key_type01.wav") ,   // 42
+			loadSound("./assets/sfx/ui/key_type02.wav") ,   // 43
+			loadSound("./assets/sfx/ui/key_type03.wav") ,   // 44			
 			
-			loadSound("./assets/sfx/pistol/pistol_fire.wav") ,   // 81
-			loadSound("./assets/sfx/pistol/pistol_reload.wav") ,   // 82
-			
-			loadSound("./assets/sfx/impact/impact_metal01.wav") ,   // 83
-			loadSound("./assets/sfx/impact/impact_metal02.wav") ,   // 84
-			loadSound("./assets/sfx/impact/impact_metal03.wav") ,   // 85
-			loadSound("./assets/sfx/impact/impact_metal04.wav") ,   // 86
-			loadSound("./assets/sfx/impact/impact_metal05.wav") ,   // 87
-			
-			loadSound("./assets/sfx/impact/impact_wood01.wav") ,   // 88
-			loadSound("./assets/sfx/impact/impact_wood02.wav") ,   // 89
-			loadSound("./assets/sfx/impact/impact_wood03.wav") ,   // 90
-			loadSound("./assets/sfx/impact/impact_wood04.wav") ,   // 91
-			loadSound("./assets/sfx/impact/impact_wood05.wav") ,   // 92
-			
-			loadSound("./assets/sfx/impact/impact_foliage01.wav") ,   // 93
-			loadSound("./assets/sfx/impact/impact_foliage02.wav") ,   // 94
-			loadSound("./assets/sfx/impact/impact_foliage03.wav") ,   // 95
-			loadSound("./assets/sfx/impact/impact_foliage04.wav") ,   // 96
-			loadSound("./assets/sfx/impact/impact_foliage05.wav") ,   // 97
-			
-			loadSound("./assets/sfx/impact/impact_default01.wav") ,   // 98
-			loadSound("./assets/sfx/impact/impact_default02.wav") ,   // 99
-			loadSound("./assets/sfx/impact/impact_default03.wav") ,   // 100
-			loadSound("./assets/sfx/impact/impact_default04.wav") ,   // 101
-			loadSound("./assets/sfx/impact/impact_default05.wav") ,   // 102
-			
-			loadSound("./assets/sfx/risker/risker_fire.wav") ,   // 103
-			loadSound("./assets/sfx/risker/risker_reload.wav") ,   // 104
-			loadSound("./assets/sfx/risker/risker_rechamber.wav") ,   // 105
-			
-			loadSound("./assets/sfx/player/footsteps/mech_footstep01.wav") ,   // 106
-			loadSound("./assets/sfx/player/footsteps/mech_footstep02.wav") ,   // 107
-			
-			loadSound("./assets/sfx/player/mech_torso_move.wav") ,   // 108
-			
-			loadSound("./assets/sfx/player/breathing_lite01.wav") ,   // 109
-			loadSound("./assets/sfx/player/breathing_lite02.wav") ,   // 110
-			loadSound("./assets/sfx/player/breathing_lite03.wav") ,   // 111
-			
-			loadSound("./assets/sfx/player/breathing_heavy01.wav") ,   // 112
-			loadSound("./assets/sfx/player/breathing_heavy02.wav") ,   // 113
-			loadSound("./assets/sfx/player/breathing_heavy03.wav") ,   // 114
-			
-			loadSound("./assets/sfx/bullet_zing01.wav") ,   // 115
-            loadSound("./assets/sfx/bullet_zing02.wav") ,   // 116
-            loadSound("./assets/sfx/bullet_zing03.wav") ,   // 117
-            
-//            loadSound("./assets/sfx/tank/movement_start.wav") ,   // 118
-//            loadSound("./assets/sfx/tank/movement_loop.wav") ,   // 119
-            null,null,
-            loadSound("./assets/sfx/player/healthpack_pickup.wav") ,   // 120
-            
-            loadSound("./assets/sfx/player/speech/allied/attack.wav") ,   // 121
-            loadSound("./assets/sfx/player/speech/allied/cover_me.wav") ,   // 122
-            loadSound("./assets/sfx/player/speech/allied/follow_me.wav") ,   // 123
-            loadSound("./assets/sfx/player/speech/allied/get_out_of_my_way.wav") ,   // 124
-            loadSound("./assets/sfx/player/speech/allied/get_us_killed.wav") ,   // 125
-            loadSound("./assets/sfx/player/speech/allied/hold_position.wav") ,   // 126
-            loadSound("./assets/sfx/player/speech/allied/ill_cover_you.wav") ,   // 127
-            loadSound("./assets/sfx/player/speech/allied/taking_fire_help.wav") ,   // 128
-            loadSound("./assets/sfx/player/speech/allied/you_take_lead.wav") ,   // 129
-            
-            
-            loadSound("./assets/sfx/player/speech/axis/attack.wav") ,   // 130
-            loadSound("./assets/sfx/player/speech/axis/cover_me.wav") ,   // 131
-            loadSound("./assets/sfx/player/speech/axis/follow_me.wav") ,   // 132
-            loadSound("./assets/sfx/player/speech/axis/get_out_of_my_way.wav") ,   // 133
-            loadSound("./assets/sfx/player/speech/axis/get_us_killed.wav") ,   // 134
-            loadSound("./assets/sfx/player/speech/axis/hold_position.wav") ,   // 135
-            loadSound("./assets/sfx/player/speech/axis/ill_cover_you.wav") ,   // 136
-            loadSound("./assets/sfx/player/speech/axis/taking_fire_help.wav") ,   // 137
-            loadSound("./assets/sfx/player/speech/axis/you_take_lead.wav") ,   // 138
-            
-            loadSound("./assets/sfx/tank/tank_on.wav") ,   // 139
-            loadSound("./assets/sfx/tank/tank_off.wav") ,   // 140
-            loadSound("./assets/sfx/tank/tank_idle.wav") ,   // 141
-            loadSound("./assets/sfx/tank/tank_shift1.wav") ,   // 142
-            loadSound("./assets/sfx/tank/tank_shift2.wav") ,   // 143
-            loadSound("./assets/sfx/tank/tank_shift3.wav") ,   // 144
-            loadSound("./assets/sfx/tank/tank_revup.wav") ,   // 145
-            loadSound("./assets/sfx/tank/tank_revdown.wav") ,   // 146
-            loadSound("./assets/sfx/tank/tank_turret2.wav") ,   // 147
-            loadSound("./assets/sfx/tank/tank_move.wav") ,   // 148
-            loadSound("./assets/sfx/tank/tank_fire.wav") ,   // 149
-            
-            loadSound("./assets/sfx/ctf/flag_captured.wav") ,   // 150
-            loadSound("./assets/sfx/ctf/flag_stolen.wav") ,   // 151
-            loadSound("./assets/sfx/ctf/flag_returned.wav") ,   // 152
-            loadSound("./assets/sfx/ctf/enemy_flag_captured.wav") ,   // 153
-            loadSound("./assets/sfx/ctf/enemy_flag_stolen.wav") ,   // 154
-            
-            loadSound("./assets/sfx/mg42/mg42_fire01.wav") ,   // 155
-            loadSound("./assets/sfx/mg42/mg42_fire02.wav") ,   // 156
-            
-            loadSound("./assets/sfx/radio/static01.wav") ,   // 157
-            loadSound("./assets/sfx/radio/static02.wav") ,   // 158            
+            loadSound("./assets/sfx/ctf/flag_captured.wav") ,   // 45
+            loadSound("./assets/sfx/ctf/flag_stolen.wav") ,   // 46
+            loadSound("./assets/sfx/ctf/flag_returned.wav") ,   // 47
+            loadSound("./assets/sfx/ctf/enemy_flag_captured.wav") ,   // 48
+            loadSound("./assets/sfx/ctf/enemy_flag_stolen.wav") ,   // 49                     
 		};
 	};
 
@@ -672,95 +405,6 @@ public class Sounds {
 	public static int[] soundBank(SoundType type) {
 		int[] sound = null;
 		switch(type) {
-		case EMPTY_FIRE: 
-			sound = emptyFireSnd;
-			break;
-			
-		case THOMPSON_FIRE: 
-			sound = thompsonFire;
-			break;
-		case THOMPSON_RELOAD: 
-			sound = thompsonReload;
-			break;
-		
-		
-		case EXPLOSION:
-			sound = explodeSnd;
-			break;		
-		case RPG_FIRE:
-			sound = rocketFire;
-			break;
-			
-		case GRENADE_PINPULLED:
-			sound = grenadePinPulled;
-			break;			
-		case GRENADE_THROW:
-			sound = grenadeThrow;
-			break;
-			
-		case SHOTGUN_FIRE:
-			sound = shotgunFire;
-			break;
-		case SHOTGUN_RELOAD: 
-			sound = shotgunReload;
-			break;
-		case SHOTGUN_PUMP:
-			sound = shotgunPump;
-			break;			
-			
-		case SPRINGFIELD_FIRE:
-			sound = springfieldFire;			
-			break;
-		case SPRINGFIELD_RECHAMBER:
-			sound = springfieldRechamber;
-			break;
-		case SPRINGFIELD_RELOAD: 
-			sound = springfieldReload;
-			break;
-		
-		case RISKER_FIRE:
-			sound = riskerFire;			
-			break;
-		case RISKER_RECHAMBER:
-			sound = riskerRechamber;
-			break;
-		case RISKER_RELOAD: 
-			sound = riskerReload;
-			break;
-			
-		case M1_GARAND_FIRE: 
-			sound = m1Fire;
-			break;
-		case M1_GARAND_LAST_FIRE:
-			sound = m1FireLast;
-			break;
-		case M1_GARAND_RELOAD:
-			sound = m1Reload;
-			break;
-			
-		case KAR98_FIRE:
-			sound = kar98Fire;
-			break;
-		case KAR98_RECHAMBER:
-			sound = kar98Rechamber;
-			break;
-		case KAR98_RELOAD:
-			sound = kar98Reload;
-			break;
-		
-		case MP44_FIRE:
-			sound = mp44Fire;
-			break;
-		case MP44_RELOAD:
-			sound = mp44Reload;
-			break;
-			
-		case MP40_FIRE:
-			sound = mp40Fire;
-			break;
-		case MP40_RELOAD:
-			sound = mp40Reload;
-			break;			
 			
 		case SURFACE_GRASS:			
 			sound = grassWalk;			
@@ -783,29 +427,9 @@ public class Sounds {
 		case SURFACE_SAND: 
 			sound = dirtWalk;
 			break;
-		case WEAPON_SWITCH:
-			sound = weaponSwitch;
-			break;
+
 		case RUFFLE:
 			sound = ruffle;
-			break;
-		case BOMB_TICK:
-			sound = bombTick;
-			break;
-		case BOMB_PLANT:
-			sound = bombPlant;
-			break;
-		case BOMB_DISARM:
-			sound = bombDisarm;
-			break;			
-		case WEAPON_DROPPED:
-			sound = weaponDrop;
-			break;
-		case WEAPON_PICKUP:		
-			sound = weaponPickupSnd;
-			break;
-		case AMMO_PICKUP:
-			sound = ammoPickupSnd;
 			break;
 		case MELEE_SWING:
 			sound = meleeSwing;
@@ -813,12 +437,7 @@ public class Sounds {
 		case MELEE_HIT:
 			sound = meleeHit;
 			break;
-		case PISTOL_FIRE:
-			sound = pistolFire;
-			break;
-		case PISTOL_RELOAD:
-			sound = pistolReload;
-			break;
+
 		case UI_ELEMENT_HOVER:
 			sound = uiHover;
 			break;
@@ -831,57 +450,11 @@ public class Sounds {
 		case UI_KEY_TYPE:
 			sound = uiKeyType;
 			break;
-		case IMPACT_METAL:
-			sound = impactMetal;
-			break;
-		case IMPACT_DEFAULT:
-			sound = impactDefault;
-			break;
-		case IMPACT_FOLIAGE:			
-			sound = impactFoliage;
-			break;		
-		case IMPACT_WOOD:
-			sound = impactWood;
-			break;
+		
 		case IMPACT_FLESH:
 			sound = hit;
 			break;			
-		case TANK_ON: 
-			sound = tankOn;
-			break;
-		case TANK_OFF: 
-			sound = tankOff;
-			break;
-		case TANK_REV_UP: 
-			sound = tankRevUp;
-			break;			
-		case TANK_REV_DOWN: 
-			sound = tankRevDown;
-			break;			
-		case TANK_IDLE: 
-			sound = tankIdle;
-			break;			
-		case TANK_SHIFT: 
-			sound = tankShift;
-			break;			
-		case TANK_TURRET_MOVE: 
-			sound = tankTurret;
-			break;					
-		case TANK_MOVE: 
-			sound = tankMove;
-			break;		
-		case TANK_FIRE:
-			sound = tankFire;
-			break;
-		case BREATH_HEAVY: 
-			sound = breadthHeavy;
-			break;
-		case BREATH_LITE:
-			sound = breadthLite;
-			break;
-		case HEALTH_PACK_PICKUP:
-			sound = healthPackPickup;
-		    break;
+		
 		case ENEMY_FLAG_CAPTURED:
 			sound = enemyFlagCaptured;
 		    break;
@@ -897,12 +470,7 @@ public class Sounds {
 		case FLAG_STOLEN:
 			sound = flagStolen;
 		    break;
-		case MG42_FIRE:
-			sound = mg42Fire;
-			break;
-		case RADIO_STATIC:
-			sound = radioStatic;
-			break;
+		
 		case MUTE:
 			
 		default:

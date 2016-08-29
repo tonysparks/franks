@@ -1,7 +1,7 @@
 /*
  * see license.txt 
  */
-package franks.game;
+package franks.game.commands;
 
 import franks.gfx.Renderable;
 

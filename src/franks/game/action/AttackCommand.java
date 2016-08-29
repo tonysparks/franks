@@ -3,12 +3,12 @@
  */
 package franks.game.action;
 
-import franks.game.Command;
-import franks.game.CommandAction;
-import franks.game.CommandQueue.CommandRequest;
 import franks.game.Game;
 import franks.game.PreconditionResponse;
 import franks.game.Randomizer;
+import franks.game.commands.Command;
+import franks.game.commands.CommandAction;
+import franks.game.commands.CommandQueue.CommandRequest;
 import franks.game.entity.Entity;
 import franks.game.entity.Entity.State;
 import franks.gfx.Camera;
@@ -33,7 +33,7 @@ public class AttackCommand extends Command {
 	 * @param movementCost
 	 */
 	public AttackCommand(Game game, Entity attacker, int cost, int attackDistance, int hitPercentage) {
-		super("attack",  cost, attacker);
+		super(CommandType.Attack,  cost, attacker);
 		
 		this.game = game;
 		
@@ -51,7 +51,7 @@ public class AttackCommand extends Command {
 		PreconditionResponse response = new PreconditionResponse();
 		
 		Entity attacker = getEntity();
-		if(!attacker.canDo(getName())) {
+		if(!attacker.canDo(getType())) {
 			response.addFailure("This entity can not attack");
 		}
 		

@@ -14,14 +14,14 @@ import franks.gfx.Art;
  * @author Tony
  *
  */
-public class ResourceCache {
+public class TextureCache {
 
 	private Map<String, TextureRegion> textures;
 	
 	/**
 	 * 
 	 */
-	public ResourceCache() {
+	public TextureCache() {
 		this.textures = new HashMap<>();
 	}
 	

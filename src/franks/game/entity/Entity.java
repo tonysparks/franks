@@ -9,15 +9,18 @@ import java.util.List;
 import java.util.Optional;
 
 import franks.game.ActionMeter;
-import franks.game.Command;
-import franks.game.CommandQueue;
-import franks.game.CommandQueue.CommandRequest;
 import franks.game.Game;
 import franks.game.Team;
 import franks.game.World;
 import franks.game.action.AttackCommand;
 import franks.game.action.DieCommand;
 import franks.game.action.MovementCommand;
+import franks.game.commands.Command;
+import franks.game.commands.Command.CommandType;
+import franks.game.commands.CommandQueue;
+import franks.game.commands.CommandQueue.CommandRequest;
+import franks.game.net.NetEntity;
+import franks.game.net.NetEntityPartial;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
 import franks.gfx.Colors;
@@ -63,6 +66,7 @@ public class Entity implements Renderable {
 		DEAD,
 	}
 	
+	private final int id;
 	private Type type;
 	private String name;
 	protected Vector2f pos;
@@ -76,7 +80,7 @@ public class Entity implements Renderable {
 	
 	private boolean isSelected;
 	
-	private java.util.Map<String, Command> availableCommands;
+	private java.util.Map<CommandType, Command> availableCommands;
 	
 	protected Game game;
 	protected World world;
@@ -99,7 +103,8 @@ public class Entity implements Renderable {
 	
 	private EntityData data;
 				
-	public Entity(Game game, Team team, EntityData data) {
+	public Entity(int id, Game game, Team team, EntityData data) {
+		this.id = id;
 		this.game = game;
 		this.team = team;
 		this.data = data;
@@ -155,6 +160,14 @@ public class Entity implements Renderable {
 			addAvailableAction(new DieCommand(this));
 		}
 	}
+	
+	/**
+	 * @return the id
+	 */
+	public int getId() {
+		return id;
+	}
+	
 	
 	/**
 	 * @return the name
@@ -396,7 +409,7 @@ public class Entity implements Renderable {
 	 */
 	public void kill() {
 		if(this.isAlive()) {
-			doAction(new CommandRequest(game, "die", this));
+			doAction(new CommandRequest(game, CommandType.Die, this));
 		}
 	}
 	
@@ -455,8 +468,8 @@ public class Entity implements Renderable {
 		this.isSelected = selected;
 	}
 	
-	public Optional<Command> getCommand(final String name) {
-		return Optional.ofNullable(this.availableCommands.get(name.toLowerCase()));
+	public Optional<Command> getCommand(final CommandType type) {
+		return Optional.ofNullable(this.availableCommands.get(type));
 	}
 	
 	public Entity moveToRegion(int x, int y) {
@@ -506,8 +519,8 @@ public class Entity implements Renderable {
 		return this;
 	}
 	
-	public boolean hasAction(String actionName) {
-		return this.availableCommands.get(actionName.toLowerCase()) != null;
+	public boolean hasAction(CommandType type) {
+		return this.availableCommands.get(type) != null;
 	}
 	
 	public void queueAction(CommandRequest request) {
@@ -519,12 +532,12 @@ public class Entity implements Renderable {
 		queueAction(request);
 	}
 	
-	public boolean canDo(String actionName) {
-		return hasAction(actionName);
+	public boolean canDo(CommandType type) {
+		return hasAction(type);
 	}
 	
 	public Entity addAvailableAction(Command action) {
-		this.availableCommands.put(action.getName().toLowerCase(), action);
+		this.availableCommands.put(action.getType(), action);
 		return this;
 	}
 	
@@ -636,6 +649,30 @@ public class Entity implements Renderable {
 
 	public void endTurn() {
 		this.meter.reset(data.movements);
+	}
+	
+	public NetEntity getNetEntity() {
+		NetEntity net = new NetEntity();
+		net.id = id;
+		net.type = type;
+		net.name = name;
+		net.pos = pos.createClone();
+		net.currentDirection = currentDirection;
+		net.currentState = currentState;
+		net.actionPointsAmount = meter.remaining();
+		net.health = health;
+		net.dataFile = data.dataFile;
+		return net;
+	}
+	
+	public void syncFrom(NetEntityPartial net) {
+		type=net.type;
+		name=net.name;
+		pos.set(net.pos);
+		setCurrentDirection(net.currentDirection);
+		setCurrentState(net.currentState);
+		meter.reset(net.actionPointsAmount);
+		health=net.health;
 	}
 	
 	/* (non-Javadoc)

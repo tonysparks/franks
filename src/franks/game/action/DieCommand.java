@@ -3,11 +3,11 @@
  */
 package franks.game.action;
 
-import franks.game.Command;
-import franks.game.CommandAction;
-import franks.game.CommandQueue.CommandRequest;
 import franks.game.Game;
 import franks.game.PreconditionResponse;
+import franks.game.commands.Command;
+import franks.game.commands.CommandAction;
+import franks.game.commands.CommandQueue.CommandRequest;
 import franks.game.entity.Entity;
 import franks.game.entity.Entity.State;
 import franks.gfx.Camera;
@@ -22,7 +22,7 @@ import franks.util.Timer;
 public class DieCommand extends Command {
 
 	public DieCommand(Entity entity) {
-		super("die",  0, entity);		
+		super(CommandType.Die,  0, entity);		
 	}
 
 	/* (non-Javadoc)
@@ -32,7 +32,7 @@ public class DieCommand extends Command {
 	public PreconditionResponse checkPreconditions(Game game, CommandRequest request) {
 		PreconditionResponse response = new PreconditionResponse();
 		
-		if(!getEntity().canDo(getName())) {
+		if(!getEntity().canDo(getType())) {
 			response.addFailure("This entity can not die");
 		}
 		

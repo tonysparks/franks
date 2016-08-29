@@ -1,9 +1,11 @@
 /*
  * see license.txt 
  */
-package franks.game;
+package franks.game.commands;
 
-import franks.game.CommandQueue.CommandRequest;
+import franks.game.Game;
+import franks.game.PreconditionResponse;
+import franks.game.commands.CommandQueue.CommandRequest;
 import franks.game.entity.Entity;
 
 /**
@@ -12,16 +14,24 @@ import franks.game.entity.Entity;
  */
 public abstract class Command {
 
+	public static enum CommandType {
+		Move,
+		Attack,
+		Die,
+		
+		;		
+	}
+	
 	private Entity entity;
-	private String name;
+	private CommandType type;
 	private int actionCost;
 	
 	
 	/**
 	 * 
 	 */
-	public Command(String name, int actionCost, Entity entity) {
-		this.name = name;
+	public Command(CommandType type, int actionCost, Entity entity) {
+		this.type = type;
 		this.actionCost = actionCost;
 		this.entity = entity;
 				
@@ -36,11 +46,12 @@ public abstract class Command {
 	
 	
 	/**
-	 * @return the name
+	 * @return the type
 	 */
-	public String getName() {
-		return name;
+	public CommandType getType() {
+		return type;
 	}
+	
 	
 	/**
 	 * @return the actionCost
@@ -76,4 +87,5 @@ public abstract class Command {
 		return doActionImpl(game, request);
 	}
 
+	
 }

@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import franks.game.entity.Entity;
+import franks.game.net.NetTeam;
 
 /**
  * @author Tony
@@ -16,13 +17,15 @@ public class Team {
 
 	private String name;
 	private List<Entity> members;
-	
+	private NetTeam net;
 	/**
 	 * 
 	 */
 	public Team(String name) {
 		this.name = name;
 		this.members = new ArrayList<>();
+		this.net = new NetTeam();
+		this.net.name = name;
 	}
 
 	public void addMember(Entity entity) {
@@ -45,5 +48,9 @@ public class Team {
 	 */
 	public String getName() {
 		return name;
+	}
+
+	public NetTeam getNetTeam() {
+		return net;
 	}
 }

@@ -3,8 +3,6 @@
  */
 package franks.game;
 
-import franks.game.entity.Entity;
-
 /**
  * @author Tony
  *
@@ -33,9 +31,7 @@ public class Turn {
 	 * @param game
 	 */
 	public void endTurn(Game game) {
-		for(Entity ent : game.getEntities()) {
-			ent.endTurn();
-		}
+		game.getEntities().endTurn();		
 	}
 
 }

@@ -17,9 +17,9 @@ import franks.util.Config;
 import franks.util.Logger;
 import franks.util.PrintStreamLogger;
 
-
-
 /**
+ * The main entry point of the game
+ * 
  * @author Tony
  *
  */
@@ -72,7 +72,7 @@ public class Main {
 	 */
 	private static void catchException(Throwable e) {
 		try {
-			PrintStream out = new PrintStream(new File("./seventh_error.log"));
+			PrintStream out = new PrintStream(new File("./franks_error.log"));
 			try {
 				Logger logger = new PrintStreamLogger(out);
 				logSystemSpecs(logger);
@@ -123,7 +123,7 @@ public class Main {
 			
 			cfg.setFromDisplayMode(displayMode);
 			cfg.fullscreen = vConfig.isFullscreen();
-			cfg.title = "newera " + FranksGame.getVersion();
+			cfg.title = "Franks " + FranksGame.getVersion();
 			cfg.forceExit = true;
 			cfg.resizable = false;
 			cfg.useGL30 = true;			
@@ -178,7 +178,7 @@ public class Main {
 		Runtime runtime = Runtime.getRuntime();
 		final long MB = 1024 * 1024;
 		console.println("");
-		console.println("newera: " + FranksGame.getVersion());
+		console.println("franks: " + FranksGame.getVersion());
 		console.println("Available processors (cores): " + runtime.availableProcessors());
 		console.println("Free memory (MiB): " + runtime.freeMemory()/MB);
 		console.println("Max memory (MiB): " + (runtime.maxMemory()==Long.MAX_VALUE ? "no limit" : Long.toString(runtime.maxMemory()/MB)) );

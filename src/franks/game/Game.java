@@ -5,9 +5,8 @@ package franks.game;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.function.Consumer;
+import java.util.Queue;
 
 import org.hjson.JsonValue;
 
@@ -16,11 +15,19 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import franks.FranksGame;
-import franks.game.CommandAction.CompletionState;
-import franks.game.CommandQueue.CommandRequest;
-import franks.game.entity.Direction;
+import franks.game.commands.CommandAction;
+import franks.game.commands.CommandAction.CompletionState;
+import franks.game.commands.CommandQueue;
+import franks.game.commands.Command.CommandType;
+import franks.game.commands.CommandQueue.CommandRequest;
 import franks.game.entity.Entity;
 import franks.game.entity.EntityData;
+import franks.game.entity.EntityGroupData;
+import franks.game.entity.EntityGroupData.EntityInstanceData;
+import franks.game.entity.EntityList;
+import franks.game.net.NetEntity;
+import franks.game.net.NetGameFullState;
+import franks.game.net.NetGamePartialState;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
 import franks.gfx.Cursor;
@@ -28,13 +35,10 @@ import franks.gfx.Renderable;
 import franks.gfx.Terminal;
 import franks.map.IsometricMap;
 import franks.map.MapTile;
-import franks.math.Rectangle;
 import franks.math.Vector2f;
-import franks.util.AssetWatcher;
 import franks.util.Command;
 import franks.util.Cons;
 import franks.util.Console;
-import franks.util.PassThruAssetWatcher;
 import franks.util.TimeStep;
 
 /**
@@ -43,11 +47,12 @@ import franks.util.TimeStep;
  */
 public class Game implements Renderable {
 
+	public static final int MAX_ENTITIES = 256;
+	
 	private FranksGame app;
 	private World world;
 	
-	private List<Entity> entities;
-	private List<Entity> aliveEntities;
+	private EntityList entities;
 	
 	private Entity selectedEntity;
 	private Entity hoveredOverEntity;
@@ -68,22 +73,18 @@ public class Game implements Renderable {
 	private Camera camera;
 	private CameraController cameraController;
 	
-	private ResourceCache textureCache;
+	private TextureCache textureCache;
 	private Gson gson;
 	
-	private AssetWatcher watcher;
-	
 	private Team redTeam, greenTeam;
+	private Player redPlayer;
+	private Player greenPlayer;
+	
+	private Player localPlayer;
 	
 	
-	
-	private Comparator<Entity> renderOrder = new Comparator<Entity>() {
-		
-		@Override
-		public int compare(Entity left, Entity right) {
-			return left.getZOrder() - right.getZOrder();
-		}
-	};
+	// TODO figure out queuing strategy for networked commands...
+	private Queue<CommandRequest> queuedRequests;
 	
 	/**
 	 * 
@@ -95,10 +96,9 @@ public class Game implements Renderable {
 		this.cursor = app.getUiManager().getCursor();
 		this.world = new World(this); 
 		
-		this.textureCache = new ResourceCache();
+		this.textureCache = new TextureCache();
 		
-		this.entities = new ArrayList<>();
-		this.aliveEntities = new ArrayList<>();
+		this.entities = new EntityList(this);
 				
 		this.actions = new ArrayList<>();
 		this.inprogressActions = new ArrayList<>();
@@ -118,15 +118,10 @@ public class Game implements Renderable {
 		
 		this.gson = new GsonBuilder().create();
 		
-		try {
-			this.watcher = // new FileSystemAssetWatcher(new File("/assets"));
-					new PassThruAssetWatcher();
-			this.watcher.startWatching();
-		}
-		catch(Exception e) {
-			Cons.println("*** Unable to start asset watcher - " + e);
-			this.watcher = new PassThruAssetWatcher();
-		}
+		this.redPlayer = new Player("Red Player", redTeam);
+		this.greenPlayer = new Player("Green Player", greenTeam);
+		this.localPlayer = this.greenPlayer;
+		
 		
 		// temp
 		app.getConsole().addCommand(new Command("reload") {
@@ -135,53 +130,29 @@ public class Game implements Renderable {
 			public void execute(Console console, String... args) {
 				entities.clear();
 				
-				EntityData dwarf = loadEntity("assets/entities/dark_dwarf.json");
+				EntityGroupData redGroupData = loadGroupData("assets/red.json");
+				redPlayer.setEntities(redGroupData.buildEntities(redTeam, Game.this));
 				
-				EntityData greenArcher = loadEntity("assets/entities/green_archer.json");
-				EntityData greenKnight = loadEntity("assets/entities/green_knight.json");
-				
-				for(int i = 0; i < 8; i++) {					
-					Entity dataEnt = new Entity(Game.this, greenTeam, i%2==0 ? greenArcher : greenKnight);
-					dataEnt.moveToRegion(0, i);
-					dataEnt.setCurrentDirection(Direction.SOUTH_EAST);
-					dataEnt.setDesiredDirection(Direction.SOUTH_EAST);
-					addEntity(dataEnt);
-				}								
-				
-				EntityData redArcher = loadEntity("assets/entities/red_archer.json");
-				EntityData redKnight = loadEntity("assets/entities/red_knight.json");
-				
-				final int rightSize = world.getMap().getTileWorldHeight()-1;
-				
-				for(int i = 0; i < 8; i++) {
-					Entity dataEnt = new Entity(Game.this, redTeam, i%2==0 ? redArcher: redKnight);
-					dataEnt.moveToRegion(rightSize, i);
-					dataEnt.setCurrentDirection(Direction.NORTH_WEST);
-					dataEnt.setDesiredDirection(Direction.NORTH_WEST);
-					addEntity(dataEnt);
-				}
-				
-
-				Entity dwarfEnt = new Entity(Game.this, greenTeam, dwarf);
-				dwarfEnt.moveToRegion(0, 9);
-				dwarfEnt.setCurrentDirection(Direction.SOUTH_EAST);
-				dwarfEnt.setDesiredDirection(Direction.SOUTH_EAST);
-				addEntity(dwarfEnt);
-				
-				
-				dwarfEnt = new Entity(Game.this, redTeam, dwarf);
-				dwarfEnt.moveToRegion(rightSize, 9);
-				dwarfEnt.setCurrentDirection(Direction.NORTH_WEST);
-				dwarfEnt.setDesiredDirection(Direction.NORTH_WEST);
-				addEntity(dwarfEnt);
+				EntityGroupData greenGroupData = loadGroupData("assets/green.json");
+				greenPlayer.setEntities(greenGroupData.buildEntities(greenTeam, Game.this));
 			}
 		});
 		app.getConsole().execute("reload");
 	}
 	
 	public EntityData loadEntity(String file) {
+		EntityData data = loadData(file, EntityData.class);
+		data.dataFile = file;
+		return data;
+	}
+	
+	public EntityGroupData loadGroupData(String file) {
+		return loadData(file, EntityGroupData.class);
+	}
+	
+	private <T> T loadData(String file, Class<T> type) {
 		try {
-			return gson.fromJson(JsonValue.readHjson(Gdx.files.internal(file).reader(1024)).toString(), EntityData.class);
+			return gson.fromJson(JsonValue.readHjson(Gdx.files.internal(file).reader(1024)).toString(), type);
 		}
 		catch(IOException e) {
 			Cons.println("*** Unable to load '" + file + "' : " + e);
@@ -214,29 +185,37 @@ public class Game implements Renderable {
 	/**
 	 * @return the textureCache
 	 */
-	public ResourceCache getTextureCache() {
+	public TextureCache getTextureCache() {
 		return textureCache;
 	}
 	
 	
-	public Game addEntity(Entity ent) {
-		this.entities.add(ent);
-		this.entities.sort(renderOrder);
-		return this;
+	/**
+	 * Builds the {@link Entity} from the {@link EntityInstanceData}
+	 * 
+	 * @param team
+	 * @param ref
+	 * @return the {@link Entity}
+	 */
+	public Entity buildEntity(Team team, EntityInstanceData ref) {
+		EntityData data = loadEntity("assets/entities/" + ref.dataFile);
+		Entity dataEnt = entities.buildEntity(team, data);
+		dataEnt.moveToRegion(ref.x, ref.y);
+		dataEnt.setCurrentDirection(ref.direction);
+		dataEnt.setDesiredDirection(ref.direction);
+				
+		return dataEnt;
 	}
 	
-	public void foreachEntity(Consumer<Entity> c) {
-		this.entities.forEach(c);
+	public Entity buildEntity(Team team, NetEntity net) {
+		EntityData data = loadEntity("assets/entities/" + net.dataFile);
+		Entity dataEnt = entities.buildEntity(net.id, team, data);
+		dataEnt.syncFrom(net);
+		return dataEnt;
 	}
-	
-	public Entity getEntityOnTile(MapTile tile) {
 		
-		for(Entity ent : entities) {
-			if(ent.getBounds().intersects(tile.getBounds())) {
-				return ent;
-			}
-		}
-		return null;
+	public Entity getEntityOnTile(MapTile tile) {
+		return entities.getEntityOnTile(tile);
 	}
 	
 	/**
@@ -284,13 +263,7 @@ public class Game implements Renderable {
 		Vector2f screenPos = getCursorPos();
 		MapTile tile = world.getMapTileByScreenPos(screenPos);
 		if(tile!=null) {
-			Rectangle bounds = tile.getBounds();
-			for(Entity ent : this.entities) {
-				if(bounds.intersects(ent.getBounds()) ||
-				   bounds.contains(ent.getCenterPos())) {
-					return ent;
-				}
-			}
+			return entities.getEntityByBounds(tile.getBounds());
 		}
 		
 		return null;
@@ -305,8 +278,12 @@ public class Game implements Renderable {
 	/**
 	 * @return the entities
 	 */
-	public List<Entity> getEntities() {
+	public EntityList getEntities() {
 		return entities;
+	}
+	
+	public Entity getEntityById(int id) {
+		return entities.getEntity(id);
 	}
 	
 	/**
@@ -323,11 +300,10 @@ public class Game implements Renderable {
 	public Vector2f getCursorPos() {
 		this.cursorPos.set(cursor.getCursorPos());
 		return this.cursorPos;
-		//return world.screenToWorldCoordinates(cursor.getCursorPos(), cursorPos);		
 	}
 	
-	private void dispatchCommand(Entity entity, String action) {				
-		entity.queueAction(new CommandRequest(this, action, entity));		
+	private void dispatchCommand(Entity entity, CommandType type) {				
+		entity.queueAction(new CommandRequest(this, type, entity));		
 	}
 	
 	public void queueCommand() {
@@ -335,18 +311,22 @@ public class Game implements Renderable {
 			return;
 		}
 		
+		if(!localPlayer.owns(selectedEntity)) {
+			return;
+		}
+		
 		Entity target = getEntityOverMouse();
 		if(target!=null && this.selectedEntity!=target) {
 			switch(target.getType()) {				
 				case HUMAN:					
-					dispatchCommand(selectedEntity, "attack");
+					dispatchCommand(selectedEntity, CommandType.Attack);
 					break;
 				default: 
 					Cons.println("Unsupported type: " + target.getType());
 			}
 		}
 		else {
-			dispatchCommand(selectedEntity, "moveTo");
+			dispatchCommand(selectedEntity, CommandType.Move);
 		}
 		
 	}
@@ -372,17 +352,7 @@ public class Game implements Renderable {
 		}
 		this.world.update(timeStep);
 		
-		this.aliveEntities.clear();
-		this.entities.forEach(ent -> {
-			ent.update(timeStep);
-			if(!ent.isDeleted()) {
-				aliveEntities.add(ent);
-			}
-		});
-		
-		this.entities.clear();
-		this.entities.addAll(aliveEntities);
-		
+		this.entities.update(timeStep);
 		
 		this.commandQueue.update(timeStep);
 		
@@ -407,14 +377,61 @@ public class Game implements Renderable {
 		this.actions.forEach(action -> action.render(canvas, camera, alpha));
 		
 		this.hud.renderUnderEntities(canvas, camera, alpha);
-		
-		this.entities.sort(renderOrder);
-		this.entities.forEach(ent -> ent.render(canvas, camera, alpha));
-		//this.entities.forEach(ent -> RenderFont.drawShadedString(canvas, "" + ent.getZOrder(), ent.getRenderPosition(camera, alpha).x+42, ent.getRenderPosition(camera, alpha).y+64, 0xffffffff));
+		this.entities.render(canvas, camera, alpha);
 		
 		this.hud.render(canvas, camera, alpha);
-
+	}
+	
+	
+	public NetGameFullState getNetGameFullState() {
+		NetGameFullState net = new NetGameFullState();
+		net.greenPlayer = greenPlayer.getNetPlayer();
+		net.redPlayer = redPlayer.getNetPlayer();
+		net.turnNumber = currentTurn.getNumber();
+		return net;
+	}
+	
+	public NetGamePartialState getNetGamePartialState() {
+		NetGamePartialState net = new NetGamePartialState();
+		net.greenEntities = greenPlayer.getNetPlayer().entities;
+		net.redEntities = redPlayer.getNetPlayer().entities;
+		net.turnNumber = currentTurn.getNumber();
+		return net;
+	}
+	
+	public void syncFrom(NetGameFullState net) {
+		this.greenPlayer.syncFrom(net.greenPlayer);
+		
+		List<Entity> greens = new ArrayList<>();
+		for(NetEntity ent : net.greenPlayer.entities) {
+			greens.add(buildEntity(greenTeam, ent));
+		}
 		
 		
-	}		
+		this.redPlayer.syncFrom(net.redPlayer);
+		
+		List<Entity> reds = new ArrayList<>();
+		for(NetEntity ent : net.redPlayer.entities) {
+			reds.add(buildEntity(redTeam, ent));
+		}				
+	}
+	
+	public void synFrom(NetGamePartialState net) {
+		syncFrom(greenTeam, net.greenEntities);
+		syncFrom(redTeam, net.redEntities);		
+	}
+	
+	
+	private void syncFrom(Team team, List<NetEntity> netEntities) {
+		for(int i = 0; i < netEntities.size();i++) {
+			NetEntity netEnt = netEntities.get(i);
+			Entity ent = entities.getEntity(netEnt.id);
+			if(ent==null) {
+				buildEntity(greenTeam, netEnt);
+			}
+			else {
+				ent.syncFrom(netEnt);
+			}
+		}
+	}
 }
