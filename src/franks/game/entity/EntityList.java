@@ -44,6 +44,7 @@ public class EntityList implements Renderable {
 	
 	
 	private Entity[] entities;
+	private Entity[] renderEntities;
 	private Game game;
 	/**
 	 * 
@@ -51,6 +52,7 @@ public class EntityList implements Renderable {
 	public EntityList(Game game) {
 		this.game = game;
 		this.entities = new Entity[Game.MAX_ENTITIES];
+		this.renderEntities = new Entity[Game.MAX_ENTITIES];
 	}
 
 	private int getNextId() {
@@ -114,6 +116,24 @@ public class EntityList implements Renderable {
 		}
 	}
 	
+	
+	/**
+	 * There are no more pending/executing commands
+	 * 
+	 * @return true if no more commands are being executed
+	 */
+	public boolean commandsCompleted() {		
+		for(int i = 0; i < entities.length; i++) {
+			Entity ent = entities[i]; 
+			if(ent != null) {
+				if(!ent.isCommandQueueEmpty()) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+	
 	@Override
 	public void update(TimeStep timeStep) {
 		
@@ -125,16 +145,19 @@ public class EntityList implements Renderable {
 					entities[i] = null;
 				}
 			}
-		}	
+		}
+		
+		for(int i = 0; i < entities.length; i++) {
+			renderEntities[i] = entities[i];
+		}
+		Arrays.sort(renderEntities, renderOrder);
 	}
 	
 	
 	@Override
 	public void render(Canvas canvas, Camera camera, float alpha) {
-
-		Arrays.sort(entities, renderOrder);
-		for(int i = 0; i < entities.length; i++) {
-			Entity ent = entities[i]; 
+		for(int i = 0; i < renderEntities.length; i++) {
+			Entity ent = renderEntities[i]; 
 			if(ent != null) {
 				ent.render(canvas, camera, alpha);
 			}

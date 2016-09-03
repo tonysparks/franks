@@ -2,7 +2,7 @@
  * The Seventh
  * see license.txt 
  */
-package franks.game;
+package franks.gfx;
 
 import franks.util.TimeStep;
 

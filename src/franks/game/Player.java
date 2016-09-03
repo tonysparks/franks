@@ -49,6 +49,10 @@ public class Player {
 		this.entities.addAll(entities);
 	}
 	
+	public void addEntity(Entity ent) {
+		this.entities.add(ent);
+	}
+	
 	/**
 	 * @return the entities
 	 */

@@ -177,11 +177,13 @@ public class Entity implements Renderable {
 	}
 	
 	/**
-	 * @return the commandQueue
+	 * @return true if there are no pending commands or any commands
+	 * being executed
 	 */
-	public CommandQueue getCommandQueue() {
-		return commandQueue;
+	public boolean isCommandQueueEmpty() {
+		return commandQueue.isEmpty();
 	}
+	
 	
 	/**
 	 * @return the meter
@@ -671,6 +673,7 @@ public class Entity implements Renderable {
 		pos.set(net.pos);
 		setCurrentDirection(net.currentDirection);
 		setCurrentState(net.currentState);
+		setDesiredDirection(net.currentDirection);
 		meter.reset(net.actionPointsAmount);
 		health=net.health;
 	}

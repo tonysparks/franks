@@ -5,6 +5,9 @@ package franks.screens;
 
 import franks.FranksGame;
 import franks.game.Game;
+import franks.game.net.websocket.GameServer;
+import franks.game.net.websocket.WebSocketClient;
+import franks.game.net.websocket.WebSocketServer;
 import franks.gfx.Camera;
 import franks.gfx.Camera2d;
 import franks.gfx.Canvas;
@@ -22,6 +25,8 @@ import franks.ui.events.ButtonEvent;
 import franks.ui.events.OnButtonClickedListener;
 import franks.ui.view.ButtonView;
 import franks.ui.view.PanelView;
+import franks.util.Command;
+import franks.util.Console;
 import franks.util.TimeStep;
 
 /**
@@ -35,6 +40,8 @@ public class InGameScreen implements Screen {
 	private Camera camera;
 	private Cursor cursor;
 	private Button endTurnBtn;
+	
+	private GameServer gameServer;
 	
 	private PanelView<Renderable> panel;
 	
@@ -68,11 +75,30 @@ public class InGameScreen implements Screen {
 	
 	
 	public InGameScreen(FranksGame app) {
+		this(app, true);
+	}
+	
+	public InGameScreen(FranksGame app, boolean startServer) {
 		this.app = app;
 		this.camera = newCamera(1024*3, 1024*3);
 		this.game = new Game(app, this.camera);
 		
+		// horrible hacks
+		WebSocketClient.game = game;
+		WebSocketServer.game = game;
+		
+		if(startServer) {
+			this.gameServer = new GameServer(game);
+			this.gameServer.start(8121);
+		}
+		
 		this.cursor = app.getUiManager().getCursor();
+		
+		consoleCommands(app.getConsole());
+		
+		if(!startServer) {
+			app.getConsole().execute("connect ws://localhost:8121/socket");
+		}
 		
 		createUI();
 	}
@@ -91,7 +117,7 @@ public class InGameScreen implements Screen {
 			
 			@Override
 			public void onButtonClicked(ButtonEvent event) {
-				game.nextTurn();
+				game.endCurrentTurn();
 			}
 		});
 		this.panel.addElement(new ButtonView(endTurnBtn));
@@ -111,6 +137,16 @@ public class InGameScreen implements Screen {
 		camera.setMovementSpeed(new Vector2f(130, 130));
 				
 		return camera;
+	}
+	
+	private void consoleCommands(Console console) {
+		console.addCommand(new Command("connect") {
+			
+			@Override
+			public void execute(Console console, String... args) {
+				game.connectToPeer(args[0]);
+			}
+		});
 	}
 	
 	/* (non-Javadoc)

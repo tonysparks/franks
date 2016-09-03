@@ -50,7 +50,7 @@ public class MovementCommand extends Command {
 	
 	private int calculateCost(PathPlanner<Void> planner, Vector2f destination) {
 		if(destination != null) {
-			Vector2f dst = game.getWorld().getMapTilePosByScreenPos(destination);
+			Vector2f dst = destination; //game.getWorld().getMapTilePosByScreenPos(destination);
 			if(dst!=null) {
 				planner.findPath(getEntity().getCenterPos(), dst);				
 				List<GraphNode<MapTile, Void>>  path = planner.getPath();
@@ -80,17 +80,8 @@ public class MovementCommand extends Command {
 	@Override
 	public PreconditionResponse checkPreconditions(Game game, CommandRequest request) {
 		PreconditionResponse response = new PreconditionResponse();
-		
-//		Vector2f dst = game.getWorld().snapMapTilePos(game.getMouseWorldPos());
-//		if(dst!=null) {
-//			this.planner.findPath(getEntity().getCenterPos(), dst);		
-//			setMovementCost(this.planner.getPath().size());
-//		}
-//		else {
-//			response.addFailure("Invalid destination");
-//		}
-		
-		int cost = calculateCost(planner, game.getCursorPos());
+				
+		int cost = calculateCost(planner, request.cursorTilePos);
 		if(cost < 0) {
 			response.addFailure("Invalid destination");
 		}
@@ -112,7 +103,7 @@ public class MovementCommand extends Command {
 	@Override
 	protected CommandAction doActionImpl(Game game, CommandRequest request) {
 		Entity entity = getEntity();				
-		return new CommandAction() {
+		return new CommandAction(request) {
 			boolean isCancelled;
 			boolean atDestination;
 			

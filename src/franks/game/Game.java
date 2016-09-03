@@ -4,9 +4,15 @@
 package franks.game;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
+import javax.websocket.ContainerProvider;
+import javax.websocket.Session;
+import javax.websocket.WebSocketContainer;
 
 import org.hjson.JsonValue;
 
@@ -15,9 +21,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import franks.FranksGame;
-import franks.game.commands.CommandAction;
-import franks.game.commands.CommandAction.CompletionState;
-import franks.game.commands.CommandQueue;
+import franks.game.Team.TeamName;
 import franks.game.commands.Command.CommandType;
 import franks.game.commands.CommandQueue.CommandRequest;
 import franks.game.entity.Entity;
@@ -25,9 +29,14 @@ import franks.game.entity.EntityData;
 import franks.game.entity.EntityGroupData;
 import franks.game.entity.EntityGroupData.EntityInstanceData;
 import franks.game.entity.EntityList;
+import franks.game.net.NetCommandRequest;
 import franks.game.net.NetEntity;
 import franks.game.net.NetGameFullState;
 import franks.game.net.NetGamePartialState;
+import franks.game.net.NetMessage;
+import franks.game.net.NetTurn;
+import franks.game.net.PeerConnection;
+import franks.game.net.websocket.WebSocketClient;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
 import franks.gfx.Cursor;
@@ -57,7 +66,10 @@ public class Game implements Renderable {
 	private Entity selectedEntity;
 	private Entity hoveredOverEntity;
 	
-	private List<CommandAction> actions, inprogressActions;
+	private Queue<NetCommandRequest> netRequests;
+	private Entity activeEntity;	
+	//TODO
+	private boolean isOtherPlayersTurn;
 	
 	private Vector2f cursorPos;
 	private Cursor cursor;
@@ -68,7 +80,6 @@ public class Game implements Renderable {
 	private Turn currentTurn;
 	
 	private Hud hud;
-	private CommandQueue commandQueue;
 	
 	private Camera camera;
 	private CameraController cameraController;
@@ -82,9 +93,7 @@ public class Game implements Renderable {
 	
 	private Player localPlayer;
 	
-	
-	// TODO figure out queuing strategy for networked commands...
-	private Queue<CommandRequest> queuedRequests;
+	private PeerConnection connection;
 	
 	/**
 	 * 
@@ -99,15 +108,10 @@ public class Game implements Renderable {
 		this.textureCache = new TextureCache();
 		
 		this.entities = new EntityList(this);
-				
-		this.actions = new ArrayList<>();
-		this.inprogressActions = new ArrayList<>();
 		
 		this.cursorPos = new Vector2f();
-
-		this.currentTurn = new Turn(0);
 		
-		this.commandQueue = new CommandQueue(this);
+		this.netRequests = new ConcurrentLinkedQueue<>();
 		
 		this.cameraController = new CameraController(world.getMap(), camera);
 	
@@ -122,6 +126,7 @@ public class Game implements Renderable {
 		this.greenPlayer = new Player("Green Player", greenTeam);
 		this.localPlayer = this.greenPlayer;
 		
+		this.currentTurn = new Turn(this, this.localPlayer, 0);
 		
 		// temp
 		app.getConsole().addCommand(new Command("reload") {
@@ -139,6 +144,31 @@ public class Game implements Renderable {
 		});
 		app.getConsole().execute("reload");
 	}
+	
+	public PeerConnection peerConnection(Session session) {
+		if(this.connection!=null) {
+			this.connection.close();
+		}
+		
+		this.connection = new PeerConnection(this, session);
+		return this.connection;
+	}
+	
+	public boolean connectToPeer(String uri) {
+		try {
+			WebSocketContainer container = ContainerProvider.getWebSocketContainer();
+			Session session = container.connectToServer(WebSocketClient.class, URI.create(uri));
+			if(session!=null && session.isOpen()) {
+				return true;
+			}
+		}
+		catch(Exception e) {
+			Cons.println("*** Unable to connect to remote peer: " + e);
+		}
+		
+		return false;
+	}
+	
 	
 	public EntityData loadEntity(String file) {
 		EntityData data = loadData(file, EntityData.class);
@@ -175,6 +205,38 @@ public class Game implements Renderable {
 		return camera;
 	}
 	
+	public boolean isPeerConnected() {
+		return this.connection != null && this.connection.isConnected();
+	}
+	
+	/**
+	 * @return the connection
+	 */
+	public PeerConnection getConnection() {
+		return connection;
+	}
+	
+	/**
+	 * @return the localPlayer
+	 */
+	public Player getLocalPlayer() {
+		return localPlayer;
+	}
+	
+	/**
+	 * @return the greenPlayer
+	 */
+	public Player getGreenPlayer() {
+		return greenPlayer;
+	}
+	
+	/**
+	 * @return the redPlayer
+	 */
+	public Player getRedPlayer() {
+		return redPlayer;
+	}
+	
 	/**
 	 * @return the cursor
 	 */
@@ -187,6 +249,47 @@ public class Game implements Renderable {
 	 */
 	public TextureCache getTextureCache() {
 		return textureCache;
+	}
+	
+	public void handleNetMessage(NetMessage msg) {
+		switch(msg.type) {
+			case FullState:
+				this.entities.clear();
+				
+				NetGameFullState state = msg.asNetGameFullState();
+				this.randomizer = new Randomizer(state.seed, state.generation);
+				this.greenPlayer.syncFrom(state.greenPlayer);
+				for(NetEntity ent : state.greenPlayer.entities) {
+					greenPlayer.addEntity(buildEntity(greenTeam, ent));
+				}
+				
+				this.redPlayer.syncFrom(state.redPlayer);
+				for(NetEntity ent : state.redPlayer.entities) {
+					redPlayer.addEntity(buildEntity(redTeam, ent));
+				}
+				
+				Player activePlayer = greenPlayer;
+				if(state.currentPlayersTurn==TeamName.Red) {
+					activePlayer = redPlayer;
+				}
+				
+				this.currentTurn = new Turn(this, activePlayer, state.turnNumber);
+				this.localPlayer = redPlayer;
+				
+				break;
+			case PartialState:
+				break;
+			case Turn: {
+				if(!this.currentTurn.isPlayersTurn(localPlayer)) {
+					NetTurn turn = msg.asNetTurn();
+					for(NetCommandRequest request : turn.requests) {						
+						this.netRequests.add(request);
+					}					
+				}
+				this.isOtherPlayersTurn=true;
+				break;
+			}
+		}
 	}
 	
 	
@@ -208,7 +311,7 @@ public class Game implements Renderable {
 	}
 	
 	public Entity buildEntity(Team team, NetEntity net) {
-		EntityData data = loadEntity("assets/entities/" + net.dataFile);
+		EntityData data = loadEntity(net.dataFile);
 		Entity dataEnt = entities.buildEntity(net.id, team, data);
 		dataEnt.syncFrom(net);
 		return dataEnt;
@@ -225,13 +328,14 @@ public class Game implements Renderable {
 		return currentTurn;
 	}
 	
-	public Turn nextTurn() {
-		this.currentTurn.endTurn(this);
-				
-		Turn next = new Turn(this.currentTurn.getNumber()+1);
-		this.currentTurn = next;
-		return next;
+	public void endCurrentTurn() {
+		if(this.currentTurn.isPlayersTurn(this.localPlayer)) {
+			if(entities.commandsCompleted()) {
+				this.currentTurn.markTurnCompleted();
+			}
+		}
 	}
+	
 	
 	/**
 	 * @return the selectedEntity
@@ -261,6 +365,10 @@ public class Game implements Renderable {
 	
 	public Entity getEntityOverMouse() {				
 		Vector2f screenPos = getCursorPos();
+		return getEntityOverPos(screenPos);
+	}
+	
+	public Entity getEntityOverPos(Vector2f screenPos) {						
 		MapTile tile = world.getMapTileByScreenPos(screenPos);
 		if(tile!=null) {
 			return entities.getEntityByBounds(tile.getBounds());
@@ -271,7 +379,16 @@ public class Game implements Renderable {
 	
 	public MapTile getTileOverMouse() {
 		Vector2f screenPos = getCursorPos();
+		return getTileOverPos(screenPos);
+	}
+	
+	public MapTile getTileOverPos(Vector2f screenPos) {		
 		MapTile tile = world.getMapTileByScreenPos(screenPos);
+		return tile;
+	}
+	
+	public MapTile getTile(Vector2f tilePos) {
+		MapTile tile = world.getMapTile(tilePos);
 		return tile;
 	}
 	
@@ -302,11 +419,24 @@ public class Game implements Renderable {
 		return this.cursorPos;
 	}
 	
+	/**
+	 * Get the cursor position relative to tile position
+	 * @return the cursor position relative to tile position
+	 */
+	public Vector2f getCursorTilePos() {
+		return world.getMapTilePosByScreenPos(getCursorPos());
+	}
+	
+	
 	private void dispatchCommand(Entity entity, CommandType type) {				
 		entity.queueAction(new CommandRequest(this, type, entity));		
 	}
 	
 	public void queueCommand() {
+		if(!currentTurn.isPlayersTurn(localPlayer)) {
+			return;
+		}
+		
 		if(this.selectedEntity==null) {
 			return;
 		}
@@ -330,7 +460,18 @@ public class Game implements Renderable {
 		}
 		
 	}
-				
+	
+	
+	/**
+	 * Adds the completed command's {@link CommandRequest} to this turns
+	 * history buffer
+	 * 
+	 * @param request
+	 */
+	public void addCommandRequestToHistory(CommandRequest request) {
+		this.currentTurn.addCommandRequest(request);
+	}
+	
 	/**
 	 * @return the world
 	 */
@@ -354,27 +495,33 @@ public class Game implements Renderable {
 		
 		this.entities.update(timeStep);
 		
-		this.commandQueue.update(timeStep);
-		
-		this.inprogressActions.clear();
-		this.actions.forEach(action -> {
-			if(action.getCurrentState() == CompletionState.InProgress) {
-				action.update(timeStep);
-				inprogressActions.add(action);
-			}
-		});
-		
-		this.actions.clear();
-		this.actions.addAll(inprogressActions);
-		
 		this.camera.update(timeStep);
 		this.hud.update(timeStep);
+		
+		if(isPeerConnected()) {
+			this.connection.update(timeStep);
+		}
+		
+		if(this.isOtherPlayersTurn) {
+			if(activeEntity==null||activeEntity.isCommandQueueEmpty()) {		
+				if(!this.netRequests.isEmpty()) {
+					NetCommandRequest request = this.netRequests.poll();
+					activeEntity = request.dispatchRequest(this);								
+				}				
+			}
+			
+			if((activeEntity==null||activeEntity.isCommandQueueEmpty())&&this.netRequests.isEmpty()) {
+				this.currentTurn.markTurnCompleted();
+				this.isOtherPlayersTurn=false;
+			}
+		}
+		this.currentTurn = this.currentTurn.checkTurnState();
+		
 	}
 
 	@Override
 	public void render(Canvas canvas, Camera camera, float alpha) {
 		this.world.render(canvas, camera, alpha);
-		this.actions.forEach(action -> action.render(canvas, camera, alpha));
 		
 		this.hud.renderUnderEntities(canvas, camera, alpha);
 		this.entities.render(canvas, camera, alpha);
@@ -388,6 +535,13 @@ public class Game implements Renderable {
 		net.greenPlayer = greenPlayer.getNetPlayer();
 		net.redPlayer = redPlayer.getNetPlayer();
 		net.turnNumber = currentTurn.getNumber();
+		
+		net.seed = this.randomizer.getStartingSeed();
+		net.generation = this.randomizer.getIteration();
+		
+		net.currentPlayersTurn = currentTurn.getActivePlayer()==greenPlayer 
+				? TeamName.Green : TeamName.Red;
+		
 		return net;
 	}
 	

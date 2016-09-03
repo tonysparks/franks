@@ -8,10 +8,12 @@ import java.util.Optional;
 import java.util.Queue;
 
 import franks.game.Game;
+import franks.game.PreconditionResponse;
 import franks.game.commands.Command.CommandType;
-import franks.game.commands.CommandAction.CompletionState;
 import franks.game.entity.Entity;
 import franks.game.net.NetCommandRequest;
+import franks.math.Vector2f;
+import franks.util.Cons;
 import franks.util.TimeStep;
 import franks.util.Updatable;
 
@@ -24,20 +26,22 @@ public class CommandQueue implements Updatable {
 	public static class CommandRequest {
 		public Entity selectedEntity;
 		public Optional<Entity> targetEntity;
+		public Vector2f cursorTilePos;
 		public CommandType type;
 		
 		public CommandRequest(Game game, NetCommandRequest request) {
-			this(game, request.type, game.getEntityById(request.selectedEntityId), game.getEntityById(request.targetEntityId));
+			this(game, request.type, game.getEntityById(request.selectedEntityId), game.getEntityById(request.targetEntityId), request.cursorTilePos);
 		}
 		
 		public CommandRequest(Game game, CommandType type, Entity selectedEntity) {
-			this(game, type, selectedEntity, game.getEntityOverMouse());
+			this(game, type, selectedEntity, game.getEntityOverMouse(), game.getCursorTilePos()!=null ? game.getCursorTilePos().createClone():new Vector2f());
 		}
 		
-		public CommandRequest(Game game, CommandType type, Entity selectedEntity, Entity targetEntity) {
+		public CommandRequest(Game game, CommandType type, Entity selectedEntity, Entity targetEntity, Vector2f cursorTilePos) {
 			this.type = type;
 			this.selectedEntity = selectedEntity;
 			this.targetEntity = Optional.ofNullable(targetEntity);
+			this.cursorTilePos = cursorTilePos;
 		}
 		
 		/**
@@ -47,13 +51,20 @@ public class CommandQueue implements Updatable {
 		 */
 		public Optional<CommandAction> executeRequest(Game game) {
 			return Optional.ofNullable(selectedEntity).flatMap(ent -> ent.getCommand(type))
-					 								  .filter(cmd -> cmd.checkPreconditions(game, this).isMet())
+					 								  .filter(cmd -> {
+					 									 PreconditionResponse response = cmd.checkPreconditions(game, this);
+					 									 for(String msg : response.getFailureReasons()) {
+					 										 Cons.println(msg);
+					 									 }
+					 									 return response.isMet();
+					 								  })
 					 								  .map(cmd -> cmd.doAction(game, this).start());
 		}
 		
 		public NetCommandRequest getNetCommandRequest() {
 			NetCommandRequest cmd = new NetCommandRequest();
 			cmd.type = type;
+			cmd.cursorTilePos = cursorTilePos.createClone();
 			cmd.selectedEntityId = selectedEntity.getId();
 			if(targetEntity.isPresent()) {
 				cmd.targetEntityId = targetEntity.get().getId();
@@ -93,6 +104,17 @@ public class CommandQueue implements Updatable {
 		return this;
 	}
 	
+	public boolean isEmpty() {
+		if(this.queue.isEmpty()) {
+			if(currentAction.isPresent()) {
+				CommandAction action = currentAction.get();
+				return action.getCurrentState().isCompleted();
+			}
+			return true;
+		}
+		return false;
+	}
+	
 	public CommandQueue cancel() {
 		currentAction.ifPresent(action -> action.cancel());
 		return clear();		
@@ -102,8 +124,10 @@ public class CommandQueue implements Updatable {
 	public void update(TimeStep timeStep) {
 		if(currentAction.isPresent()) {
 			CommandAction action = currentAction.get();
-			if(action.getCurrentState() != CompletionState.InProgress) {
+			if(action.getCurrentState().isCompleted()) {
 				action.end();
+				
+				game.addCommandRequestToHistory(action.getRequest());
 				
 				currentAction = Optional.empty();
 			}

@@ -73,7 +73,7 @@ public class MenuScreen implements Screen {
 			
 			@Override
 			public void onButtonClicked(ButtonEvent event) {
-				//app.setScreen(new ServerListingsScreen(MenuScreen.this));
+				app.setScreen(new InGameScreen(getApp(), false));
 			}
 		});
 		

@@ -93,6 +93,7 @@ public class Hud implements Renderable {
 			renderEntityAttributes(canvas, hoveredOverEntity, pos.x + 30, pos.y + 15, textColor);
 		}
 				
+		RenderFont.drawShadedString(canvas, "Current Players Turn: " + game.getCurrentTurn().getActivePlayer().getName(), 10, canvas.getHeight() - 20, textColor);
 	}
 	
 	private void renderEntityAttributes(Canvas canvas, Entity entity, float x, float y, int textColor) {
@@ -126,7 +127,7 @@ public class Hud implements Renderable {
 		//this.cells.forEach(cell -> cell.render(canvas, camera, alpha));
 		//this.cells.get(0).render(canvas, camera, alpha);
 		
-		//canvas.drawString( "Screen: " + (int)cursor.getCenterPos().x+","+ (int)cursor.getCenterPos().y, cursor.getX()-50, cursor.getY()+40, 0xffffffff);
+		canvas.drawString( "Screen: " + (int)cursor.getCenterPos().x+","+ (int)cursor.getCenterPos().y, cursor.getX()-50, cursor.getY()+40, 0xffffffff);
 		//canvas.drawString( "World:  " + (int)pos.x+","+ (int)pos.y, cursor.getX()-50, cursor.getY()+60, 0xffffffff);
 		
 		if(tile != null) {

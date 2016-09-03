@@ -3,6 +3,8 @@
  */
 package franks.game.net;
 
+import franks.game.Team.TeamName;
+
 /**
  * @author Tony
  *
@@ -10,7 +12,9 @@ package franks.game.net;
 public class NetGameFullState {
 
 	public int turnNumber;
-	
+	public long seed;
+	public long generation;
 	public NetPlayer redPlayer;
-	public NetPlayer greenPlayer;	
+	public NetPlayer greenPlayer;
+	public TeamName currentPlayersTurn;
 }

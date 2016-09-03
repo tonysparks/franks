@@ -15,6 +15,12 @@ import franks.game.net.NetTeam;
  */
 public class Team {
 
+	public static enum TeamName {
+		Red,
+		Green,
+		;
+	}
+	
 	private String name;
 	private List<Entity> members;
 	private NetTeam net;

@@ -43,7 +43,7 @@ public class DieCommand extends Command {
 	
 	@Override
 	protected CommandAction doActionImpl(Game game, CommandRequest request) {			
-		return new CommandAction() {
+		return new CommandAction(request) {
 			
 			Timer timer = new Timer(false, getEntity().getData().getAnimationTime(State.DEAD));
 			

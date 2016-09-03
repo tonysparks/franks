@@ -3,6 +3,8 @@
  */
 package franks.game.action;
 
+import java.util.Optional;
+
 import franks.game.Game;
 import franks.game.PreconditionResponse;
 import franks.game.Randomizer;
@@ -55,11 +57,13 @@ public class AttackCommand extends Command {
 			response.addFailure("This entity can not attack");
 		}
 		
-		Entity enemy = game.getEntityOverMouse();
-		if(enemy == null || enemy.isDead()) {
+		Optional<Entity> target = request.targetEntity; 
+				//game.getEntityOverPos(request.);
+		if(!target.isPresent() || target.get().isDead()) {
 			response.addFailure("No enemy target");
 		}
 		else {
+			Entity enemy = target.get();
 			
 			if(enemy.isTeammate(attacker)) {
 				response.addFailure("Can't attack team member");
@@ -77,10 +81,11 @@ public class AttackCommand extends Command {
 
 	@Override
 	protected CommandAction doActionImpl(Game game, CommandRequest request) {
-		MapTile tile = game.getTileOverMouse();
+//		MapTile tile = game.getTileOverPos(request.cursorTilePos);
+		MapTile tile = game.getTile(request.cursorTilePos);
 		Entity attacker = getEntity();
-		Entity enemy = game.getEntityOverMouse();
-		return new CommandAction() {
+		Entity enemy = request.targetEntity.get();
+		return new CommandAction(request) {
 			
 			Timer timer = new Timer(false, attacker.getData().getAnimationTime(State.ATTACKING));
 						
