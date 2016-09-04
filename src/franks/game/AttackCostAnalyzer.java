@@ -17,6 +17,7 @@ public class AttackCostAnalyzer implements Updatable {
 	private Game game;
 	private Timer calculateMovementCostTimer;
 	private boolean validAttack;
+	private int cost;
 	
 	/**
 	 * 
@@ -39,15 +40,22 @@ public class AttackCostAnalyzer implements Updatable {
 			
 			Entity enemy = game.getEntityOverMouse();
 			if(enemy!=null && !selectedEntity.isTeammate(enemy)) {
-				int attackCost = selectedEntity.calculateAttackCost(enemy);
-				if(attackCost > 0 && moves > 0) {
-					if( (moves - attackCost) > 0 ) {
+				this.cost = selectedEntity.calculateAttackCost(enemy);
+				if(this.cost > 0 && moves > 0) {
+					if( (moves - this.cost) >= 0 ) {
 						this.validAttack = true;
 					}
 				}
 			}
 			
 		}		
+	}
+	
+	/**
+	 * @return the cost
+	 */
+	public int getCost() {
+		return cost;
 	}
 	
 	public boolean isValidAttack() {

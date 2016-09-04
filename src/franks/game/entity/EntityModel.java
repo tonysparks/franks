@@ -115,11 +115,11 @@ public class EntityModel implements Renderable {
 		this.sprite.setSize(tex.getRegionWidth(), tex.getRegionHeight());
 		this.sprite.setPosition(dx, dy);
 		
-		if(entity.getGame().hasSelectedEntity()) {
+		Game game = entity.getGame();
+		
+		if(game.hasSelectedEntity() || game.hasHoveredOverEntity()) {
 		
 			if(entity.isSelected() || entity.isHoveredOver()) {
-				
-				//this.sprite.setColor(0.71f, 0.95f, 0.71f, 0.99f);
 				this.sprite.setColor(Color.WHITE);
 			}
 			else {

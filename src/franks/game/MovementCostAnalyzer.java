@@ -17,6 +17,7 @@ public class MovementCostAnalyzer implements Updatable {
 	private Game game;
 	private Timer calculateMovementCostTimer;
 	private boolean movementAllowed;
+	private int cost;
 	
 	/**
 	 * 
@@ -39,13 +40,20 @@ public class MovementCostAnalyzer implements Updatable {
 
 			this.movementAllowed = false;
 			
-			int cost = selectedEntity.calculateMovementCost(game.getCursorTilePos());
+			cost = selectedEntity.calculateMovementCost(game.getCursorTilePos());
 			
 			if(cost > 0 && cost <= moves && moves > 0) {
 				this.movementAllowed = true;
 			}
 			
 		}		
+	}
+	
+	/**
+	 * @return the cost
+	 */
+	public int getCost() {
+		return cost;
 	}
 	
 	public boolean isMovementAllowed() {

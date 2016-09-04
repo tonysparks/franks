@@ -346,6 +346,10 @@ public class Game implements Renderable {
 		return this.selectedEntity != null;
 	}
 	
+	public boolean hasHoveredOverEntity() {
+		return getEntityOverMouse() != null;
+	}
+	
 	/**
 	 * @return the selectedEntity
 	 */

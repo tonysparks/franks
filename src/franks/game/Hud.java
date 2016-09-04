@@ -109,6 +109,17 @@ public class Hud implements Renderable {
 			}
 		}
 		
+		if(game.hasSelectedEntity()) {
+		
+			if(this.attackAnalyzer.isValidAttack()) {
+				RenderFont.drawShadedString(canvas, "A: " + this.attackAnalyzer.getCost(), cursor.getX(), cursor.getY() + 25, 0xffffffff);
+			}
+			
+			if(this.movementAnalyzer.isMovementAllowed()) {
+				RenderFont.drawShadedString(canvas, "M: " + this.movementAnalyzer.getCost(), cursor.getX(), cursor.getY() + 25, 0xffffffff);
+			}
+		}
+		
 		RenderFont.drawShadedString(canvas, "Current Players Turn: " + game.getCurrentTurn().getActivePlayer().getName(), 10, canvas.getHeight() - 20, textColor);
 	}
 	
@@ -130,7 +141,9 @@ public class Hud implements Renderable {
 		float healthPer = ((float)entity.getHealth() / (float)entity.getMaxHealth()) * 100f;
 		RenderFont.drawShadedString(canvas, "Health: " + (int) healthPer + "%" , x, y, textColor);
 		RenderFont.drawShadedString(canvas, "Defense: " + entity.calculateDefenseScore(), x, y+15, textColor);
-		RenderFont.drawShadedString(canvas, "ActionPoints: " + entity.getMeter().remaining(), x, y+30, textColor);
+		RenderFont.drawShadedString(canvas, "Attack Base Cost: " + entity.attackBaseCost(), x, y+30, textColor);
+		RenderFont.drawShadedString(canvas, "Movement Base Cost: " + entity.movementBaseCost(), x, y+45, textColor);
+		RenderFont.drawShadedString(canvas, "ActionPoints: " + entity.getMeter().remaining(), x, y+60, textColor);
 	}
 	
 	private void drawMouseHover(Canvas canvas, Camera camera, float alpha) {
