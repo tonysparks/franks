@@ -169,6 +169,19 @@ public class GdxCanvas implements Canvas {
 		return fbo.getColorBufferTexture();
 	}
 	
+	@Override
+	public ShapeRenderer getShapeRenderer() {	
+		return this.shapes;
+	}
+	
+	/* (non-Javadoc)
+	 * @see franks.gfx.Canvas#getSpriteBatch()
+	 */
+	@Override
+	public SpriteBatch getSpriteBatch() {	
+		return this.batch;
+	}
+	
 	/* (non-Javadoc)
 	 * @see seventh.client.gfx.Canvas#fboBegin()
 	 */

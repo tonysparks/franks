@@ -3,6 +3,9 @@
  */
 package franks.game;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input.Keys;
+
 import franks.game.entity.Direction;
 import franks.game.entity.Entity;
 import franks.gfx.Art;
@@ -93,6 +96,19 @@ public class Hud implements Renderable {
 			renderEntityAttributes(canvas, hoveredOverEntity, pos.x + 30, pos.y + 15, textColor);
 		}
 				
+		Vector2f pos = cursor.getCenterPos();
+		pos = world.screenRelativeToCamera(pos.x, pos.y);		
+		MapTile tile = game.getTileOverMouse();
+		
+		if(Gdx.input.isKeyPressed(Keys.ALT_LEFT)) {
+			canvas.drawString( "Screen: " + (int)cursor.getCenterPos().x+","+ (int)cursor.getCenterPos().y, cursor.getX()-50, cursor.getY()+40, 0xffffffff);
+			canvas.drawString( "World:  " + (int)pos.x+","+ (int)pos.y, cursor.getX()-50, cursor.getY()+60, 0xffffffff);
+			if(tile!=null) {
+				canvas.drawString( "TilePos: " + tile.getX()+","+ tile.getY(), cursor.getX()-50, cursor.getY()+80, 0xffffffff);
+				canvas.drawString( "TileIndex: " + tile.getXIndex()+","+ tile.getYIndex(), cursor.getX()-50, cursor.getY()+100, 0xffffffff);
+			}
+		}
+		
 		RenderFont.drawShadedString(canvas, "Current Players Turn: " + game.getCurrentTurn().getActivePlayer().getName(), 10, canvas.getHeight() - 20, textColor);
 	}
 	
@@ -127,17 +143,9 @@ public class Hud implements Renderable {
 		//this.cells.forEach(cell -> cell.render(canvas, camera, alpha));
 		//this.cells.get(0).render(canvas, camera, alpha);
 		
-		canvas.drawString( "Screen: " + (int)cursor.getCenterPos().x+","+ (int)cursor.getCenterPos().y, cursor.getX()-50, cursor.getY()+40, 0xffffffff);
-		//canvas.drawString( "World:  " + (int)pos.x+","+ (int)pos.y, cursor.getX()-50, cursor.getY()+60, 0xffffffff);
 		
-		if(tile != null) {
-			//canvas.drawString( "IsoPos:  " + (int)tile.getIsoX()+","+ (int)tile.getIsoY(), cursor.getX()-50, cursor.getY()+80, 0xffffffff);
-			//canvas.drawString( "TileIndex:  " + (int)tile.getXIndex()+","+ (int)tile.getYIndex(), cursor.getX()-50, cursor.getY()+100, 0xffffffff);
-			//canvas.drawString( "TilePos:  " + (int)tile.getX()+","+ (int)tile.getY(), cursor.getX()-50, cursor.getY()+120, 0xffffffff);
-			
-			//canvas.drawRect(tile.getRenderX(), tile.getRenderY(), tile.getWidth(), tile.getHeight(), 0xffffffff);
-			
-			
+		
+		if(tile != null) {						
 			if(attackAnalyzer.isValidAttack()) {
 				cursor.setCursorImg(Art.attackCursorImg);
 			}

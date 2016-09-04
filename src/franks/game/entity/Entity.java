@@ -12,13 +12,13 @@ import franks.game.ActionMeter;
 import franks.game.Game;
 import franks.game.Team;
 import franks.game.World;
-import franks.game.action.AttackCommand;
-import franks.game.action.DieCommand;
-import franks.game.action.MovementCommand;
+import franks.game.commands.AttackCommand;
 import franks.game.commands.Command;
 import franks.game.commands.Command.CommandType;
 import franks.game.commands.CommandQueue;
 import franks.game.commands.CommandQueue.CommandRequest;
+import franks.game.commands.DieCommand;
+import franks.game.commands.MovementCommand;
 import franks.game.net.NetEntity;
 import franks.game.net.NetEntityPartial;
 import franks.gfx.Camera;
@@ -216,7 +216,7 @@ public class Entity implements Renderable {
 	 * @return the movement cost of moving, or -1 if invalid
 	 */
 	public int calculateMovementCost(Vector2f screenCameraPos) {
-		Command cmd = this.availableCommands.get("moveto");
+		Command cmd = this.availableCommands.get(CommandType.Move);
 		if(cmd instanceof MovementCommand) {
 			MovementCommand moveCmd = (MovementCommand)cmd;
 			return moveCmd.calculateCost(screenCameraPos);
@@ -232,7 +232,7 @@ public class Entity implements Renderable {
 	 * @return the total cost of attacking the supplied entity, or -1 if invalid
 	 */
 	public int calculateAttackCost(Entity enemy) {
-		Command cmd = this.availableCommands.get("attack");
+		Command cmd = this.availableCommands.get(CommandType.Attack);
 		if(cmd instanceof AttackCommand) {
 			AttackCommand attackCmd = (AttackCommand) cmd;
 			return attackCmd.calculateCost(enemy);
@@ -543,6 +543,13 @@ public class Entity implements Renderable {
 		return this;
 	}
 	
+	/**
+	 * @return true if the cursor is over this entity
+	 */
+	public boolean isHoveredOver() {
+		return game.getEntityOverMouse() == this;
+	}
+	
 	public boolean isDead() {
 		return getCurrentState().equals(State.DEAD);
 	}
@@ -704,9 +711,6 @@ public class Entity implements Renderable {
 		if(getType().equals(Type.HUMAN)) {
 			Vector2f pos = getRenderPosition(camera, alpha);
 			int health = getHealth();
-//			for(int i = 0; i < health; i++) {
-//				canvas.drawString("*", pos.x+23 + (i*10), pos.y+68, 0xffffffff);
-//			}
 			
 			drawMeter(canvas, pos.x + 42, pos.y + 68, health, getMaxHealth(), 0x9fFF0000, 0xffafFFaf);
 			drawMeter(canvas, pos.x + 42, pos.y + 74, meter.remaining(), data.movements, 0x8f4a5f8f, 0xff3a9aFF);

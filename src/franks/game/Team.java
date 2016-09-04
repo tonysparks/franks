@@ -6,6 +6,8 @@ package franks.game;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.badlogic.gdx.graphics.Color;
+
 import franks.game.entity.Entity;
 import franks.game.net.NetTeam;
 
@@ -24,14 +26,25 @@ public class Team {
 	private String name;
 	private List<Entity> members;
 	private NetTeam net;
+	private Color color;
+	
 	/**
 	 * 
 	 */
-	public Team(String name) {
+	public Team(String name, Color color) {
 		this.name = name;
+		this.color = color;
+		
 		this.members = new ArrayList<>();
 		this.net = new NetTeam();
 		this.net.name = name;
+	}
+	
+	/**
+	 * @return the color
+	 */
+	public Color getColor() {
+		return color;
 	}
 
 	public void addMember(Entity entity) {

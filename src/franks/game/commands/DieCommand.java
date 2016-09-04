@@ -1,12 +1,10 @@
 /*
  * see license.txt 
  */
-package franks.game.action;
+package franks.game.commands;
 
 import franks.game.Game;
 import franks.game.PreconditionResponse;
-import franks.game.commands.Command;
-import franks.game.commands.CommandAction;
 import franks.game.commands.CommandQueue.CommandRequest;
 import franks.game.entity.Entity;
 import franks.game.entity.Entity.State;

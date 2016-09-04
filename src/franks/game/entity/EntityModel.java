@@ -3,6 +3,8 @@
  */
 package franks.game.entity;
 
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
 import franks.game.Game;
@@ -43,6 +45,7 @@ public class EntityModel implements Renderable {
 	
 	private Entity entity;
 	private Model[][] animations;
+	private Sprite sprite;
 		
 	/**
 	 * @param game
@@ -53,6 +56,8 @@ public class EntityModel implements Renderable {
 		this.entity = entity;
 		
 		this.animations = new Model[Entity.State.values().length][];
+		this.sprite = new Sprite();
+		
 		
 		graphics.sectionStates.forEach( (k,v) -> {
 			TextureRegion tex = game.getTextureCache().getTexture(v.filePath);			
@@ -98,6 +103,7 @@ public class EntityModel implements Renderable {
 		Model model = getCurrentModel();
 		TextureRegion tex = model.animations.getCurrentImage();
 		
+		
 		float dx = -1;
 		float dy = -1;
 		
@@ -105,6 +111,27 @@ public class EntityModel implements Renderable {
 		dx = renderPos.x + model.offsetX;
 		dy = renderPos.y + model.offsetY;
 		
-		canvas.drawImage(tex, dx, dy, 0xffffffff);
+		this.sprite.setRegion(tex);
+		this.sprite.setSize(tex.getRegionWidth(), tex.getRegionHeight());
+		this.sprite.setPosition(dx, dy);
+		
+		if(entity.getGame().hasSelectedEntity()) {
+		
+			if(entity.isSelected() || entity.isHoveredOver()) {
+				
+				//this.sprite.setColor(0.71f, 0.95f, 0.71f, 0.99f);
+				this.sprite.setColor(Color.WHITE);
+			}
+			else {
+				this.sprite.setColor(entity.getTeam().getColor());
+				this.sprite.setAlpha(0.49f);
+			}
+		}
+		else {
+			this.sprite.setColor(Color.WHITE);
+		}
+		
+		canvas.drawRawSprite(this.sprite);
+		//canvas.drawImage(tex, dx, dy, 0xffffffff);
 	}
 }

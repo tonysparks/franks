@@ -39,8 +39,9 @@ public class MovementCostAnalyzer implements Updatable {
 
 			this.movementAllowed = false;
 			
-			int distance = selectedEntity.calculateMovementCost(game.getCursorPos());
-			if(distance > 0 && distance <= moves && moves > 0) {
+			int cost = selectedEntity.calculateMovementCost(game.getCursorTilePos());
+			
+			if(cost > 0 && cost <= moves && moves > 0) {
 				this.movementAllowed = true;
 			}
 			

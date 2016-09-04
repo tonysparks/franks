@@ -15,6 +15,7 @@ import javax.websocket.WebSocketContainer;
 import org.hjson.JsonValue;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -109,8 +110,8 @@ public class Game implements Renderable {
 		
 		this.cameraController = new CameraController(world.getMap(), camera);
 	
-		this.redTeam = new Team("Red");
-		this.greenTeam = new Team("Green");
+		this.redTeam = new Team("Red", new Color(0.98f, 0.67f, 0.67f, 0.78f));
+		this.greenTeam = new Team("Green", new Color(0.67f, 0.98f, 0.67f, 0.78f));
 		
 		this.hud = new Hud(this);
 		
@@ -127,6 +128,7 @@ public class Game implements Renderable {
 			@Override
 			public void execute(Console console, String... args) {
 				entities.clear();
+				world = new World(Game.this);
 				
 				EntityGroupData redGroupData = loadGroupData("assets/red.json");
 				redPlayer.setEntities(redGroupData.buildEntities(redTeam, Game.this));
@@ -337,6 +339,12 @@ public class Game implements Renderable {
 		}
 	}
 	
+	/**
+	 * @return true if there is a selected entity
+	 */
+	public boolean hasSelectedEntity() {
+		return this.selectedEntity != null;
+	}
 	
 	/**
 	 * @return the selectedEntity
@@ -348,6 +356,7 @@ public class Game implements Renderable {
 	public boolean selectEntity() {
 		if(this.selectedEntity != null) {
 			this.selectedEntity.isSelected(false);
+			this.selectedEntity = null;
 		}
 		
 		Entity newSelectedEntity = getEntityOverMouse();

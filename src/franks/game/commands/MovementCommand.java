@@ -1,7 +1,7 @@
 /*
  * see license.txt 
  */
-package franks.game.action;
+package franks.game.commands;
 
 import java.util.List;
 
@@ -9,8 +9,6 @@ import franks.game.Game;
 import franks.game.PathPlanner;
 import franks.game.PreconditionResponse;
 import franks.game.TerrainData.TerrainTileData;
-import franks.game.commands.Command;
-import franks.game.commands.CommandAction;
 import franks.game.commands.CommandQueue.CommandRequest;
 import franks.game.entity.Direction;
 import franks.game.entity.Entity;
