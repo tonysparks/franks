@@ -59,7 +59,7 @@ public class DieCommand extends Command {
 				getEntity().delete();
 				// TODO: Once a 'map' is over, clean up the 
 				// dead bodies???
-				return this;
+				return super.end();
 			}
 			
 			@Override

@@ -61,30 +61,30 @@ public class MenuScreen implements Screen {
 			
 			@Override
 			public void onButtonClicked(ButtonEvent event) {
-				app.setScreen(new InGameScreen(getApp()));
+				app.setScreen(new InGameScreen(getApp(), false, true));
 				
 			}
 		});
 		
 		uiPos.y += 80;
 		
-		this.multiPlyBtn = setupButton(uiPos, "Multiplayer");
+		this.multiPlyBtn = setupButton(uiPos, "Multiplayer Server");
 		this.multiPlyBtn.addOnButtonClickedListener(new OnButtonClickedListener() {
 			
 			@Override
 			public void onButtonClicked(ButtonEvent event) {
-				app.setScreen(new InGameScreen(getApp(), false));
+				app.setScreen(new InGameScreen(getApp(), true, false));
 			}
 		});
 		
 		uiPos.y += 80;
 		
-		this.optionsBtn = setupButton(uiPos, "Options");
+		this.optionsBtn = setupButton(uiPos, "Multiplayer Client");
 		this.optionsBtn.addOnButtonClickedListener(new OnButtonClickedListener() {
 			
 			@Override
 			public void onButtonClicked(ButtonEvent event) {
-				//app.pushScreen(new OptionsScreen(app));
+				app.setScreen(new InGameScreen(getApp(), false, false));
 			}
 		});
 		

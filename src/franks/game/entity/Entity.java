@@ -578,6 +578,13 @@ public class Entity implements Renderable {
 		return tilePos;
 	}
 	
+	/**
+	 * @return the {@link MapTile} this Entity is on.
+	 */
+	public MapTile getTileOn() {
+		Vector2f tilePos = getTilePos();
+		return game.getTile(tilePos);
+	}
 	
 	/**
 	 * @return the pos

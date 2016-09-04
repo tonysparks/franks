@@ -75,13 +75,13 @@ public class InGameScreen implements Screen {
 	
 	
 	public InGameScreen(FranksGame app) {
-		this(app, true);
+		this(app, true, false);
 	}
 	
-	public InGameScreen(FranksGame app, boolean startServer) {
+	public InGameScreen(FranksGame app, boolean startServer, boolean isSinglePlayer) {
 		this.app = app;
 		this.camera = newCamera(1024*3, 1024*3);
-		this.game = new Game(app, this.camera);
+		this.game = new Game(app, this.camera, isSinglePlayer);
 		
 		// horrible hacks
 		WebSocketClient.game = game;
@@ -96,7 +96,7 @@ public class InGameScreen implements Screen {
 		
 		consoleCommands(app.getConsole());
 		
-		if(!startServer) {
+		if(!startServer&&!isSinglePlayer) {
 			app.getConsole().execute("connect ws://localhost:8121/socket");
 		}
 		

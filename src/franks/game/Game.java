@@ -7,8 +7,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.websocket.ContainerProvider;
 import javax.websocket.Session;
@@ -29,12 +27,10 @@ import franks.game.entity.EntityData;
 import franks.game.entity.EntityGroupData;
 import franks.game.entity.EntityGroupData.EntityInstanceData;
 import franks.game.entity.EntityList;
-import franks.game.net.NetCommandRequest;
 import franks.game.net.NetEntity;
 import franks.game.net.NetGameFullState;
 import franks.game.net.NetGamePartialState;
 import franks.game.net.NetMessage;
-import franks.game.net.NetTurn;
 import franks.game.net.PeerConnection;
 import franks.game.net.websocket.WebSocketClient;
 import franks.gfx.Camera;
@@ -65,12 +61,7 @@ public class Game implements Renderable {
 	
 	private Entity selectedEntity;
 	private Entity hoveredOverEntity;
-	
-	private Queue<NetCommandRequest> netRequests;
-	private Entity activeEntity;	
-	//TODO
-	private boolean isOtherPlayersTurn;
-	
+		
 	private Vector2f cursorPos;
 	private Cursor cursor;
 	
@@ -92,14 +83,19 @@ public class Game implements Renderable {
 	private Player greenPlayer;
 	
 	private Player localPlayer;
+	private boolean isSinglePlayer;
 	
 	private PeerConnection connection;
+	
 	
 	/**
 	 * 
 	 */
-	public Game(FranksGame app, Camera camera) {
+	public Game(FranksGame app, Camera camera, boolean isSinglePlayer) {
 		this.camera = camera;
+		this.isSinglePlayer = isSinglePlayer;
+		this.gson = new GsonBuilder().create();
+		
 		this.terminal = app.getTerminal();
 		this.randomizer = new Randomizer();
 		this.cursor = app.getUiManager().getCursor();
@@ -111,8 +107,6 @@ public class Game implements Renderable {
 		
 		this.cursorPos = new Vector2f();
 		
-		this.netRequests = new ConcurrentLinkedQueue<>();
-		
 		this.cameraController = new CameraController(world.getMap(), camera);
 	
 		this.redTeam = new Team("Red");
@@ -120,7 +114,6 @@ public class Game implements Renderable {
 		
 		this.hud = new Hud(this);
 		
-		this.gson = new GsonBuilder().create();
 		
 		this.redPlayer = new Player("Red Player", redTeam);
 		this.greenPlayer = new Player("Green Player", greenTeam);
@@ -180,9 +173,10 @@ public class Game implements Renderable {
 		return loadData(file, EntityGroupData.class);
 	}
 	
-	private <T> T loadData(String file, Class<T> type) {
+	public <T> T loadData(String file, Class<T> type) {
 		try {
-			return gson.fromJson(JsonValue.readHjson(Gdx.files.internal(file).reader(1024)).toString(), type);
+			String data = JsonValue.readHjson(Gdx.files.internal(file).reader(1024)).toString();
+			return gson.fromJson(data, type);
 		}
 		catch(IOException e) {
 			Cons.println("*** Unable to load '" + file + "' : " + e);
@@ -207,6 +201,13 @@ public class Game implements Renderable {
 	
 	public boolean isPeerConnected() {
 		return this.connection != null && this.connection.isConnected();
+	}
+	
+	/**
+	 * @return the isSinglePlayer
+	 */
+	public boolean isSinglePlayer() {
+		return isSinglePlayer;
 	}
 	
 	/**
@@ -251,6 +252,12 @@ public class Game implements Renderable {
 		return textureCache;
 	}
 	
+	
+	/**
+	 * Handles a remote message
+	 * 
+	 * @param msg
+	 */
 	public void handleNetMessage(NetMessage msg) {
 		switch(msg.type) {
 			case FullState:
@@ -280,13 +287,7 @@ public class Game implements Renderable {
 			case PartialState:
 				break;
 			case Turn: {
-				if(!this.currentTurn.isPlayersTurn(localPlayer)) {
-					NetTurn turn = msg.asNetTurn();
-					for(NetCommandRequest request : turn.requests) {						
-						this.netRequests.add(request);
-					}					
-				}
-				this.isOtherPlayersTurn=true;
+				this.currentTurn.handleNetTurnMessage(msg.asNetTurn());
 				break;
 			}
 		}
@@ -469,7 +470,9 @@ public class Game implements Renderable {
 	 * @param request
 	 */
 	public void addCommandRequestToHistory(CommandRequest request) {
-		this.currentTurn.addCommandRequest(request);
+		if(!isSinglePlayer()) {
+			this.currentTurn.addCommandRequest(request);
+		}
 	}
 	
 	/**
@@ -501,21 +504,12 @@ public class Game implements Renderable {
 		if(isPeerConnected()) {
 			this.connection.update(timeStep);
 		}
-		
-		if(this.isOtherPlayersTurn) {
-			if(activeEntity==null||activeEntity.isCommandQueueEmpty()) {		
-				if(!this.netRequests.isEmpty()) {
-					NetCommandRequest request = this.netRequests.poll();
-					activeEntity = request.dispatchRequest(this);								
-				}				
-			}
-			
-			if((activeEntity==null||activeEntity.isCommandQueueEmpty())&&this.netRequests.isEmpty()) {
-				this.currentTurn.markTurnCompleted();
-				this.isOtherPlayersTurn=false;
-			}
-		}
+				
 		this.currentTurn = this.currentTurn.checkTurnState();
+		
+		if(this.isSinglePlayer) {
+			this.localPlayer = this.currentTurn.getActivePlayer();
+		}
 		
 	}
 

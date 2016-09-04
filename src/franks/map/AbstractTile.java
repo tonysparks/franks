@@ -3,6 +3,7 @@
  */
 package franks.map;
 
+import franks.game.TerrainData.TerrainTileData;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
 import franks.math.Rectangle;
@@ -32,6 +33,8 @@ public class AbstractTile implements MapTile {
 	protected CollisionMask collisionMask;
 	protected Rectangle bounds;
 
+	protected TerrainTileData terrainTileData;
+	
 	protected SurfaceType surfaceType;
 
 	protected boolean isDestroyed;
@@ -380,6 +383,15 @@ public class AbstractTile implements MapTile {
 		return this.collisionMask.rectCollide(bounds, rect);
 	}
 
+	/* (non-Javadoc)
+	 * @see franks.map.MapTile#setSize(int, int)
+	 */
+	@Override
+	public void setSize(int width, int height) {
+		this.width = width;
+		this.height = height;
+	}
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -389,6 +401,22 @@ public class AbstractTile implements MapTile {
 	public Rectangle getBounds() {
 		bounds.set(this.x, this.y, width, height);
 		return bounds;
+	}
+	
+	/* (non-Javadoc)
+	 * @see franks.map.MapTile#geTerrainTileData()
+	 */
+	@Override
+	public TerrainTileData geTerrainTileData() {
+		return this.terrainTileData;
+	}
+	
+	/* (non-Javadoc)
+	 * @see franks.map.MapTile#setTerrainTileData(franks.game.TerrainData.TerrainTileData)
+	 */
+	@Override
+	public void setTerrainTileData(TerrainTileData terrain) {
+		this.terrainTileData = terrain;
 	}
 
 	/*

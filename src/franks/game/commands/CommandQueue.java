@@ -108,7 +108,7 @@ public class CommandQueue implements Updatable {
 		if(this.queue.isEmpty()) {
 			if(currentAction.isPresent()) {
 				CommandAction action = currentAction.get();
-				return action.getCurrentState().isCompleted();
+				return action.hasEnded();
 			}
 			return true;
 		}

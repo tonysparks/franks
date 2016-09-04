@@ -3,22 +3,20 @@
  */
 package franks.game;
 
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
-
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
 import franks.gfx.Renderable;
-import franks.gfx.TextureUtil;
 import franks.graph.GraphNode;
 import franks.map.GraphNodeFactory;
-import franks.map.ImageTile;
 import franks.map.IsometricMap;
-import franks.map.Layer;
 import franks.map.Map;
-import franks.map.Map.SceneDef;
 import franks.map.MapGraph;
+import franks.map.MapLoader;
+import franks.map.MapLoader.TiledData;
 import franks.map.MapTile;
+import franks.map.TiledMapLoader;
 import franks.math.Vector2f;
+import franks.util.Cons;
 import franks.util.TimeStep;
 
 /**
@@ -49,46 +47,62 @@ public class World implements Renderable {
 		this.camera = game.getCamera();				
 		this.cacheVector = new Vector2f();
 		
-		int numberOfTilesX = 12;
-		int numberOfTilesY = 12;
+		TerrainData terrainData = game.loadData("assets/maps/frank_map01-terrain.json", TerrainData.class);
+		TiledData tiledData = game.loadData("assets/maps/frank_map01.json", TiledData.class);
+		
+		MapLoader loader = new TiledMapLoader();
+		try {
+			this.map = (IsometricMap)loader.loadMap(tiledData, true);
+		} 
+		catch (Exception e) {
+			Cons.println("Unable to load map: " + e);
+		}
+		
+		int numberOfTilesX = this.map.getTileWorldWidth();
+		int numberOfTilesY = this.map.getTileWorldWidth();
+		
+//		int numberOfTilesX = 12;
+//		int numberOfTilesY = 12;
 				
-		int tileWidth = TileWidth*2;
-		int tileHeight = TileHeight;
+//		int tileWidth = TileWidth*2;
+//		int tileHeight = TileHeight;
 		
-		SceneDef scene = new SceneDef();
-		scene.setTileWidth(tileWidth);
-		scene.setTileHeight(tileHeight);
+//		SceneDef scene = new SceneDef();
+//		scene.setTileWidth(tileWidth);
+//		scene.setTileHeight(tileHeight);
+//		
+//		Layer background = new Layer("ground", false, false, false, false, true, 0, 0, numberOfTilesY);
+//		scene.setDimensionX(numberOfTilesX);
+//		scene.setDimensionY(numberOfTilesY);
+//		scene.setBackgroundLayers(new Layer[] { background });
+//		scene.setForegroundLayers(new Layer[] {});
 		
-		Layer background = new Layer("ground", false, false, false, false, true, 0, 0, numberOfTilesY);
-		scene.setDimensionX(numberOfTilesX);
-		scene.setDimensionY(numberOfTilesY);
-		scene.setBackgroundLayers(new Layer[] { background });
-		scene.setForegroundLayers(new Layer[] {});
-		
-		int xrow = 1024 / tileWidth;
-		int xcol = 1024 / tileHeight;
-		
-		TextureRegion tex = TextureUtil.loadImage("./assets/gfx/tiles.png", xrow, xcol);
-		TextureRegion texTile = new TextureRegion(tex.getTexture(), 0, 0, tileWidth, tileHeight);
+//		int xrow = 1024 / tileWidth;
+//		int xcol = 1024 / tileHeight;
+//		
+//		TextureRegion tex = TextureUtil.loadImage("./assets/gfx/tiles.png", xrow, xcol);
+//		TextureRegion grassTile = new TextureRegion(tex.getTexture(), 0, 0, tileWidth, tileHeight);
 				
 		for(int y = 0; y < numberOfTilesY; y++) {
-			MapTile[] row = new MapTile[numberOfTilesX];
+			//MapTile[] row = new MapTile[numberOfTilesX];
 		
 			for(int x = 0; x < numberOfTilesX; x++ ) {
-				MapTile tile = new ImageTile(texTile, 0, TileWidth, TileHeight);
+				//MapTile tile = new ImageTile(grassTile, 0, TileWidth, TileHeight);
+				MapTile tile = this.map.getTile(0, x, y);
+				tile.setSize(TileWidth, TileHeight);
 				tile.setPosition(x*TileWidth, y*TileHeight);
 				tile.setIndexPosition(x, y);
-				
-				row[x] = tile;
+				tile.setTerrainTileData(terrainData.getTileTerrainData(x, y));
+				//row[x] = tile;
 			}
 			
 			
-			background.addRow(y, row);
+//			background.addRow(y, row);
 		}
 
 		
-		this.map = new IsometricMap(true);
-		this.map.init(scene);
+//		this.map = new IsometricMap(true);
+//		this.map.init(scene);
 		
 		this.graph = this.map.createMapGraph(new GraphNodeFactory<Void>() {
 			@Override

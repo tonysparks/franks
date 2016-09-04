@@ -3,6 +3,7 @@
  */
 package franks.map;
 
+import franks.game.TerrainData.TerrainTileData;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
 import franks.math.Circle;
@@ -1270,6 +1271,9 @@ public interface MapTile {
 	int getIsoY();
 	void setIsoPosition(int x, int y);
 
+	public void setTerrainTileData(TerrainTileData terrain);
+	public TerrainTileData geTerrainTileData();
+	
 	/**
 	 * @return the xIndex
 	 */
@@ -1369,6 +1373,8 @@ public interface MapTile {
 	 */
 	boolean rectCollide(Rectangle rect);
 
+	void setSize(int width, int height);
+	
 	/**
 	 * @return the bounds
 	 */

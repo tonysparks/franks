@@ -5,9 +5,13 @@ package franks.game;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import franks.game.commands.CommandQueue.CommandRequest;
+import franks.game.entity.Entity;
 import franks.game.entity.EntityList;
+import franks.game.net.NetCommandRequest;
 import franks.game.net.NetMessage;
 import franks.game.net.NetTurn;
 
@@ -21,11 +25,16 @@ public class Turn {
 	private Game game;
 	private Player activePlayer;
 	private boolean markedForEndTurn;
+	private boolean isRemotePlayersTurnCompleted;
+	private Entity activeEntity;
 	
+	private Queue<NetCommandRequest> netRequests;
 	private List<CommandRequest> executedRequests;
 	
 	/**
-	 * 
+	 * @param game
+	 * @param activePlayer - the player's who's turn it is
+	 * @param number
 	 */
 	public Turn(Game game, Player activePlayer, int number) {
 		this.game = game;
@@ -33,6 +42,36 @@ public class Turn {
 		this.number = number;
 		this.markedForEndTurn = false;
 		this.executedRequests = new ArrayList<>();
+		this.netRequests = new ConcurrentLinkedQueue<>();
+	}
+	
+	
+	
+	/**
+	 * Handle a remote end turn message from a client.
+	 * 
+	 * If it isn't this local players turn, we want to queue up
+	 * the remote CommandRequests so that we can run them one after
+	 * each other (we must ensure they don't execute all at once so
+	 * that they don't collide against each other).
+	 * 
+	 * 
+	 * @param turn
+	 */
+	public void handleNetTurnMessage(NetTurn turn) {
+		
+		// queue the remote commands
+		if(!isPlayersTurn(game.getLocalPlayer())) {			
+			for(NetCommandRequest request : turn.requests) {						
+				this.netRequests.add(request);
+			}					
+		}
+		
+		// mark that the remote turn has ended, but
+		// the execution of the queued command's has
+		// not yet completed, we must wait for this in
+		// order to deem the turn as officially over
+		markRemoteTurnCompleted();
 	}
 	
 	public void addCommandRequest(CommandRequest request) {
@@ -41,7 +80,31 @@ public class Turn {
 		}
 	}
 	
+	private void checkRemotePlayersTurnState() {
+		if(this.isRemotePlayersTurnCompleted) {
+			
+			// if we have any more CommandRequests to execute,
+			// go ahead and do that
+			if(activeEntity==null||activeEntity.isCommandQueueEmpty()) {		
+				if(!this.netRequests.isEmpty()) {
+					NetCommandRequest request = this.netRequests.poll();
+					activeEntity = request.dispatchRequest(game);								
+				}				
+			}
+			
+			
+			// if there are no more command requests left to execute, we can 
+			// officially close out this turn
+			if((activeEntity==null||activeEntity.isCommandQueueEmpty())&&this.netRequests.isEmpty()) {
+				markTurnCompleted();
+//				this.isRemotePlayersTurnCompleted=false;
+			}
+		}
+	}
+	
 	public Turn checkTurnState() {
+		checkRemotePlayersTurnState();
+		
 		if(this.markedForEndTurn) {
 			EntityList entities = game.getEntities();
 			if(entities.commandsCompleted()) {
@@ -102,5 +165,9 @@ public class Turn {
 	 */
 	public void markTurnCompleted() {
 		this.markedForEndTurn = true;
+	}
+	
+	private void markRemoteTurnCompleted() {
+		this.isRemotePlayersTurnCompleted=true;
 	}
 }

@@ -8,6 +8,7 @@ import java.util.Optional;
 import franks.game.Game;
 import franks.game.PreconditionResponse;
 import franks.game.Randomizer;
+import franks.game.TerrainData.TerrainTileData;
 import franks.game.commands.Command;
 import franks.game.commands.CommandAction;
 import franks.game.commands.CommandQueue.CommandRequest;
@@ -121,7 +122,7 @@ public class AttackCommand extends Command {
 				
 				
 				attacker.setCurrentState(State.IDLE);
-				return this;
+				return super.end();
 			}
 			
 			@Override
@@ -158,13 +159,33 @@ public class AttackCommand extends Command {
 
 	public int calculateAttackPercentage(Entity attacker) {
 		Randomizer rand = game.getRandomizer();
-		int d10 = rand.nextInt(10) * 10;						
-		return d10 + hitPercentage;
+		int d10 = rand.nextInt(10) * 10;			
+		
+		int attackBonus = 0;
+		MapTile tile = attacker.getTileOn();
+		if(tile!=null) {
+			TerrainTileData terrain = tile.geTerrainTileData();
+			if(terrain!=null) {
+				attackBonus = terrain.attackBonus;
+			}
+		}
+		
+		return d10 + hitPercentage + attackBonus;
 	}
 	
 	public int calculateDefencePercentage(Entity defender) {
 		Randomizer rand = game.getRandomizer();
-		int d10 = rand.nextInt(10) * 10;						
-		return d10 + defender.calculateDefenseScore();
+		int d10 = rand.nextInt(10) * 10;
+		
+		int defenseBonus = 0;
+		MapTile tile = defender.getTileOn();
+		if(tile!=null) {
+			TerrainTileData terrain = tile.geTerrainTileData();
+			if(terrain!=null) {
+				defenseBonus= terrain.defenseBonus;
+			}
+		}
+		
+		return d10 + defender.calculateDefenseScore() + defenseBonus;
 	}
 }

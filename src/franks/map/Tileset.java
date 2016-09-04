@@ -5,13 +5,13 @@
 package franks.map;
 
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import franks.gfx.AnimatedImage;
 import franks.gfx.Art;
 import franks.gfx.TextureUtil;
 import franks.map.MapTile.SurfaceType;
-import leola.vm.types.LeoMap;
-import leola.vm.types.LeoObject;
 
 /**
  * @author Tony
@@ -21,9 +21,9 @@ public class Tileset {
 
 	private TextureRegion[] image;
 	private int startId;
-	private LeoMap props;
+	private java.util.Map<String, JsonElement> props;
 	
-	public Tileset(int startId, TextureRegion[] image, LeoMap props) {
+	public Tileset(int startId, TextureRegion[] image, java.util.Map<String, JsonElement> props) {
 		this.startId = startId;
 		this.image = image;
 		this.props = props;
@@ -41,13 +41,16 @@ public class Tileset {
 	 * @return the {@link SurfaceType}
 	 */
 	public SurfaceType getSurfaceType(int tileid) {
-		if(props != null) {
-			String id = Integer.toString(toIndex(tileid));
-			LeoObject p = props.getByString(id);
-			if(LeoObject.isTrue(p)) {
-				LeoObject s = p.getObject("surface");
-				if(LeoObject.isTrue(s)) {
-					return SurfaceType.fromString(s.toString());
+		if(props != null) {			
+			String id = Integer.toString(toIndex(tileid));		
+			JsonElement p = props.get(id);
+			if(p != null && p.isJsonObject()) {
+				JsonElement e = p.getAsJsonObject().get("surface");
+				if(e!=null) {
+					String s = e.getAsString();
+					if(s!=null) {
+						return SurfaceType.fromString(s.toString());
+					}
 				}
 			}
 		}
@@ -61,10 +64,10 @@ public class Tileset {
 	public boolean isAnimatedImage(int tileid) {
 		if(props != null) {
 			String id = Integer.toString(toIndex(tileid));
-			LeoObject p = props.getByString(id);
-			if(LeoObject.isTrue(p)) {
-				LeoObject animation = p.getObject("animation");
-				if(LeoObject.isTrue(animation)) {
+			JsonElement p = props.get(id);
+			if(p!=null && p.isJsonObject()) {
+				JsonElement animation = p.getAsJsonObject().get("animation");
+				if(animation != null) {
 					return true;
 				}
 			}
@@ -78,30 +81,31 @@ public class Tileset {
 	 */
 	public AnimatedImage getAnimatedImage(int tileid) {
 		if(props != null) {
-			String id = Integer.toString(toIndex(tileid));
-			LeoObject p = props.getByString(id);
-			if(LeoObject.isTrue(p)) {
-				LeoObject animation = p.getObject("animation");
-				if(LeoObject.isTrue(animation)) {
+			String id = Integer.toString(toIndex(tileid));			
+			JsonElement prop = props.get(id);
+			if(prop != null && prop.isJsonObject()) {
+				JsonObject p = prop.getAsJsonObject();
+				JsonElement animation = p.get("animation");
+				if(animation != null) {
 					TextureRegion tex = Art.loadImage(animation.toString());
 					int rowNum = tex.getRegionHeight() / 32;
 					int colNum = tex.getRegionWidth() / 32;
 					
-					LeoObject rows = p.getObject("rows");
-					LeoObject cols = p.getObject("cols");
+					JsonElement rows = p.get("rows");
+					JsonElement cols = p.get("cols");
 					
-					if(LeoObject.isTrue(rows)) {
-						rowNum = Integer.valueOf(rows.toString());
+					if(rows!=null && rows.isJsonPrimitive()) {
+						rowNum = rows.getAsInt();
 					}
 					
-					if(LeoObject.isTrue(cols)) {
-						colNum = Integer.valueOf(cols.toString());
+					if(cols !=null && cols.isJsonPrimitive()) {
+						colNum = cols.getAsInt();
 					}
 					
 					int frameTime = 800;
-					LeoObject fps = p.getObject("fps");
-					if(LeoObject.isTrue(fps)) {
-						frameTime = Integer.valueOf(fps.toString());
+					JsonElement fps = p.get("fps");
+					if(fps!=null && fps.isJsonPrimitive()) {
+						frameTime = fps.getAsInt();
 					}
 					
 					int numberOfFrames = rowNum * colNum;

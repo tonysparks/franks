@@ -16,7 +16,7 @@ public abstract class CommandAction implements Renderable {
 		Success,
 		InProgress,
 		Failed,
-		Cancelled
+		Cancelled,
 		;
 		
 		public boolean isCompleted() {
@@ -25,6 +25,7 @@ public abstract class CommandAction implements Renderable {
 	}
 	
 	private CommandRequest request;
+	private boolean isEnded;
 	
 	public CommandAction(CommandRequest request) {
 		this.request = request;
@@ -38,7 +39,18 @@ public abstract class CommandAction implements Renderable {
 	}
 	
 	public CommandAction start() { return this; }
-	public CommandAction end() { return this; }
+	public CommandAction end() {
+		this.isEnded = true;
+		return this; 
+	}
+	
+	/**
+	 * @return true if completed and the {@link CommandAction#end()}
+	 * method has been completed.
+	 */
+	public boolean hasEnded() {
+		return this.isEnded;
+	}
 	
 	public abstract void cancel();
 	public abstract CompletionState getCurrentState();	

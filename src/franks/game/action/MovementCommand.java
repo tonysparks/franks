@@ -8,6 +8,7 @@ import java.util.List;
 import franks.game.Game;
 import franks.game.PathPlanner;
 import franks.game.PreconditionResponse;
+import franks.game.TerrainData.TerrainTileData;
 import franks.game.commands.Command;
 import franks.game.commands.CommandAction;
 import franks.game.commands.CommandQueue.CommandRequest;
@@ -29,14 +30,14 @@ public class MovementCommand extends Command {
 
 	private PathPlanner<Void> planner, costPlanner;
 	private int movementSpeed;
-	private Game game;
+//	private Game game;
 	/**
 	 * @param name
 	 * @param movementCost
 	 */
 	public MovementCommand(Game game, Entity entity, int movementSpeed) {
 		super(CommandType.Move, -1, entity);
-		this.game = game;
+//		this.game = game;
 		
 		this.movementSpeed = movementSpeed;
 		this.planner = new PathPlanner<>(game, game.getWorld().getGraph(), entity);
@@ -50,24 +51,22 @@ public class MovementCommand extends Command {
 	
 	private int calculateCost(PathPlanner<Void> planner, Vector2f destination) {
 		if(destination != null) {
-			Vector2f dst = destination; //game.getWorld().getMapTilePosByScreenPos(destination);
+			Vector2f dst = destination; 
 			if(dst!=null) {
 				planner.findPath(getEntity().getCenterPos(), dst);				
 				List<GraphNode<MapTile, Void>>  path = planner.getPath();
-				return path.size() * getEntity().movementBaseCost();
-//				
-//				int numberOfCellsToCross = 0;
-//				
-//				Vector2f tilePos = getEntity().getTilePos();
-//				Cell cell = game.getMap().getTile(0, (int)tilePos.x, (int)tilePos.y).getCell();
-//				for(GraphNode<MapTile, Void> node : path) {
-//					if( node.getValue().getCell() != cell) {
-//						numberOfCellsToCross++;
-//						cell = node.getValue().getCell();
-//					}
-//				}
-//				
-//				return numberOfCellsToCross;
+				int sumCost = 0;
+				int unitMoveCost = getEntity().movementBaseCost();
+				for(int i = 0; i < path.size(); i++) {
+					MapTile tile = path.get(i).getValue();
+					TerrainTileData terrain = tile.geTerrainTileData();
+					if(terrain != null) {
+						sumCost += terrain.movementBonus;
+					}
+					sumCost += unitMoveCost;
+				}
+				
+				return sumCost;
 			}
 		}
 		
@@ -117,7 +116,7 @@ public class MovementCommand extends Command {
 			public CommandAction end() {
 				entity.setCurrentState(State.IDLE);
 				entity.setToDesiredDirection();
-				return this;
+				return super.end();
 			}
 			
 			@Override

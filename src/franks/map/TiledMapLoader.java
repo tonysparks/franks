@@ -8,14 +8,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
 
 import franks.gfx.TextureUtil;
 import franks.map.Map.SceneDef;
 import franks.map.MapTile.SurfaceType;
-import leola.vm.types.LeoArray;
-import leola.vm.types.LeoMap;
-import leola.vm.types.LeoObject;
-import leola.vm.types.LeoString;
 
 /**
  * @author Tony
@@ -23,6 +21,8 @@ import leola.vm.types.LeoString;
  */
 public class TiledMapLoader implements MapLoader {
 
+
+	
 	private static final int FLIPPED_HORIZONTALLY_FLAG = 0x80000000;
 	private static final int FLIPPED_VERTICALLY_FLAG   = 0x40000000;
 	private static final int FLIPPED_DIAGONALLY_FLAG   = 0x20000000;
@@ -34,14 +34,14 @@ public class TiledMapLoader implements MapLoader {
 	 * @return
 	 * @throws Exception
 	 */
-	public Map loadMap(LeoMap map, boolean loadAssets) throws Exception {
+	public Map loadMap(TiledData map, boolean loadAssets) throws Exception {
 		SceneDef def = new SceneDef();
 		
-		int width = map.getInt("width");
-		int height = map.getInt("height");
+		int width = map.width;
+		int height = map.height;
 		
-		int tileWidth = map.getInt("tilewidth");
-		int tileHeight = map.getInt("tileheight");
+		int tileWidth = map.tilewidth;
+		int tileHeight = map.tileheight;
 		
 		def.setDimensionX(width);
 		def.setDimensionY(height);
@@ -53,11 +53,11 @@ public class TiledMapLoader implements MapLoader {
 		SurfaceType[][] surfaces = new SurfaceType[height][width];
 		def.setSurfaces(surfaces);
 		
-		LeoArray tilesets = map.getByString("tilesets").as();
+		List<TiledTilesetData> tilesets = map.tilesets;
 		atlas = parseTilesets(tilesets, loadAssets);
 		
 		
-		LeoArray layers = map.getByString("layers").as();
+		List<TiledLayer> layers = map.layers;
 		List<Layer> mapLayers = parseLayers(layers, atlas, loadAssets, tileWidth, tileHeight, surfaces);
 		
 		List<Layer> backgroundLayers = new ArrayList<Layer>();
@@ -74,8 +74,10 @@ public class TiledMapLoader implements MapLoader {
 		
 		def.setBackgroundLayers(backgroundLayers.toArray(new Layer[backgroundLayers.size()]));
 		def.setForegroundLayers(foregroundLayers.toArray(new Layer[foregroundLayers.size()]));
-			
-		Map theMap = new OrthoMap(loadAssets);
+		
+		String orientation = map.orientation;
+		
+		Map theMap = orientation.equals("isometric") ? new IsometricMap(loadAssets) : new OrthoMap(loadAssets);
 		theMap.init(def);
 		
 		return theMap;
@@ -89,56 +91,56 @@ public class TiledMapLoader implements MapLoader {
 	 * @param tileWidth
 	 * @param tileHeight
 	 */
-	private void parseSurfaces(SurfaceType[][] surfaces, TilesetAtlas atlas, LeoArray data, int width, int tileWidth, int tileHeight) {
+	private void parseSurfaces(SurfaceType[][] surfaces, TilesetAtlas atlas, int[] data, int width, int tileWidth, int tileHeight) {
 		int y = -1; // account for zero
-		for(int x = 0; x < data.size(); x++) {
+		for(int x = 0; x < data.length; x++) {
 						
 			if(x % width == 0) {									
 				y++;
 			}
 			
-			int tileId = data.get(x).asInt();
+			int tileId = data[x];
 			int surfaceId = atlas.getTileId(tileId)-1; /* minus one to get back to zero based */
 			surfaces[y][x % width] = SurfaceType.fromId(surfaceId);
 		}
 	}		
 	
-	private List<Layer> parseLayers(LeoArray layers,TilesetAtlas atlas, boolean loadImages, int tileWidth, int tileHeight, SurfaceType[][] surfaces) throws Exception {
+	private List<Layer> parseLayers(List<TiledLayer> layers,TilesetAtlas atlas, boolean loadImages, int tileWidth, int tileHeight, SurfaceType[][] surfaces) throws Exception {
 		
 		List<Layer> mapLayers = new ArrayList<Layer>(layers.size());
 		
 		int index = 0;
-		for(LeoObject l : layers) {			
-			LeoMap layer = l.as();
+		for(TiledLayer layer : layers) {			
 			
-			LeoArray data = layer.getByString("data").as();
-			int width = layer.getInt("width");	
-			int height = layer.getInt("height");
+			
+			int[] data = layer.data;
+			int width = layer.width;	
+			int height = layer.height;
 			
 			boolean isCollidable = false;
 			boolean isForeground = false;
 			boolean isProperty = false;
 			boolean isSurfaceTypes = false;
 			boolean isDestructable = false;
-			boolean isVisible = layer.getBoolean("visible");
+			boolean isVisible = layer.visible;
 			
 			int heightMask = 0;
-			if ( layer.has(LeoString.valueOf("properties"))) {
-				LeoMap properties = layer.getByString("properties").as();			
-				isCollidable = properties.getString("collidable").equals("true");
-				isForeground = properties.getString("foreground").equals("true");
-				isDestructable = properties.getString("destructable").equals("true");
+			if ( layer.properties != null) {
+				java.util.Map<String, JsonElement> properties = layer.properties;			
+				isCollidable = properties.getOrDefault("collidable", new JsonPrimitive("false")).getAsString().equals("true");
+				isForeground = properties.getOrDefault("foreground", new JsonPrimitive("false")).getAsString().equals("true");
+				isDestructable = properties.getOrDefault("destructable", new JsonPrimitive("false")).getAsString().equals("true");
 				
-				if(properties.containsKeyByString("heightMask")) {
-					String strMask = properties.getString("heightMask");
+				if(properties.containsKey("heightMask")) {
+					String strMask = properties.get("heightMask").getAsString();
 					heightMask = Integer.parseInt(strMask);
 				}
 				
-				if(properties.containsKeyByString("lights")) {
+				if(properties.containsKey("lights")) {
 					isProperty = true;
 				}
 				
-				if(properties.containsKeyByString("surfaces")) {
+				if(properties.containsKey("surfaces")) {
 					isSurfaceTypes = true;
 				}
 								
@@ -149,7 +151,7 @@ public class TiledMapLoader implements MapLoader {
 				continue;
 			}
 			
-			Layer mapLayer = new Layer(layer.getString("name"),
+			Layer mapLayer = new Layer(layer.name,
 									   isCollidable, 
 					                   isForeground, 
 					                   isDestructable, 
@@ -164,8 +166,8 @@ public class TiledMapLoader implements MapLoader {
 			
 			int y = -tileHeight; // account for zero
 			int rowIndex = 0;
-			for(int x = 0; x < data.size(); x++) {
-				int tileId = data.get(x).asInt();
+			for(int x = 0; x < data.length; x++) {
+				int tileId = data[x];
 				boolean flippedHorizontally = (tileId & FLIPPED_HORIZONTALLY_FLAG) != 0;
 				boolean flippedVertically = (tileId & FLIPPED_VERTICALLY_FLAG) != 0; 
 				boolean flippedDiagonally = (tileId & FLIPPED_DIAGONALLY_FLAG) != 0;
@@ -236,50 +238,27 @@ public class TiledMapLoader implements MapLoader {
 		return mapLayers;
 	}
 	
-	private TilesetAtlas parseTilesets(LeoArray tilesets, boolean loadImages) throws Exception {
-		if(tilesets.isEmpty()) {
+	private TilesetAtlas parseTilesets(List<TiledTilesetData> tilesets, boolean loadImages) throws Exception {
+		if(tilesets ==null || tilesets.isEmpty()) {
 			throw new IllegalArgumentException("There must be at least 1 tileset");
 		}
 		
 		TilesetAtlas atlas = new  TilesetAtlas();
-		for(LeoObject t : tilesets) {
-			LeoMap tileset = t.as();
-						
-			// skip the sourced tilesets
-			if(t.hasObject("source")) {
-				// HACK: Updated version of Tiled which no longer supports inlining
-				// shared tilests (lame)
-				String source = tileset.getString("source");
-				if(source.endsWith("collidables.tsx")) {
-					tileset.putByString("image", LeoString.valueOf("./assets/gfx/tiles/collision_tileset.png"));
-					tileset.putByString("name", LeoString.valueOf("collidables"));
-				}
-				else if(source.endsWith("city.tsx")) {
-					tileset.putByString("image", LeoString.valueOf("./assets/gfx/tiles/cs2dnorm.png"));
-					tileset.putByString("name", LeoString.valueOf("city"));
-				}
-				
-				tileset.putByString("tilewidth", LeoObject.valueOf(32));
-				tileset.putByString("tileheight", LeoObject.valueOf(32));
-			}
+		for(TiledTilesetData tileset : tilesets) {									
+			int firstgid = tileset.firstgid;			
+			int margin = tileset.margin;
+			int spacing = tileset.spacing;
+			int tilewidth = tileset.tilewidth;
+			int tileheight = tileset.tileheight;
 			
-			int firstgid = tileset.getInt("firstgid");			
-			int margin = tileset.getInt("margin");
-			int spacing = tileset.getInt("spacing");
-			int tilewidth = tileset.getInt("tilewidth");
-			int tileheight = tileset.getInt("tileheight");
+			java.util.Map<String, JsonElement> tilesetprops = tileset.tileproperties;
 			
-			LeoMap tilesetprops = null;
-			LeoObject props = tileset.getByString("tileproperties");
-			if(LeoObject.isTrue(props) && props.isMap()) {
-				tilesetprops = props.as();
-			}
 
 			TextureRegion image = null;
 			TextureRegion[] images = null;
 												
 			if(loadImages) {
-				final String imagePath = tileset.getString("image");
+				final String imagePath = tileset.image;
 				image = TextureUtil.loadImage(imagePath);
 				image.flip(false, true);
 				images = TextureUtil.toTileSet(image, tilewidth, tileheight, margin, spacing);			
