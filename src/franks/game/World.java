@@ -3,6 +3,9 @@
  */
 package franks.game;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
 import franks.gfx.Renderable;
@@ -13,6 +16,8 @@ import franks.map.Map;
 import franks.map.MapGraph;
 import franks.map.MapLoader;
 import franks.map.MapLoader.TiledData;
+import franks.map.MapObject;
+import franks.map.MapObjectData;
 import franks.map.MapTile;
 import franks.map.TiledMapLoader;
 import franks.math.Vector2f;
@@ -40,12 +45,16 @@ public class World implements Renderable {
 	
 	private Vector2f cacheVector;
 	
+	private List<MapObject> mapObjects;
+	
 	/**
 	 * 
 	 */
 	public World(Game game) {
 		this.camera = game.getCamera();				
 		this.cacheVector = new Vector2f();
+		this.mapObjects = new ArrayList<>();
+	
 		
 		TerrainData terrainData = game.loadData("assets/maps/frank_map01-terrain.json", TerrainData.class);
 		TiledData tiledData = game.loadData("assets/maps/frank_map01.json", TiledData.class);
@@ -98,6 +107,16 @@ public class World implements Renderable {
 			
 			
 //			background.addRow(y, row);
+		}
+		
+		if(terrainData.mapObjects != null) { 
+			for(MapObjectData data : terrainData.mapObjects) {
+				if(data.locations != null) {
+					for(Vector2f pos : data.locations) {
+						this.mapObjects.add(new MapObject(game, pos, data));
+					}
+				}
+			}
 		}
 
 		
@@ -232,7 +251,19 @@ public class World implements Renderable {
 	 */
 	@Override
 	public void update(TimeStep timeStep) {
-		this.map.update(timeStep);		
+		this.map.update(timeStep);
+		for(int i = 0; i< this.mapObjects.size(); i++) {
+			this.mapObjects.get(i).update(timeStep);
+		}
+	}
+	
+	public void renderOverEntities(Canvas canvas, Camera camera, float alpha) {
+		for(int i = 0; i< this.mapObjects.size(); i++) {
+			MapObject object = this.mapObjects.get(i);
+			if(object.renderOverEntities()) {
+				this.mapObjects.get(i).render(canvas, camera, alpha);
+			}
+		}
 	}
 	
 	/* (non-Javadoc)
@@ -240,6 +271,13 @@ public class World implements Renderable {
 	 */
 	@Override
 	public void render(Canvas canvas, Camera camera, float alpha) {
-		this.map.render(canvas, camera, alpha);		
+		this.map.render(canvas, camera, alpha);	
+		
+		for(int i = 0; i< this.mapObjects.size(); i++) {
+			MapObject object = this.mapObjects.get(i);
+			if(!object.renderOverEntities()) {
+				this.mapObjects.get(i).render(canvas, camera, alpha);
+			}
+		}
 	}
 }

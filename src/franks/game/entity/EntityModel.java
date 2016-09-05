@@ -14,34 +14,17 @@ import franks.gfx.AnimationFrame;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
 import franks.gfx.FramedAnimation;
+import franks.gfx.Model;
 import franks.gfx.Renderable;
 import franks.gfx.TextureUtil;
 import franks.math.Vector2f;
 import franks.util.TimeStep;
-import franks.util.Updatable;
 
 /**
  * @author Tony
  *
  */
 public class EntityModel implements Renderable {
-
-	private static class Model implements Updatable {
-		AnimatedImage animations;
-		float offsetX;
-		float offsetY;
-
-		public Model(AnimatedImage animations, float offsetX, float offsetY) {
-			this.animations = animations;
-			this.offsetX = offsetX;
-			this.offsetY = offsetY;
-		}
-		
-		@Override
-		public void update(TimeStep timeStep) {
-			this.animations.update(timeStep);		
-		}				
-	}
 	
 	private Entity entity;
 	private Model[][] animations;

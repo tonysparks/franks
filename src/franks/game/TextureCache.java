@@ -33,6 +33,15 @@ public class TextureCache {
 		
 		return textures.get(name);
 	}
+	
+	public TextureRegion getTexture(String name, int mask) {
+		if(!textures.containsKey(name)) {
+			TextureRegion tex = Art.loadImage(name, mask);
+			textures.put(name, tex);
+		}
+		
+		return textures.get(name);
+	}
 
 	public void removeTexture(String name) {
 		textures.remove(name);

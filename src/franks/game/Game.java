@@ -96,17 +96,15 @@ public class Game implements Renderable {
 		this.camera = camera;
 		this.isSinglePlayer = isSinglePlayer;
 		this.gson = new GsonBuilder().create();
+		this.textureCache = new TextureCache();
+		this.entities = new EntityList(this);
+		this.cursorPos = new Vector2f();
 		
 		this.terminal = app.getTerminal();
 		this.randomizer = new Randomizer();
+
 		this.cursor = app.getUiManager().getCursor();
 		this.world = new World(this); 
-		
-		this.textureCache = new TextureCache();
-		
-		this.entities = new EntityList(this);
-		
-		this.cursorPos = new Vector2f();
 		
 		this.cameraController = new CameraController(world.getMap(), camera);
 	
@@ -532,6 +530,7 @@ public class Game implements Renderable {
 		
 		this.hud.renderUnderEntities(canvas, camera, alpha);
 		this.entities.render(canvas, camera, alpha);
+		this.world.renderOverEntities(canvas, camera, alpha);
 		
 		this.hud.render(canvas, camera, alpha);
 	}

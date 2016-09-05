@@ -5,6 +5,9 @@ package franks.game;
 
 import java.util.List;
 
+import franks.map.MapObjectData;
+import franks.map.MapTile;
+
 /**
  * Bonus properties for a {@link MapTile}
  * 
@@ -29,6 +32,7 @@ public class TerrainData {
 	}
 	
 	public List<TerrainTileData> terrainTiles;
+	public List<MapObjectData> mapObjects; 
 	
 	
 	public TerrainTileData getTileTerrainData(int tileX, int tileY) {

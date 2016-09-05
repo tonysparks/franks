@@ -27,6 +27,20 @@ public class EntityData {
 		
 		public boolean flipX;
 		public boolean flipY;
+		
+		public int getWidth(TextureRegion tex) {
+			if(width <= 0) {
+				return tex.getRegionWidth();
+			}
+			return width;
+		}
+		
+		public int getHeight(TextureRegion tex) {
+			if(height <= 0) {
+				return tex.getRegionHeight();
+			}
+			return height;
+		}
 	}
 	
 	public static class SectionData {
