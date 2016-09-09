@@ -21,6 +21,7 @@ import com.google.gson.GsonBuilder;
 
 import franks.FranksGame;
 import franks.game.Team.TeamName;
+import franks.game.ai.AISystem;
 import franks.game.commands.Command.CommandType;
 import franks.game.commands.CommandQueue.CommandRequest;
 import franks.game.entity.Entity;
@@ -88,6 +89,7 @@ public class Game implements Renderable {
 	
 	private PeerConnection connection;
 	
+	private AISystem ai;
 	
 	/**
 	 * 
@@ -113,12 +115,13 @@ public class Game implements Renderable {
 		
 		this.hud = new Hud(this);
 		
-		
 		this.redPlayer = new Player("Red Player", redTeam);
 		this.greenPlayer = new Player("Green Player", greenTeam);
 		this.localPlayer = this.greenPlayer;
 		
 		this.currentTurn = new Turn(this, this.localPlayer, 0);
+
+		this.ai = new AISystem(this, redPlayer);
 		
 		// temp
 		app.getConsole().addCommand(new Command("reload") {
@@ -130,9 +133,11 @@ public class Game implements Renderable {
 				
 				EntityGroupData redGroupData = loadGroupData("assets/red.json");
 				redPlayer.setEntities(redGroupData.buildEntities(redTeam, Game.this));
+				redPlayer.getTeam().shufflePosition(Game.this.randomizer);
 				
 				EntityGroupData greenGroupData = loadGroupData("assets/green.json");
 				greenPlayer.setEntities(greenGroupData.buildEntities(greenTeam, Game.this));
+				greenPlayer.getTeam().shufflePosition(Game.this.randomizer);
 			}
 		});
 		app.getConsole().execute("reload");
@@ -239,6 +244,28 @@ public class Game implements Renderable {
 	}
 	
 	/**
+	 * @param player
+	 * @return the opposite player of the supplied one
+	 */
+	public Player getOtherPlayer(Player player) {
+		if(player==greenPlayer) {
+			return redPlayer;
+		}
+		return greenPlayer;
+	}
+	
+	/**
+	 * @param team
+	 * @return the opposite team of the supplied one
+	 */
+	public Team getOtherTeam(Team team) {
+		if(team == greenTeam) {
+			return redTeam;
+		}
+		return greenTeam;
+	}
+	
+	/**
 	 * @return the cursor
 	 */
 	public Cursor getCursor() {
@@ -336,6 +363,17 @@ public class Game implements Renderable {
 			}
 		}
 	}
+	
+	public void endCurrentTurnAI() {
+		if(this.isSinglePlayer) {
+			if(!this.currentTurn.isPlayersTurn(this.localPlayer)) {
+				if(entities.commandsCompleted()) {
+					this.currentTurn.markTurnCompleted();
+				}
+			}
+		}
+	}
+	
 	
 	/**
 	 * @return true if there is a selected entity
@@ -508,6 +546,7 @@ public class Game implements Renderable {
 		this.world.update(timeStep);
 		
 		this.entities.update(timeStep);
+		this.ai.update(timeStep);
 		
 		this.camera.update(timeStep);
 		this.hud.update(timeStep);
@@ -518,9 +557,9 @@ public class Game implements Renderable {
 				
 		this.currentTurn = this.currentTurn.checkTurnState();
 		
-		if(this.isSinglePlayer) {
-			this.localPlayer = this.currentTurn.getActivePlayer();
-		}
+//		if(this.isSinglePlayer) {
+//			this.localPlayer = this.currentTurn.getActivePlayer();
+//		}
 		
 	}
 

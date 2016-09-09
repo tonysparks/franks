@@ -145,7 +145,13 @@ public class AttackCommand extends Command {
 		};
 	}
 
-
+	public int calculateCost(MapTile tile) {
+		int numberOfTilesAway = getEntity().distanceFrom(tile);
+		if(numberOfTilesAway <= attackDistance) {
+			return getActionCost();
+		}
+		return -1;
+	}
 	
 	public int calculateCost(Entity enemy) {
 		int numberOfTilesAway = getEntity().distanceFrom(enemy);
@@ -157,8 +163,12 @@ public class AttackCommand extends Command {
 
 	public int calculateAttackPercentage(Entity attacker) {
 		Randomizer rand = game.getRandomizer();
-		int d10 = rand.nextInt(10) * 10;			
+		int d10 = rand.nextInt(10) * 10;					
 		
+		return d10 + calculateStrictAttackPercentage(attacker);
+	}
+	
+	public int calculateStrictAttackPercentage(Entity attacker) {		
 		int attackBonus = 0;
 		MapTile tile = attacker.getTileOn();
 		if(tile!=null) {
@@ -168,13 +178,17 @@ public class AttackCommand extends Command {
 			}
 		}
 		
-		return d10 + hitPercentage + attackBonus;
+		return hitPercentage + attackBonus;
 	}
 	
 	public int calculateDefencePercentage(Entity defender) {
 		Randomizer rand = game.getRandomizer();
 		int d10 = rand.nextInt(10) * 10;
 		
+		return d10 + calculateStrictDefencePercentage(defender);
+	}
+	
+	public int calculateStrictDefencePercentage(Entity defender) {
 		int defenseBonus = 0;
 		MapTile tile = defender.getTileOn();
 		if(tile!=null) {
@@ -184,6 +198,6 @@ public class AttackCommand extends Command {
 			}
 		}
 		
-		return d10 + defender.calculateDefenseScore() + defenseBonus;
+		return defender.calculateDefenseScore() + defenseBonus;
 	}
 }

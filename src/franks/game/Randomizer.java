@@ -80,6 +80,31 @@ public class Randomizer {
     	return (int)m + nextInt(Math.max(n, 1));
     }
     
+	public double getRandomRange(double min, double max) {
+		return getRandomRange(rand, min, max);
+	}	
+	
+	public double getRandomRangeMin(double min) {
+		return getRandomRangeMin(rand, min);
+	}
+	
+	public double getRandomRangeMax(double max) {
+		return getRandomRangeMax(rand, max);
+	}
+	
+	
+	public static double getRandomRange(Random random, double min, double max) {
+		return min + (random.nextDouble() * (max - min));
+	}	
+	
+	public static double getRandomRangeMin(Random random, double min) {
+		return getRandomRange(random, min, 1.0);
+	}
+	
+	public static double getRandomRangeMax(Random random, double max) {
+		return getRandomRange(random, 0.0, max);
+	}
+    
     
 
     public static void main(String[] args) {        

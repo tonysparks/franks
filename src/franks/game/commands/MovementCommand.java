@@ -43,13 +43,13 @@ public class MovementCommand extends Command {
 	}
 
 	
-	public int calculateCost(Vector2f destination) {
-		return calculateCost(costPlanner, destination);
+	public int calculateCost(Vector2f tilePosDestination) {
+		return calculateCost(costPlanner, tilePosDestination);
 	}
 	
-	private int calculateCost(PathPlanner<Void> planner, Vector2f destination) {
-		if(destination != null) {
-			Vector2f dst = destination; 
+	private int calculateCost(PathPlanner<Void> planner, Vector2f tilePosDestination) {
+		if(tilePosDestination != null) {
+			Vector2f dst = tilePosDestination; 
 			if(dst!=null) {
 				planner.findPath(getEntity().getCenterPos(), dst);				
 				List<GraphNode<MapTile, Void>>  path = planner.getPath();

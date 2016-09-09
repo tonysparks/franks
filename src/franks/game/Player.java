@@ -17,8 +17,7 @@ public class Player {
 
 	private String name;
 	private Team team;
-	private List<Entity> entities;	
-	
+		
 	private NetPlayer net;
 	
 	public Player(String name, Team team) {
@@ -29,37 +28,25 @@ public class Player {
 	}
 	
 	public boolean owns(Entity entity) {
-		for(int i = 0; i < entities.size(); i++) {
-			Entity ent = entities.get(i);
-			if(ent.getId() == entity.getId()) {
-				return true;
-			}
-		}
-		return false;
+		return this.team.isMember(entity);
 	}
 	
 	/**
 	 * @param entities the entities to set
 	 */
 	public void setEntities(List<Entity> entities) {
-		this.entities = entities;
+		this.team.removeAllMembers();
+		this.team.addMembers(entities);
 	}
 	
 	public void addEntities(List<Entity> entities) {
-		this.entities.addAll(entities);
+		this.team.addMembers(entities);
 	}
 	
 	public void addEntity(Entity ent) {
-		this.entities.add(ent);
+		this.team.addMember(ent);
 	}
-	
-	/**
-	 * @return the entities
-	 */
-	public List<Entity> getEntities() {
-		return entities;
-	}
-	
+		
 	/**
 	 * @return the name
 	 */
@@ -76,7 +63,7 @@ public class Player {
 
 	public NetPlayer getNetPlayer() {
 		net.entities = new ArrayList<>();
-		for(Entity ent : entities) {
+		for(Entity ent : this.team.getMembers()) {
 			net.entities.add(ent.getNetEntity());
 		}
 		return net;

@@ -142,7 +142,10 @@ public class EntityList implements Renderable {
 			if(ent != null) {
 				ent.update(timeStep);
 				if(ent.isDeleted()) {
+					ent.getTeam().removeMember(ent);
+					
 					entities[i] = null;
+					
 				}
 			}
 		}

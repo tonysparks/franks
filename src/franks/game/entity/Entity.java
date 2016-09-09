@@ -212,14 +212,14 @@ public class Entity implements Renderable {
 	/**
 	 * Calculates the movement cost for this Unit to move to the desired screen position
 	 * 
-	 * @param screenCameraPos
+	 * @param tilePos
 	 * @return the movement cost of moving, or -1 if invalid
 	 */
-	public int calculateMovementCost(Vector2f screenCameraPos) {
+	public int calculateMovementCost(Vector2f tilePos) {
 		Command cmd = this.availableCommands.get(CommandType.Move);
 		if(cmd instanceof MovementCommand) {
 			MovementCommand moveCmd = (MovementCommand)cmd;
-			return moveCmd.calculateCost(screenCameraPos);
+			return moveCmd.calculateCost(tilePos);
 		}
 		return -1;
 	}
@@ -232,12 +232,44 @@ public class Entity implements Renderable {
 	 * @return the total cost of attacking the supplied entity, or -1 if invalid
 	 */
 	public int calculateAttackCost(Entity enemy) {
-		Command cmd = this.availableCommands.get(CommandType.Attack);
-		if(cmd instanceof AttackCommand) {
-			AttackCommand attackCmd = (AttackCommand) cmd;
+		AttackCommand attackCmd = getAttackCommand();
+		if(attackCmd != null) {
 			return attackCmd.calculateCost(enemy);
 		}
 		return -1;
+	}
+	
+	public int calculateAttackCost(MapTile tile) {
+		AttackCommand attackCmd = getAttackCommand();
+		if(attackCmd != null) {
+			return attackCmd.calculateCost(tile);
+		}
+		return -1;
+	}
+	
+	public int calculateStrictAttackPercentage() {
+		AttackCommand attackCmd = getAttackCommand();
+		if(attackCmd != null) {			
+			return attackCmd.calculateStrictAttackPercentage(this);
+		}
+		return -1;
+	}
+	
+	public int calculateStrictDefensePercentage() {
+		AttackCommand attackCmd = getAttackCommand();
+		if(attackCmd != null) {			
+			return attackCmd.calculateStrictDefencePercentage(this);
+		}
+		return -1;
+	}
+	
+	public AttackCommand getAttackCommand() {
+		Command cmd = this.availableCommands.get(CommandType.Attack);
+		if(cmd instanceof AttackCommand) {
+			AttackCommand attackCmd = (AttackCommand) cmd;
+			return attackCmd;
+		}
+		return null;
 	}
 	
 	public boolean canAttack() {
@@ -278,6 +310,14 @@ public class Entity implements Renderable {
 	 */
 	public int remainingActionPoints() {
 		return this.meter.remaining();
+	}
+	
+	/**
+	 * @return the number of action points this unit has
+	 * at the start of a turn
+	 */
+	public int startingActionPoints() {
+		return this.data.movements;
 	}
 	
 	
