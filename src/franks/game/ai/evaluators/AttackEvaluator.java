@@ -7,8 +7,8 @@ import java.util.List;
 
 import franks.game.Game;
 import franks.game.Randomizer;
-import franks.game.Team;
-import franks.game.ai.Evaluator;
+import franks.game.ai.BattleEvaluator;
+import franks.game.battle.BattleGame;
 import franks.game.commands.Command.CommandType;
 import franks.game.commands.CommandQueue.CommandRequest;
 import franks.game.entity.Entity;
@@ -20,7 +20,7 @@ import franks.math.Vector2f;
  * @author Tony
  *
  */
-public class AttackEvaluator implements Evaluator {
+public class AttackEvaluator implements BattleEvaluator {
 
 	private Entity selectedEntity;
 	private Entity targetEntity;
@@ -30,8 +30,7 @@ public class AttackEvaluator implements Evaluator {
 	 * @see franks.game.ai.Evaluator#calculateScore(franks.game.Game)
 	 */
 	@Override
-	public double calculateScore(Entity entity, Game game) {
-		Team otherTeam = game.getOtherTeam(entity.getTeam());
+	public double calculateScore(Entity entity, BattleGame game) {		
 		Randomizer rand = game.getRandomizer();
 		
 		double bestScore = 0;
@@ -41,7 +40,7 @@ public class AttackEvaluator implements Evaluator {
 		
 		int availablePoints = entity.getMeter().remaining();
 		
-		List<Entity> others = otherTeam.getMembers();
+		List<Entity> others = game.getOtherLeader(entity.getPlayer()).getEntities();
 		for(int i = 0; i < others.size();i++) {
 			Entity enemy = others.get(i);
 			double score = 0;

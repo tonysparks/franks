@@ -50,14 +50,14 @@ public class World implements Renderable {
 	/**
 	 * 
 	 */
-	public World(Game game) {
-		this.camera = game.getCamera();				
+	public World(ResourceLoader resourceLoader, Camera camera) {
+		this.camera = camera;		
 		this.cacheVector = new Vector2f();
 		this.mapObjects = new ArrayList<>();
 	
 		
-		TerrainData terrainData = game.loadData("assets/maps/frank_map01-terrain.json", TerrainData.class);
-		TiledData tiledData = game.loadData("assets/maps/frank_map01.json", TiledData.class);
+		TerrainData terrainData = resourceLoader.loadData("assets/maps/frank_map01-terrain.json", TerrainData.class);
+		TiledData tiledData = resourceLoader.loadData("assets/maps/frank_map01.json", TiledData.class);
 		
 		MapLoader loader = new TiledMapLoader();
 		try {
@@ -109,11 +109,12 @@ public class World implements Renderable {
 //			background.addRow(y, row);
 		}
 		
+		TextureCache textureCache = resourceLoader.getTextureCache();
 		if(terrainData.mapObjects != null) { 
 			for(MapObjectData data : terrainData.mapObjects) {
 				if(data.locations != null) {
 					for(Vector2f pos : data.locations) {
-						this.mapObjects.add(new MapObject(game, pos, data));
+						this.mapObjects.add(new MapObject(this, textureCache, pos, data));
 					}
 				}
 			}

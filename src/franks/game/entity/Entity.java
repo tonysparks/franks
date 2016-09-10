@@ -10,6 +10,7 @@ import java.util.Optional;
 
 import franks.game.ActionMeter;
 import franks.game.Game;
+import franks.game.Player;
 import franks.game.Team;
 import franks.game.World;
 import franks.game.commands.AttackCommand;
@@ -45,13 +46,23 @@ public class Entity implements Renderable {
 	 *
 	 */
 	public static enum Type {
-		HUMAN,
+		GENERAL,
+		SCOUT,
+		FRANK,
 		TREE,
 		STONE,
 		BERRY_BUSH,
 		
 		BUILDING,
+		;
+		
+		public boolean isAttackable() {
+			return this == GENERAL ||
+				   this == SCOUT ||
+				   this == FRANK;
+		}
 	}
+	
 		
 	/**
 	 * The state the Entity can be in
@@ -445,6 +456,7 @@ public class Entity implements Renderable {
 		return this.isDeleted;
 	}
 	
+	
 	/**
 	 * Place this unit in the DEAD state, which is still
 	 * part of the game world
@@ -601,6 +613,10 @@ public class Entity implements Renderable {
 		return new ArrayList<>(availableCommands.values());
 	}
 	
+	public Player getPlayer() {
+		return team.getPlayer();
+	}
+	
 	/**
 	 * @return the team
 	 */
@@ -748,21 +764,21 @@ public class Entity implements Renderable {
 	public void render(Canvas canvas, Camera camera, float alpha) {	
 		model.render(canvas, camera, alpha);
 		
-		if(getType().equals(Type.HUMAN)) {
-			Vector2f pos = getRenderPosition(camera, alpha);
-			int health = getHealth();
-			
-			drawMeter(canvas, pos.x + 42, pos.y + 68, health, getMaxHealth(), 0x9fFF0000, 0xffafFFaf);
-			drawMeter(canvas, pos.x + 42, pos.y + 74, meter.remaining(), data.movements, 0x8f4a5f8f, 0xff3a9aFF);
-			
-			
-			
-			//canvas.resizeFont(12f);
-			//canvas.drawString("x" + this.meter.getMovementAmount(), pos.x, pos.y+72, 0xffffffff);
-			
-			//canvas.drawString("WorldPos: " + (int)getPos().x+","+(int)getPos().y,pos.x, pos.y+72, 0xffffffff);
-			//canvas.drawString("ScreenPos: " + (int)pos.x+","+(int)pos.y,pos.x, pos.y+92, 0xffffffff);
-		}
+		
+		Vector2f pos = getRenderPosition(camera, alpha);
+		int health = getHealth();
+		
+		drawMeter(canvas, pos.x + 42, pos.y + 68, health, getMaxHealth(), 0x9fFF0000, 0xffafFFaf);
+		drawMeter(canvas, pos.x + 42, pos.y + 74, meter.remaining(), data.movements, 0x8f4a5f8f, 0xff3a9aFF);
+		
+		
+		
+		//canvas.resizeFont(12f);
+		//canvas.drawString("x" + this.meter.getMovementAmount(), pos.x, pos.y+72, 0xffffffff);
+		
+		//canvas.drawString("WorldPos: " + (int)getPos().x+","+(int)getPos().y,pos.x, pos.y+72, 0xffffffff);
+		//canvas.drawString("ScreenPos: " + (int)pos.x+","+(int)pos.y,pos.x, pos.y+92, 0xffffffff);
+		
 	}
 	
 	

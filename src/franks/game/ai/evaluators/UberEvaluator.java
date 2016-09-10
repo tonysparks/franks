@@ -4,7 +4,8 @@
 package franks.game.ai.evaluators;
 
 import franks.game.Game;
-import franks.game.ai.Evaluator;
+import franks.game.ai.BattleEvaluator;
+import franks.game.battle.BattleGame;
 import franks.game.commands.CommandQueue.CommandRequest;
 import franks.game.entity.Entity;
 
@@ -12,7 +13,7 @@ import franks.game.entity.Entity;
  * @author Tony
  *
  */
-public class UberEvaluator implements Evaluator {
+public class UberEvaluator implements BattleEvaluator {
 
 	private AttackEvaluator attackEval;
 	private MovementEvaluator moveEval;
@@ -32,7 +33,7 @@ public class UberEvaluator implements Evaluator {
 	 * @see franks.game.ai.Evaluator#calculateScore(franks.game.entity.Entity, franks.game.Game)
 	 */
 	@Override
-	public double calculateScore(Entity entity, Game game) {
+	public double calculateScore(Entity entity, BattleGame game) {
 		attackScore = attackEval.calculateScore(entity, game);
 		movementScore = moveEval.calculateScore(entity, game);
 		doNothingScore = doNothingEval.calculateScore(entity, game);

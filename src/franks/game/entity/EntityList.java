@@ -8,6 +8,7 @@ import java.util.Comparator;
 
 import franks.game.Game;
 import franks.game.Team;
+import franks.game.entity.meta.LeaderEntity;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
 import franks.gfx.Renderable;
@@ -70,9 +71,21 @@ public class EntityList implements Renderable {
 	}
 	
 	public Entity buildEntity(int id, Team team, EntityData data) {
-		Entity ent = new Entity(id, game, team, data);
-		this.entities[ent.getId()] = ent;
+		Entity ent = null;
+		switch(data.type) {
+			case GENERAL:
+			case SCOUT:
+				ent = new LeaderEntity(id, game, team, data);
+				break;
+			default:
+				ent = new Entity(id, game, team, data);
+		}		
+		addEntity(ent);
 		return ent;
+	}
+	
+	public void addEntity(Entity entity) {
+		this.entities[entity.getId()] = entity;
 	}
 	
 	public Entity getEntity(int id) {

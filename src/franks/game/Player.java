@@ -20,11 +20,22 @@ public class Player {
 		
 	private NetPlayer net;
 	
-	public Player(String name, Team team) {
-		this.name = name;
-		this.team = team;
+	public Player(String name) {
+		this.name = name;		
 		this.net = new NetPlayer();
 		this.net.name = name;		
+	}
+	
+	/**
+	 * @param team the team to set
+	 */
+	public void setTeam(Team team) {
+		this.team = team;
+		this.team.setPlayer(this);
+	}
+	
+	public boolean isLocalPlayer() {
+		return false;
 	}
 	
 	public boolean owns(Entity entity) {

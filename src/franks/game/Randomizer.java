@@ -67,6 +67,10 @@ public class Randomizer {
         return this.rand.nextInt(max);
     }
     
+    public boolean nextBoolean() {
+    	return this.rand.nextBoolean();
+    }
+    
     /**
      * The lower the percentage, the closer to the max value this will get
      * 

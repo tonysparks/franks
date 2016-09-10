@@ -6,7 +6,8 @@ package franks.screens;
 import franks.FranksGame;
 import franks.game.Game;
 import franks.game.GameState;
-import franks.game.meta.MetaGame;
+import franks.game.battle.Battle;
+import franks.game.battle.BattleGame;
 import franks.gfx.Camera;
 import franks.gfx.Camera2d;
 import franks.gfx.Canvas;
@@ -32,14 +33,15 @@ import franks.util.TimeStep;
  * @author Tony
  *
  */
-public class InGameScreen implements Screen {
+public class BattleScreen implements Screen {
 
 	private FranksGame app;
 	private Game game;
 	private Camera camera;
 	private Cursor cursor;
 	private Button endTurnBtn;
-		
+	
+	
 	private PanelView<Renderable> panel;
 	
 	private Inputs inputs = new KeyboardGameController() {
@@ -71,19 +73,11 @@ public class InGameScreen implements Screen {
 	};
 	
 	
-	public InGameScreen(FranksGame app) {
-		this(app, true, false);
-	}
-	
-	public InGameScreen(FranksGame app, boolean startServer, boolean isSinglePlayer) {
+	public BattleScreen(FranksGame app, GameState state, Battle battle) {
 		this.app = app;
 		this.camera = newCamera(1024*3, 1024*3);
-		
-		GameState state = new GameState(app);
-		
-		this.game = new MetaGame(app, state, this.camera);
-		
-		
+		this.game = new BattleGame(app, state, this.camera, battle);
+				
 		this.cursor = app.getUiManager().getCursor();
 		
 		consoleCommands(app.getConsole());

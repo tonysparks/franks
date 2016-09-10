@@ -12,7 +12,6 @@ import franks.game.commands.CommandQueue.CommandRequest;
 import franks.game.entity.Entity;
 import franks.game.entity.EntityList;
 import franks.game.net.NetCommandRequest;
-import franks.game.net.NetMessage;
 import franks.game.net.NetTurn;
 
 /**
@@ -129,17 +128,17 @@ public class Turn {
 	}
 	
 	private void handleEndTurn() {
-		Player localPlayer = game.getLocalPlayer();
-		if(isPlayersTurn(localPlayer) && game.isPeerConnected()) {
-			NetTurn net = new NetTurn();
-			net.requests = new ArrayList<>();
-			for(CommandRequest request : this.executedRequests) {
-				net.requests.add(request.getNetCommandRequest());
-			}
-			
-			NetMessage msg = NetMessage.turnMessage(net);
-			game.getConnection().sendMessage(msg);
-		}		
+//		Player localPlayer = game.getLocalPlayer();
+//		if(isPlayersTurn(localPlayer) && game.isPeerConnected()) {
+//			NetTurn net = new NetTurn();
+//			net.requests = new ArrayList<>();
+//			for(CommandRequest request : this.executedRequests) {
+//				net.requests.add(request.getNetCommandRequest());
+//			}
+//			
+//			NetMessage msg = NetMessage.turnMessage(net);
+//			game.getConnection().sendMessage(msg);
+//		}		
 	}
 	
 	public boolean isPlayersTurn(Player player) {

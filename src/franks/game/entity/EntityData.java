@@ -109,7 +109,7 @@ public class EntityData {
 	}
 	
 	public Entity.Type type;
-	public String name;
+	public String name;	
 	public Map<String, Object> attributes;
 	public int width, height;
 	public int movements;	

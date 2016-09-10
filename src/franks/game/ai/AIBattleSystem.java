@@ -9,10 +9,12 @@ import franks.game.Game;
 import franks.game.Player;
 import franks.game.Turn;
 import franks.game.ai.evaluators.UberEvaluator;
+import franks.game.battle.BattleGame;
 import franks.game.commands.CommandQueue.CommandRequest;
 import franks.game.commands.CommandRequestQueue;
 import franks.game.commands.CommandRequestQueue.RequestDispatcher;
 import franks.game.entity.Entity;
+import franks.game.entity.meta.LeaderEntity;
 import franks.util.TimeStep;
 import franks.util.Updatable;
 
@@ -20,10 +22,11 @@ import franks.util.Updatable;
  * @author Tony
  *
  */
-public class AISystem implements Updatable {
+public class AIBattleSystem implements Updatable {
 
-	private Game game;	
+	private BattleGame game;	
 	private Player aiPlayer;
+	private LeaderEntity aiEntityLeader;
 	
 	private CommandRequestQueue requestQueue;
 	
@@ -34,14 +37,19 @@ public class AISystem implements Updatable {
 	/**
 	 * 
 	 */
-	public AISystem(Game game, Player aiPlayer) {
+	public AIBattleSystem(BattleGame game, Player aiPlayer) {
 		this.game = game;
 		this.aiPlayer = aiPlayer;
+		if(game.getAttacker().getPlayer() == aiPlayer) {
+			this.aiEntityLeader = game.getAttacker();
+		}
+		else {
+			this.aiEntityLeader = game.getDefender();
+		}
+		
 		this.requestQueue = new CommandRequestQueue(game);
 		this.evaluators = new UberEvaluator[Game.MAX_ENTITIES];
-//		for(int i = 0; i < this.evaluators.length; i++) {
-//			
-//		}
+
 	}
 	
 	
@@ -57,7 +65,7 @@ public class AISystem implements Updatable {
 			else {
 				if(this.requestQueue.isCompleted()) {
 					
-					 if(this.numberOfThoughtCycles > aiPlayer.getTeam().teamSize()*2) {					
+					 if(this.numberOfThoughtCycles > this.aiEntityLeader.getEntities().size()*2) {					
 						 game.endCurrentTurnAI();
 						 this.numberOfThoughtCycles = 0;
 					 }
@@ -73,11 +81,10 @@ public class AISystem implements Updatable {
 	 * Figure out what commands to start dispatching
 	 */
 	private void strategize() {
-		List<Entity> team = aiPlayer.getTeam().getMembers();
-		
+		List<Entity> team = aiEntityLeader.getEntities();
 		
 		double bestScore = 0;
-		Evaluator bestEval = null;
+		BattleEvaluator bestEval = null;
 		
 		for(Entity ent : team) {
 			double score = 0;

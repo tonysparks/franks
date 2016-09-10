@@ -29,7 +29,7 @@ public class WebSocketClient {
 	@OnOpen
 	public void onOpen(Session session, EndpointConfig config) {
 		Cons.println("Session connected: " + session.getId());
-		this.connection = game.peerConnection(session);		
+//		this.connection = game.peerConnection(session);		
 	}
 	
 	@OnClose

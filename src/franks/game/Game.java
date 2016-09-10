@@ -3,169 +3,92 @@
  */
 package franks.game;
 
-import java.io.IOException;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.websocket.ContainerProvider;
-import javax.websocket.Session;
-import javax.websocket.WebSocketContainer;
-
-import org.hjson.JsonValue;
-
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Color;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
 import franks.FranksGame;
-import franks.game.Team.TeamName;
-import franks.game.ai.AISystem;
 import franks.game.commands.Command.CommandType;
 import franks.game.commands.CommandQueue.CommandRequest;
 import franks.game.entity.Entity;
+import franks.game.entity.Entity.Type;
 import franks.game.entity.EntityData;
 import franks.game.entity.EntityGroupData;
 import franks.game.entity.EntityGroupData.EntityInstanceData;
 import franks.game.entity.EntityList;
 import franks.game.net.NetEntity;
-import franks.game.net.NetGameFullState;
-import franks.game.net.NetGamePartialState;
 import franks.game.net.NetMessage;
-import franks.game.net.PeerConnection;
-import franks.game.net.websocket.WebSocketClient;
 import franks.gfx.Camera;
-import franks.gfx.Canvas;
 import franks.gfx.Cursor;
 import franks.gfx.Renderable;
 import franks.gfx.Terminal;
 import franks.map.IsometricMap;
 import franks.map.MapTile;
 import franks.math.Vector2f;
-import franks.util.Command;
 import franks.util.Cons;
-import franks.util.Console;
 import franks.util.TimeStep;
 
 /**
  * @author Tony
  *
  */
-public class Game implements Renderable {
+public abstract class Game implements Renderable, ResourceLoader { 
 
 	public static final int MAX_ENTITIES = 256;
 	
+	private GameState state;
 	private FranksGame app;
-	private World world;
+	protected World world;
 	
-	private EntityList entities;
+	protected EntityList entities;
 	
-	private Entity selectedEntity;
-	private Entity hoveredOverEntity;
+	protected Entity selectedEntity;
+	protected Entity hoveredOverEntity;
 		
 	private Vector2f cursorPos;
 	private Cursor cursor;
 	
 	private Terminal terminal;
 	
-	private Randomizer randomizer;
-	private Turn currentTurn;
-	
-	private Hud hud;
-	
-	private Camera camera;
+	protected Turn currentTurn;
+		
+	protected Camera camera;
 	private CameraController cameraController;
+		
+	protected Team redTeam, greenTeam;
+	protected Player redPlayer;
+	protected Player greenPlayer;
 	
-	private TextureCache textureCache;
-	private Gson gson;
-	
-	private Team redTeam, greenTeam;
-	private Player redPlayer;
-	private Player greenPlayer;
-	
-	private Player localPlayer;
-	private boolean isSinglePlayer;
-	
-	private PeerConnection connection;
-	
-	private AISystem ai;
-	
+	protected Player localPlayer;
+		
 	/**
 	 * 
 	 */
-	public Game(FranksGame app, Camera camera, boolean isSinglePlayer) {
+	public Game(FranksGame app, GameState state, Camera camera) {
 		this.camera = camera;
-		this.isSinglePlayer = isSinglePlayer;
-		this.gson = new GsonBuilder().create();
-		this.textureCache = new TextureCache();
+		this.state = state;				
+		
+		this.greenPlayer = state.getGreenPlayer();
+		this.greenTeam = this.greenPlayer.getTeam();
+		
+		this.redPlayer = state.getRedPlayer();
+		this.redTeam = this.redPlayer.getTeam();
+		
+		this.localPlayer = state.getLocalPlayer();
+		
 		this.entities = new EntityList(this);
 		this.cursorPos = new Vector2f();
 		
 		this.terminal = app.getTerminal();
-		this.randomizer = new Randomizer();
-
 		this.cursor = app.getUiManager().getCursor();
-		this.world = new World(this); 
 		
+		this.world = createWorld(state);		
 		this.cameraController = new CameraController(world.getMap(), camera);
-	
-		this.redTeam = new Team("Red", new Color(0.98f, 0.67f, 0.67f, 0.78f));
-		this.greenTeam = new Team("Green", new Color(0.67f, 0.98f, 0.67f, 0.78f));
-		
-		this.hud = new Hud(this);
-		
-		this.redPlayer = new Player("Red Player", redTeam);
-		this.greenPlayer = new Player("Green Player", greenTeam);
-		this.localPlayer = this.greenPlayer;
-		
-		this.currentTurn = new Turn(this, this.localPlayer, 0);
-
-		this.ai = new AISystem(this, redPlayer);
-		
-		// temp
-		app.getConsole().addCommand(new Command("reload") {
-			
-			@Override
-			public void execute(Console console, String... args) {
-				entities.clear();
-				world = new World(Game.this);
-				
-				EntityGroupData redGroupData = loadGroupData("assets/red.json");
-				redPlayer.setEntities(redGroupData.buildEntities(redTeam, Game.this));
-				redPlayer.getTeam().shufflePosition(Game.this.randomizer);
-				
-				EntityGroupData greenGroupData = loadGroupData("assets/green.json");
-				greenPlayer.setEntities(greenGroupData.buildEntities(greenTeam, Game.this));
-				greenPlayer.getTeam().shufflePosition(Game.this.randomizer);
-			}
-		});
-		app.getConsole().execute("reload");
 	}
 	
-	public PeerConnection peerConnection(Session session) {
-		if(this.connection!=null) {
-			this.connection.close();
-		}
-		
-		this.connection = new PeerConnection(this, session);
-		return this.connection;
-	}
-	
-	public boolean connectToPeer(String uri) {
-		try {
-			WebSocketContainer container = ContainerProvider.getWebSocketContainer();
-			Session session = container.connectToServer(WebSocketClient.class, URI.create(uri));
-			if(session!=null && session.isOpen()) {
-				return true;
-			}
-		}
-		catch(Exception e) {
-			Cons.println("*** Unable to connect to remote peer: " + e);
-		}
-		
-		return false;
-	}
+	/**
+	 * Creates the {@link World} for this {@link Game} instance
+	 * 
+	 * @param state
+	 * @return the {@link World}
+	 */
+	protected abstract World createWorld(GameState state);
 	
 	
 	public EntityData loadEntity(String file) {
@@ -178,16 +101,16 @@ public class Game implements Renderable {
 		return loadData(file, EntityGroupData.class);
 	}
 	
+	@Override
 	public <T> T loadData(String file, Class<T> type) {
-		try {
-			String data = JsonValue.readHjson(Gdx.files.internal(file).reader(1024)).toString();
-			return gson.fromJson(data, type);
-		}
-		catch(IOException e) {
-			Cons.println("*** Unable to load '" + file + "' : " + e);
-		}
-		
-		return null;
+		return state.loadData(file, type);
+	}
+	
+	/**
+	 * @return the state
+	 */
+	public GameState getState() {
+		return state;
 	}
 	
 	/**
@@ -204,23 +127,6 @@ public class Game implements Renderable {
 		return camera;
 	}
 	
-	public boolean isPeerConnected() {
-		return this.connection != null && this.connection.isConnected();
-	}
-	
-	/**
-	 * @return the isSinglePlayer
-	 */
-	public boolean isSinglePlayer() {
-		return isSinglePlayer;
-	}
-	
-	/**
-	 * @return the connection
-	 */
-	public PeerConnection getConnection() {
-		return connection;
-	}
 	
 	/**
 	 * @return the localPlayer
@@ -265,6 +171,10 @@ public class Game implements Renderable {
 		return greenTeam;
 	}
 	
+	public boolean isSinglePlayer() {
+		return state.isSinglePlayer();
+	}
+	
 	/**
 	 * @return the cursor
 	 */
@@ -272,52 +182,18 @@ public class Game implements Renderable {
 		return cursor;
 	}
 	
-	/**
-	 * @return the textureCache
-	 */
-	public TextureCache getTextureCache() {
-		return textureCache;
-	}
 	
+	@Override
+	public TextureCache getTextureCache() {
+		return this.state.getTextureCache();
+	}
 	
 	/**
 	 * Handles a remote message
 	 * 
 	 * @param msg
 	 */
-	public void handleNetMessage(NetMessage msg) {
-		switch(msg.type) {
-			case FullState:
-				this.entities.clear();
-				
-				NetGameFullState state = msg.asNetGameFullState();
-				this.randomizer = new Randomizer(state.seed, state.generation);
-				this.greenPlayer.syncFrom(state.greenPlayer);
-				for(NetEntity ent : state.greenPlayer.entities) {
-					greenPlayer.addEntity(buildEntity(greenTeam, ent));
-				}
-				
-				this.redPlayer.syncFrom(state.redPlayer);
-				for(NetEntity ent : state.redPlayer.entities) {
-					redPlayer.addEntity(buildEntity(redTeam, ent));
-				}
-				
-				Player activePlayer = greenPlayer;
-				if(state.currentPlayersTurn==TeamName.Red) {
-					activePlayer = redPlayer;
-				}
-				
-				this.currentTurn = new Turn(this, activePlayer, state.turnNumber);
-				this.localPlayer = redPlayer;
-				
-				break;
-			case PartialState:
-				break;
-			case Turn: {
-				this.currentTurn.handleNetTurnMessage(msg.asNetTurn());
-				break;
-			}
-		}
+	public void handleNetMessage(NetMessage msg) {		
 	}
 	
 	
@@ -365,7 +241,7 @@ public class Game implements Renderable {
 	}
 	
 	public void endCurrentTurnAI() {
-		if(this.isSinglePlayer) {
+		if(isSinglePlayer()) {
 			if(!this.currentTurn.isPlayersTurn(this.localPlayer)) {
 				if(entities.commandsCompleted()) {
 					this.currentTurn.markTurnCompleted();
@@ -457,7 +333,7 @@ public class Game implements Renderable {
 	 * @return the randomizer
 	 */
 	public Randomizer getRandomizer() {
-		return randomizer;
+		return this.state.getRandom();
 	}
 	
 	/**
@@ -478,7 +354,7 @@ public class Game implements Renderable {
 	}
 	
 	
-	private void dispatchCommand(Entity entity, CommandType type) {				
+	protected void dispatchCommand(Entity entity, CommandType type) {				
 		entity.queueAction(new CommandRequest(this, type, entity));		
 	}
 	
@@ -497,13 +373,13 @@ public class Game implements Renderable {
 		
 		Entity target = getEntityOverMouse();
 		if(target!=null && this.selectedEntity!=target) {
-			switch(target.getType()) {				
-				case HUMAN:					
-					dispatchCommand(selectedEntity, CommandType.Attack);
-					break;
-				default: 
-					Cons.println("Unsupported type: " + target.getType());
+			Type type = target.getType();
+			if(type.isAttackable()) {
+				dispatchCommand(selectedEntity, CommandType.Attack);
 			}
+			else {
+				Cons.println("Unsupported type: " + target.getType());
+			}			
 		}
 		else {
 			dispatchCommand(selectedEntity, CommandType.Move);
@@ -519,9 +395,9 @@ public class Game implements Renderable {
 	 * @param request
 	 */
 	public void addCommandRequestToHistory(CommandRequest request) {
-		if(!isSinglePlayer()) {
-			this.currentTurn.addCommandRequest(request);
-		}
+//		if(!isSinglePlayer()) {
+//			this.currentTurn.addCommandRequest(request);
+//		}
 	}
 	
 	/**
@@ -546,91 +422,8 @@ public class Game implements Renderable {
 		this.world.update(timeStep);
 		
 		this.entities.update(timeStep);
-		this.ai.update(timeStep);
-		
 		this.camera.update(timeStep);
-		this.hud.update(timeStep);
-		
-		if(isPeerConnected()) {
-			this.connection.update(timeStep);
-		}
 				
-		this.currentTurn = this.currentTurn.checkTurnState();
-		
-//		if(this.isSinglePlayer) {
-//			this.localPlayer = this.currentTurn.getActivePlayer();
-//		}
-		
-	}
-
-	@Override
-	public void render(Canvas canvas, Camera camera, float alpha) {
-		this.world.render(canvas, camera, alpha);
-		
-		this.hud.renderUnderEntities(canvas, camera, alpha);
-		this.entities.render(canvas, camera, alpha);
-		this.world.renderOverEntities(canvas, camera, alpha);
-		
-		this.hud.render(canvas, camera, alpha);
-	}
-	
-	
-	public NetGameFullState getNetGameFullState() {
-		NetGameFullState net = new NetGameFullState();
-		net.greenPlayer = greenPlayer.getNetPlayer();
-		net.redPlayer = redPlayer.getNetPlayer();
-		net.turnNumber = currentTurn.getNumber();
-		
-		net.seed = this.randomizer.getStartingSeed();
-		net.generation = this.randomizer.getIteration();
-		
-		net.currentPlayersTurn = currentTurn.getActivePlayer()==greenPlayer 
-				? TeamName.Green : TeamName.Red;
-		
-		return net;
-	}
-	
-	public NetGamePartialState getNetGamePartialState() {
-		NetGamePartialState net = new NetGamePartialState();
-		net.greenEntities = greenPlayer.getNetPlayer().entities;
-		net.redEntities = redPlayer.getNetPlayer().entities;
-		net.turnNumber = currentTurn.getNumber();
-		return net;
-	}
-	
-	public void syncFrom(NetGameFullState net) {
-		this.greenPlayer.syncFrom(net.greenPlayer);
-		
-		List<Entity> greens = new ArrayList<>();
-		for(NetEntity ent : net.greenPlayer.entities) {
-			greens.add(buildEntity(greenTeam, ent));
-		}
-		
-		
-		this.redPlayer.syncFrom(net.redPlayer);
-		
-		List<Entity> reds = new ArrayList<>();
-		for(NetEntity ent : net.redPlayer.entities) {
-			reds.add(buildEntity(redTeam, ent));
-		}				
-	}
-	
-	public void synFrom(NetGamePartialState net) {
-		syncFrom(greenTeam, net.greenEntities);
-		syncFrom(redTeam, net.redEntities);		
-	}
-	
-	
-	private void syncFrom(Team team, List<NetEntity> netEntities) {
-		for(int i = 0; i < netEntities.size();i++) {
-			NetEntity netEnt = netEntities.get(i);
-			Entity ent = entities.getEntity(netEnt.id);
-			if(ent==null) {
-				buildEntity(greenTeam, netEnt);
-			}
-			else {
-				ent.syncFrom(netEnt);
-			}
-		}
-	}
+		this.currentTurn = this.currentTurn.checkTurnState();		
+	}			
 }

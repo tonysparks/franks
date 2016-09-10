@@ -8,8 +8,8 @@ import java.util.List;
 
 import franks.game.Game;
 import franks.game.Randomizer;
-import franks.game.Team;
-import franks.game.ai.Evaluator;
+import franks.game.ai.BattleEvaluator;
+import franks.game.battle.BattleGame;
 import franks.game.commands.Command.CommandType;
 import franks.game.commands.CommandQueue.CommandRequest;
 import franks.game.entity.Direction;
@@ -24,7 +24,7 @@ import franks.math.Vector2f;
  * @author Tony
  *
  */
-public class MovementEvaluator implements Evaluator {
+public class MovementEvaluator implements BattleEvaluator {
 
 	private Entity selectedEntity;
 	private MapTile destination;
@@ -33,13 +33,12 @@ public class MovementEvaluator implements Evaluator {
 	 * @see franks.game.ai.Evaluator#calculateScore(franks.game.Game)
 	 */
 	@Override
-	public double calculateScore(Entity entity, Game game) {
+	public double calculateScore(Entity entity, BattleGame game) {
 		double bestScore = 0;
 		this.selectedEntity = entity;
 		this.destination = null;
-		
-		Team otherTeam = game.getOtherTeam(entity.getTeam());
-		List<Entity> enemies = otherTeam.getMembers();
+				
+		List<Entity> enemies = game.getOtherLeader(entity.getPlayer()).getEntities();
 		
 		List<MapTile> walkableTiles = getWalkableTiles(entity, game);		
 		for(MapTile tile : walkableTiles) {

@@ -4,6 +4,7 @@
 package franks.screens;
 
 import franks.FranksGame;
+import franks.game.GameState;
 import franks.gfx.Canvas;
 import franks.gfx.Colors;
 import franks.gfx.Inputs;
@@ -60,8 +61,10 @@ public class MenuScreen implements Screen {
 		this.singlePlyBtn.addOnButtonClickedListener(new OnButtonClickedListener() {
 			
 			@Override
-			public void onButtonClicked(ButtonEvent event) {
-				app.setScreen(new InGameScreen(getApp(), false, true));
+			public void onButtonClicked(ButtonEvent event) {											
+				///app.setScreen(new InGameScreen(getApp(), false, true));
+				GameState state = new GameState(getApp());
+				app.setScreen(new BattleScreen(getApp(), state, null));
 				
 			}
 		});

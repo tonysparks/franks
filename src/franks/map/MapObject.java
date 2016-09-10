@@ -5,7 +5,7 @@ package franks.map;
 
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
-import franks.game.Game;
+import franks.game.TextureCache;
 import franks.game.World;
 import franks.gfx.AnimatedImage;
 import franks.gfx.AnimationFrame;
@@ -31,7 +31,7 @@ public class MapObject implements Renderable {
 	private Vector2f renderPos;
 	private Vector2f tilePos;
 	private Model model;
-	private Game game;
+	private World world;
 	private Rectangle bounds;
 	
 	private boolean renderOver;
@@ -39,8 +39,8 @@ public class MapObject implements Renderable {
 	/**
 	 * 
 	 */
-	public MapObject(Game game, Vector2f pos, MapObjectData data) {
-		this.game = game;
+	public MapObject(World world, TextureCache textureCache, Vector2f pos, MapObjectData data) {
+		this.world = world;
 		
 		this.pos = pos;
 		this.bounds = new Rectangle(data.width, data.height);
@@ -51,7 +51,7 @@ public class MapObject implements Renderable {
 		
 		if(data.graphics.section != null) {
 			SectionData section = data.graphics.section;
-			TextureRegion tex = game.getTextureCache().getTexture(section.filePath);
+			TextureRegion tex = textureCache.getTexture(section.filePath);
 			tex = TextureUtil.subImage(tex, section.x, section.y, section.getWidth(tex), section.getHeight(tex));
 			TextureRegion[] frames = TextureUtil.splitImageRegion(tex, section.rows, section.cols);
 			AnimationFrame[] animations = new AnimationFrame[frames.length];
@@ -72,8 +72,8 @@ public class MapObject implements Renderable {
 			int i = 0;
 			for(FrameData frame : data.graphics.framed.frames) {
 				
-				TextureRegion tex = frame.getMask() != 0 ? game.getTextureCache().getTexture(frame.filePath, frame.getMask()) :
-													       game.getTextureCache().getTexture(frame.filePath);
+				TextureRegion tex = frame.getMask() != 0 ? textureCache.getTexture(frame.filePath, frame.getMask()) :
+													       textureCache.getTexture(frame.filePath);
 				
 				tex = TextureUtil.subImage(tex, frame.x, frame.y, frame.getWidth(tex), frame.getHeight(tex));
 				tex.flip(frame.flipX, frame.flipY);
@@ -98,8 +98,7 @@ public class MapObject implements Renderable {
 		return this.renderOver;
 	}
 	
-	public Vector2f getTilePos() {
-		World world = game.getWorld();
+	public Vector2f getTilePos() {		
 		float tileX = (pos.x / world.getRegionWidth());
 		float tileY = (pos.y / world.getRegionHeight());
 		tilePos.set(tileX, tileY);
@@ -108,8 +107,7 @@ public class MapObject implements Renderable {
 	
 	public Vector2f getRenderPosition(Camera camera, float alpha) {
 		Vector2f cameraPos = camera.getRenderPosition(alpha);
-		
-		World world = game.getWorld();
+				
 		Vector2f tilePos = getTilePos();
 		
 		world.getScreenPosByMapTileIndex(tilePos, renderPos);		

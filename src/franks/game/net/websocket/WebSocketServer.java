@@ -31,10 +31,10 @@ public class WebSocketServer {
 		session.setMaxIdleTimeout(0);
 		
 		Cons.println("Session connected: " + session.getId());
-		this.connection = game.peerConnection(session);
-		
-		NetMessage msg = NetMessage.fullStateMessage(game.getNetGameFullState());
-		this.connection.sendMessage(msg);
+//		this.connection = game.peerConnection(session);
+//		
+//		NetMessage msg = NetMessage.fullStateMessage(game.getNetGameFullState());
+//		this.connection.sendMessage(msg);
 	}
 	
 	@OnClose
