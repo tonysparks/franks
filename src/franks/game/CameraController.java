@@ -40,6 +40,10 @@ public class CameraController implements Updatable {
 		this.viewportWidth = this.camera.getViewPort().width;
 		this.viewportHeight = this.camera.getViewPort().height;
 		
+		resetToCameraPos();
+	}
+	
+	public void resetToCameraPos() {
 		// center the camera position
 		cameraDest.set(camera.getPosition());
 		cameraDest.x += camera.getViewPort().width/2;

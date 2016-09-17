@@ -35,15 +35,17 @@ public class MovementCostAnalyzer implements Updatable {
 		this.calculateMovementCostTimer.update(timeStep);
 		
 		Entity selectedEntity = game.getSelectedEntity();
-		if(selectedEntity != null && this.calculateMovementCostTimer.isTime()) {			
+		if(selectedEntity != null && this.calculateMovementCostTimer.isOnFirstTime()) {			
 			int moves = selectedEntity.getMeter().remaining();				
 
 			this.movementAllowed = false;
 			
-			cost = selectedEntity.calculateMovementCost(game.getCursorTilePos());
-			
-			if(cost > 0 && cost <= moves && moves > 0) {
-				this.movementAllowed = true;
+			if(!game.hoveringOverEntity()) {
+				cost = selectedEntity.calculateMovementCost(game.getCursorTilePos());
+				
+				if(cost > 0 && cost <= moves && moves > 0) {
+					this.movementAllowed = true;
+				}
 			}
 			
 		}		

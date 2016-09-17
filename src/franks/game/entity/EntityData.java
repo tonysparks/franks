@@ -114,6 +114,7 @@ public class EntityData {
 	public int width, height;
 	public int movements;	
 	public int health;
+	public int visibilityRange;
 	
 	public DefenseData defense;
 	

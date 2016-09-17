@@ -18,7 +18,7 @@ public class Army {
 	 * 
 	 */
 	public Army(Game game) {
-		this.mapEntitiyes = new EntityList(game);
+		//this.mapEntitiyes = new EntityList(game);
 	}
 
 }

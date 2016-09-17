@@ -33,7 +33,7 @@ public class AttackCostAnalyzer implements Updatable {
 		this.calculateMovementCostTimer.update(timeStep);
 		
 		Entity selectedEntity = game.getSelectedEntity();
-		if(selectedEntity != null && this.calculateMovementCostTimer.isTime()) {			
+		if(selectedEntity != null && this.calculateMovementCostTimer.isOnFirstTime()) {			
 			int moves = selectedEntity.getMeter().remaining();				
 
 			this.validAttack = false;

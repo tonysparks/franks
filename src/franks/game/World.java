@@ -12,6 +12,7 @@ import franks.gfx.Renderable;
 import franks.graph.GraphNode;
 import franks.map.GraphNodeFactory;
 import franks.map.IsometricMap;
+import franks.map.Layer;
 import franks.map.Map;
 import franks.map.MapGraph;
 import franks.map.MapLoader;
@@ -19,6 +20,7 @@ import franks.map.MapLoader.TiledData;
 import franks.map.MapObject;
 import franks.map.MapObjectData;
 import franks.map.MapTile;
+import franks.map.MapTile.Visibility;
 import franks.map.TiledMapLoader;
 import franks.math.Vector2f;
 import franks.util.Cons;
@@ -50,14 +52,17 @@ public class World implements Renderable {
 	/**
 	 * 
 	 */
-	public World(ResourceLoader resourceLoader, Camera camera) {
+	public World(ResourceLoader resourceLoader, Camera camera, String map) {
 		this.camera = camera;		
 		this.cacheVector = new Vector2f();
 		this.mapObjects = new ArrayList<>();
 	
+		String path = "assets/maps/%s.json";
+		String terrainFile = String.format(path, map + "-terrain");
+		String mapFile = String.format(path, map);
 		
-		TerrainData terrainData = resourceLoader.loadData("assets/maps/frank_map01-terrain.json", TerrainData.class);
-		TiledData tiledData = resourceLoader.loadData("assets/maps/frank_map01.json", TiledData.class);
+		TerrainData terrainData = resourceLoader.loadData(terrainFile, TerrainData.class);
+		TiledData tiledData = resourceLoader.loadData(mapFile, TiledData.class);
 		
 		MapLoader loader = new TiledMapLoader();
 		try {
@@ -101,7 +106,9 @@ public class World implements Renderable {
 				tile.setSize(TileWidth, TileHeight);
 				tile.setPosition(x*TileWidth, y*TileHeight);
 				tile.setIndexPosition(x, y);
-				tile.setTerrainTileData(terrainData.getTileTerrainData(x, y));
+				if(terrainData!=null) {
+					tile.setTerrainTileData(terrainData.getTileTerrainData(x, y));
+				}
 				//row[x] = tile;
 			}
 			
@@ -110,7 +117,7 @@ public class World implements Renderable {
 		}
 		
 		TextureCache textureCache = resourceLoader.getTextureCache();
-		if(terrainData.mapObjects != null) { 
+		if(terrainData != null && terrainData.mapObjects != null) { 
 			for(MapObjectData data : terrainData.mapObjects) {
 				if(data.locations != null) {
 					for(Vector2f pos : data.locations) {
@@ -133,6 +140,58 @@ public class World implements Renderable {
 		
 		this.camera.setWorldBounds(new Vector2f(this.map.getMapWidth(), this.map.getMapHeight()));
 
+	}
+	
+	public void setVisibility(Visibility visibility) {
+		Layer[] bkLayers = map.getBackgroundLayers();
+		Layer[] fgLayers = map.getForegroundLayers();
+		for(int y = 0; y < this.map.getTileWorldHeight(); y++) {
+			for(int x = 0; x < this.map.getTileWorldWidth(); x++) {
+				for(Layer layer : bkLayers) {
+					layer.getRow(y)[x].setVisibility(visibility);
+				}
+				for(Layer layer : fgLayers) {
+					layer.getRow(y)[x].setVisibility(visibility);
+				}
+			}
+		}
+	}
+	
+	List<MapTile> visibilityTiles = new ArrayList<>();
+	public void updateVisibility() {
+		
+		map.getTilesInRect(camera.getWorldViewPort(), visibilityTiles);
+		for(MapTile tile : visibilityTiles) {
+			Visibility visibility = tile.getVisibility();
+			switch(visibility) {
+				case VISIBLE: tile.setVisibility(Visibility.VISITED);
+				default : 
+			}
+		}
+		
+		/*
+		Layer[] bkLayers = map.getBackgroundLayers();
+		Layer[] fgLayers = map.getForegroundLayers();
+		for(int y = 0; y < this.map.getTileWorldHeight(); y++) {
+			for(int x = 0; x < this.map.getTileWorldWidth(); x++) {
+				for(Layer layer : bkLayers) {
+					MapTile tile = layer.getRow(y)[x]; 
+					Visibility visibility = tile.getVisibility();
+					switch(visibility) {
+						case VISIBLE: tile.setVisibility(Visibility.VISITED);
+						default : 
+					}
+				}
+				for(Layer layer : fgLayers) {
+					MapTile tile = layer.getRow(y)[x]; 
+					Visibility visibility = tile.getVisibility();
+					switch(visibility) {
+						case VISIBLE: tile.setVisibility(Visibility.VISITED);
+						default : 
+					}
+				}
+			}
+		}*/
 	}
 
 	public int getRegionWidth() {

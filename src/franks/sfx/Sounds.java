@@ -307,11 +307,17 @@ public class Sounds {
 		return sound;
 	}
 		
-	
 	public static Sound playGlobalSound(SoundType type) {
-		return playGlobalSound(soundBank(type));
+		return playGlobalSound(type, 1.0f);
+	}
+	public static Sound playGlobalSound(SoundType type, float damp) {
+		return playGlobalSound(soundBank(type), damp);
 	}
 	
+	
+	public static Sound playGlobalSound(int[] soundBank) {
+		return playGlobalSound(soundBank, 1.0f);
+	}
 	
 	/**
 	 * Plays the sound right next to the sound listener so it is
@@ -319,7 +325,7 @@ public class Sounds {
 	 * @param soundBank
 	 * @return the {@link Sound}
 	 */
-	public static Sound playGlobalSound(int[] soundBank) {
+	public static Sound playGlobalSound(int[] soundBank, float damp) {
 		float x = 0;
 		float y = 0;
 		if(soundSystem != null) {
@@ -327,7 +333,7 @@ public class Sounds {
 			x = data.position.x;
 			y = data.position.y;
 		}
-		return playFreeSound(soundBank, x, y);
+		return playFreeSound(soundBank, x, y, damp);
 	}
 	
 	/**

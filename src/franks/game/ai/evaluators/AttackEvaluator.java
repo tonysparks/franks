@@ -3,8 +3,6 @@
  */
 package franks.game.ai.evaluators;
 
-import java.util.List;
-
 import franks.game.Game;
 import franks.game.Randomizer;
 import franks.game.ai.BattleEvaluator;
@@ -12,6 +10,7 @@ import franks.game.battle.BattleGame;
 import franks.game.commands.Command.CommandType;
 import franks.game.commands.CommandQueue.CommandRequest;
 import franks.game.entity.Entity;
+import franks.game.entity.EntityList;
 import franks.math.Vector2f;
 
 /**
@@ -40,9 +39,8 @@ public class AttackEvaluator implements BattleEvaluator {
 		
 		int availablePoints = entity.getMeter().remaining();
 		
-		List<Entity> others = game.getOtherLeader(entity.getPlayer()).getEntities();
-		for(int i = 0; i < others.size();i++) {
-			Entity enemy = others.get(i);
+		EntityList others = game.getOtherLeader(entity.getPlayer()).getEntities();
+		for(Entity enemy : others) {			
 			double score = 0;
 			
 			if(enemy.isAlive()) {

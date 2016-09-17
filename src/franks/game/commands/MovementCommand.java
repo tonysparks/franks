@@ -18,7 +18,9 @@ import franks.gfx.Canvas;
 import franks.graph.GraphNode;
 import franks.map.MapTile;
 import franks.math.Vector2f;
+import franks.sfx.Sounds;
 import franks.util.TimeStep;
+import franks.util.Timer;
 
 /**
  * @author Tony
@@ -26,16 +28,16 @@ import franks.util.TimeStep;
  */
 public class MovementCommand extends Command {
 
-	private PathPlanner<Void> planner, costPlanner;
-	private int movementSpeed;
-//	private Game game;
+	protected PathPlanner<Void> planner, costPlanner;
+	protected int movementSpeed;
+	protected Game game;
 	/**
 	 * @param name
 	 * @param movementCost
 	 */
 	public MovementCommand(Game game, Entity entity, int movementSpeed) {
 		super(CommandType.Move, -1, entity);
-//		this.game = game;
+		this.game = game;
 		
 		this.movementSpeed = movementSpeed;
 		this.planner = new PathPlanner<>(game, game.getWorld().getGraph(), entity);
@@ -104,9 +106,12 @@ public class MovementCommand extends Command {
 			boolean isCancelled;
 			boolean atDestination;
 			
+			Timer footsteps = new Timer(true, 400);
+			
 			@Override
 			public CommandAction start() {
 				entity.setCurrentState(State.WALKING);
+				Sounds.playGlobalSound(Sounds.ruffle);
 				return this;
 			}
 			
@@ -131,6 +136,8 @@ public class MovementCommand extends Command {
 			
 			@Override
 			public void update(TimeStep timeStep) {
+				footsteps.update(timeStep);
+				
 				Vector2f waypoint = planner.nextWaypoint(entity);
 				if(waypoint==null) {
 					atDestination = true;
@@ -150,6 +157,10 @@ public class MovementCommand extends Command {
 				float newY = pos.y + deltaY;
 				
 				entity.moveTo(newX, newY);
+				
+				if(footsteps.isOnFirstTime()) {
+					Sounds.playGlobalSound(Sounds.grassWalk, 0.32f);
+				}
 				
 				if(planner.atDestination()) {
 					if(Vector2f.Vector2fApproxEquals(entity.getCenterPos(), planner.getDestination(), 16f)) {						

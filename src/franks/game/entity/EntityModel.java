@@ -99,7 +99,7 @@ public class EntityModel implements Renderable {
 		this.sprite.setPosition(dx, dy);
 		
 		Game game = entity.getGame();
-		
+
 		if(game.hasSelectedEntity() || game.hasHoveredOverEntity()) {
 		
 			if(entity.isSelected() || entity.isHoveredOver()) {

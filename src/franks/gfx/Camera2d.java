@@ -490,6 +490,8 @@ public class Camera2d implements Camera {
 
 		this.position.x = pos.x - halfWidth;
 		this.position.y = pos.y - halfHeight;
+		
+		this.destination.set(this.position);
 	}
 
 	/* (non-Javadoc)

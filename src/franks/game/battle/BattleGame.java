@@ -3,8 +3,6 @@
  */
 package franks.game.battle;
 
-import java.util.HashMap;
-
 import franks.FranksGame;
 import franks.game.Game;
 import franks.game.GameState;
@@ -12,12 +10,7 @@ import franks.game.Hud;
 import franks.game.Player;
 import franks.game.Turn;
 import franks.game.World;
-import franks.game.ai.AIBattleSystem;
-import franks.game.entity.Entity;
-import franks.game.entity.Entity.Type;
-import franks.game.entity.EntityData;
-import franks.game.entity.EntityData.GraphicData;
-import franks.game.entity.EntityGroupData;
+import franks.game.ai.BattleAISystem;
 import franks.game.entity.meta.LeaderEntity;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
@@ -33,10 +26,8 @@ import franks.util.TimeStep;
  */
 public class BattleGame extends Game {  
 
-	public static final int MAX_ENTITIES = 256;
-	
 	private Hud hud;			
-	private AIBattleSystem ai;
+	private BattleAISystem ai;
 	
 	private LeaderEntity attacker;
 	private LeaderEntity defender;
@@ -44,78 +35,49 @@ public class BattleGame extends Game {
 	/**
 	 * 
 	 */
-	public BattleGame(FranksGame app, GameState state, Camera camera, Battle battle) {
+	public BattleGame(FranksGame app, GameState state, Camera camera) {
 		super(app, state, camera);
 		
 		this.hud = new Hud(this);	
-		
-		
-		EntityData redData = new EntityData();		
-		redData.type = Type.GENERAL;
-		redData.graphics = new GraphicData();
-		redData.graphics.sectionStates = new HashMap<>();
-		LeaderEntity redLeader = new LeaderEntity(0, this, state.getAIPlayer().getTeam(), redData);
-		
-		EntityData greenData = new EntityData();
-		greenData.type = Type.GENERAL;
-		greenData.graphics = new GraphicData();
-		greenData.graphics.sectionStates = new HashMap<>();
-		LeaderEntity greenLeader = new LeaderEntity(1, this, state.getLocalPlayer().getTeam(), greenData);
-		
-		battle = new Battle(redLeader, greenLeader);
-		
+	}
+	
+	public void enterBattle(Battle battle) {
 		this.attacker = battle.getAttacker();
 		this.defender = battle.getDefender();
 		
-		EntityGroupData redGroupData = loadGroupData("assets/red.json");
-		redLeader.getEntities().addAll(redGroupData.buildEntities(redTeam, this));
-		redLeader.shufflePosition(getRandomizer());
-		
-		EntityGroupData greenGroupData = loadGroupData("assets/green.json");
-		greenLeader.getEntities().addAll(greenGroupData.buildEntities(greenTeam, this));
-		greenLeader.shufflePosition(getRandomizer());
 		
 		Player playersTurn = battle.getAttacker().getPlayer();
-		
 		this.currentTurn = new Turn(this, playersTurn, 0);
-		this.ai = new AIBattleSystem(this, state.getAIPlayer());
+		this.ai = new BattleAISystem(this, getState().getAIPlayer());
 		
 		// temp
-		app.getConsole().addCommand(new Command("reload") {
+		getApp().getConsole().addCommand(new Command("reload") {
 			
 			@Override
 			public void execute(Console console, String... args) {
-				world = createWorld(state);
+				world = createWorld(getState());
 				prepareEntities();
 			}
 		});		
 		
 		prepareEntities();
-		
 	}
 	
-	private void prepareEntities() {
-		entities.clear();
+	private void prepareEntities() {	
+		this.entities.clear();
+		this.entities.addAll(this.attacker.getEntities());
+		this.entities.addAll(this.defender.getEntities());
 		
-		for(Entity entity : attacker.getEntities()) {
-			entities.addEntity(entity);
-		}
-		
-		for(Entity entity : defender.getEntities()) {
-			entities.addEntity(entity);
-		}
-		
-
 		boolean topPosition = getRandomizer().nextBoolean();
-		attacker.enterBattle(world, topPosition);
-		defender.enterBattle(world, !topPosition);
+		this.attacker.enterBattle(world, topPosition);
+		this.defender.enterBattle(world, !topPosition);
 	}
 
 
 	
 	@Override
 	protected World createWorld(GameState state) {
-		World world = new World(this, camera);
+		World world = new World(this, camera, "frank_map01");
 		return world;
 	}
 	

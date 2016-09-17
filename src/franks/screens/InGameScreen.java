@@ -8,7 +8,6 @@ import franks.game.Game;
 import franks.game.GameState;
 import franks.game.meta.MetaGame;
 import franks.gfx.Camera;
-import franks.gfx.Camera2d;
 import franks.gfx.Canvas;
 import franks.gfx.Cursor;
 import franks.gfx.Inputs;
@@ -16,7 +15,6 @@ import franks.gfx.KeyboardGameController;
 import franks.gfx.Renderable;
 import franks.gfx.Screen;
 import franks.math.Rectangle;
-import franks.math.Vector2f;
 import franks.sfx.Sounds;
 import franks.ui.Button;
 import franks.ui.Label.TextAlignment;
@@ -77,13 +75,11 @@ public class InGameScreen implements Screen {
 	
 	public InGameScreen(FranksGame app, boolean startServer, boolean isSinglePlayer) {
 		this.app = app;
-		this.camera = newCamera(1024*3, 1024*3);
-		
+				
 		GameState state = new GameState(app);
+		this.camera = state.getCamera();
 		
 		this.game = new MetaGame(app, state, this.camera);
-		
-		
 		this.cursor = app.getUiManager().getCursor();
 		
 		consoleCommands(app.getConsole());
@@ -113,20 +109,7 @@ public class InGameScreen implements Screen {
 		app.addInput(app.getUiManager());
 	}
 	
-	/**
-	 * Creates a new {@link Camera}
-	 * @param map
-	 * @return
-	 */
-	private Camera newCamera(int mapWidth, int mapHeight) {
-		Camera camera = new Camera2d();		
-		camera.setWorldBounds(new Vector2f(mapWidth, mapHeight));		
-		camera.setViewPort(new Rectangle(this.app.getScreenWidth(), this.app.getScreenHeight()));
-//		camera.setMovementSpeed(new Vector2f(4000, 4000));
-		camera.setMovementSpeed(new Vector2f(130, 130));
-				
-		return camera;
-	}
+
 	
 	private void consoleCommands(Console console) {
 		console.addCommand(new Command("connect") {
@@ -142,7 +125,9 @@ public class InGameScreen implements Screen {
 	 * @see newera.util.State#enter()
 	 */
 	@Override
-	public void enter() {		
+	public void enter() {
+		this.endTurnBtn.show();
+		this.game.enter();
 	}
 
 	/* (non-Javadoc)
@@ -169,7 +154,9 @@ public class InGameScreen implements Screen {
 	 * @see newera.util.State#exit()
 	 */
 	@Override
-	public void exit() {		
+	public void exit() {
+		this.endTurnBtn.hide();
+		this.game.exit();
 	}
 
 	/* (non-Javadoc)

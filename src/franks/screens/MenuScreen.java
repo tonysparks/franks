@@ -62,9 +62,11 @@ public class MenuScreen implements Screen {
 			
 			@Override
 			public void onButtonClicked(ButtonEvent event) {											
-				///app.setScreen(new InGameScreen(getApp(), false, true));
-				GameState state = new GameState(getApp());
-				app.setScreen(new BattleScreen(getApp(), state, null));
+				app.setScreen(new InGameScreen(getApp(), false, true));
+				
+				
+				//GameState state = new GameState(getApp());
+				//app.setScreen(new BattleScreen(getApp(), state, null));
 				
 			}
 		});

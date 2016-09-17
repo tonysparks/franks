@@ -15,6 +15,7 @@ import franks.game.entity.Entity.State;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
 import franks.map.MapTile;
+import franks.sfx.Sounds;
 import franks.util.TimeStep;
 import franks.util.Timer;
 
@@ -92,7 +93,6 @@ public class AttackCommand extends Command {
 			public CommandAction start() {
 				timer.start();
 				
-				
 				if(tile != null) {
 					attacker.lookAt(tile);//tile.getX(), tile.getY());
 				}
@@ -103,19 +103,12 @@ public class AttackCommand extends Command {
 			
 			@Override
 			public CommandAction end() {
-
-				Randomizer rand = game.getRandomizer();
-				int x = rand.nextInt(100);
-
-				if( x <= hitPercentage) {
-					enemy.damage();
-				}
-				
 				int attackPercentage = calculateAttackPercentage(attacker);
 				int defensePercentage = calculateDefencePercentage(enemy);
 				
 				if(attackPercentage >= defensePercentage) {
 					enemy.damage();
+					Sounds.playGlobalSound(Sounds.meleeHit);
 				}
 				
 				
@@ -126,7 +119,6 @@ public class AttackCommand extends Command {
 			@Override
 			public void update(TimeStep timeStep) {		
 				timer.update(timeStep);
-				//int damage = attacker.attributeAsInt("attackDamage");
 			}
 			
 			@Override

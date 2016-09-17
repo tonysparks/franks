@@ -95,7 +95,19 @@ public class ImageTile extends AbstractTile {
 	@Override
 	public void render(Canvas canvas, Camera camera, float alpha) {		
 	    if(!this.isDestroyed) {
-	    	sprite.setPosition(renderX, renderY);
+	    	this.sprite.setPosition(renderX, renderY);
+	    	switch(getVisibility()) {
+	    		case BLACKED_OUT: 
+	    			this.sprite.setColor(0.0f, 0.0f, 0.0f, 1f);
+	    			break;
+	    		case VISITED:
+	    			this.sprite.setColor(0.65f, 0.65f, 0.65f, 1f);
+	    			break;
+    			default: 
+    				this.sprite.setColor(1.0f, 1.0f, 1.0f, 1f);
+		    			
+	    	}
+	    	
 	    	canvas.drawRawSprite(sprite);
 //	    	if(cell!=null) {
 //	    		Rectangle b = cell.getTileBounds();

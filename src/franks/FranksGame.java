@@ -24,6 +24,8 @@ import com.badlogic.gdx.controllers.Controllers;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.utils.TimeUtils;
 
+import franks.game.Ids;
+import franks.game.entity.EntityList;
 import franks.gfx.Art;
 import franks.gfx.Canvas;
 import franks.gfx.GdxCanvas;
@@ -68,7 +70,7 @@ public class FranksGame implements ApplicationListener {
 	private StateMachine<Screen> sm;
 	
 	private Config config;
-	
+			
 	private Terminal terminal;
 	private Console console;
 	private Theme theme;	
@@ -87,6 +89,8 @@ public class FranksGame implements ApplicationListener {
 	
 	private TimeStep timeStep;
 	private long gameClock;
+	
+	private Ids entityIds;
 	
 	private double currentTime;
 	private double accumulator;
@@ -107,12 +111,12 @@ public class FranksGame implements ApplicationListener {
 		Cons.println(HEADER);
 		Cons.println("*** Initializing " + VERSION + " ***");
 		Cons.println("Start Stamp: " + new Date());
-		
 
 		this.config = config;		
 		//TODO this.keyMap = config.getKeyMap();
 						
 	
+		this.entityIds = new Ids(EntityList.MAX_ENTITIES);
 		
 		this.screenStack = new Stack<Screen>();
 		this.sm = new StateMachine<Screen>();										
@@ -224,6 +228,7 @@ public class FranksGame implements ApplicationListener {
 			Cons.println("*** Unable to hide cursor: " + e);
 		}
 	}
+
 	
 	/**
 	 * Shuts down the game
@@ -429,6 +434,12 @@ public class FranksGame implements ApplicationListener {
 		return uiManager;
 	}
 	
+	/**
+	 * @return the entityIds
+	 */
+	public Ids getEntityIds() {
+		return entityIds;
+	}
 	
 	/**
 	 * @return the keyMap

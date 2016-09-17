@@ -5,7 +5,11 @@ package franks.game.entity;
 
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
 
+import franks.game.Ids;
 import franks.game.Game;
 import franks.game.Team;
 import franks.game.entity.meta.LeaderEntity;
@@ -20,9 +24,10 @@ import franks.util.TimeStep;
  * @author Tony
  *
  */
-public class EntityList implements Renderable {
+public class EntityList implements Renderable, Iterable<Entity> {
 
-
+	public static final int MAX_ENTITIES = 256;
+	
 	
 	private Comparator<Entity> renderOrder = new Comparator<Entity>() {
 		
@@ -44,33 +49,28 @@ public class EntityList implements Renderable {
 	};
 	
 	
+	private Ids ids;
 	private Entity[] entities;
 	private Entity[] renderEntities;
-	private Game game;
+	
 	/**
 	 * 
 	 */
-	public EntityList(Game game) {
-		this.game = game;
-		this.entities = new Entity[Game.MAX_ENTITIES];
-		this.renderEntities = new Entity[Game.MAX_ENTITIES];
+	public EntityList(Ids ids) {
+		this.ids = ids;
+		this.entities = new Entity[MAX_ENTITIES];
+		this.renderEntities = new Entity[MAX_ENTITIES];
 	}
 
 	private int getNextId() {
-		for(int i = 0; i < entities.length; i++) {
-			if(entities[i] == null) {
-				return i;
-			}
-		}
-		
-		throw new IllegalArgumentException("Hit max entity count");
+		return ids.getNextId();
 	}
 	
-	public Entity buildEntity(Team team, EntityData data) {
-		return buildEntity(getNextId(), team, data);
+	public Entity buildEntity(Game game, Team team, EntityData data) {
+		return buildEntity(getNextId(), game, team, data);
 	}
 	
-	public Entity buildEntity(int id, Team team, EntityData data) {
+	public Entity buildEntity(int id, Game game, Team team, EntityData data) {
 		Entity ent = null;
 		switch(data.type) {
 			case GENERAL:
@@ -89,10 +89,43 @@ public class EntityList implements Renderable {
 	}
 	
 	public Entity getEntity(int id) {
-		if(id>=0 && id < entities.length) {
+		if(ids.validId(id)) {			
 			return this.entities[id];
 		}
+		
 		return null;
+	}
+	
+	/**
+	 * Gets an {@link Entity} by index, not by ID
+	 * 
+	 * @param index
+	 * @return the {@link Entity}
+	 */
+	public Entity get(int index) {
+		for(int i = 0; i < entities.length; i++) {
+			Entity ent = entities[i]; 
+			if(ent != null && ids.validId(i)) {
+				index--;
+				if(index<0) {
+					return getEntity(i);
+				}
+			}
+		}
+		return null;
+	}
+
+	public void addAll(EntityList entities) {
+		for(Entity ent : entities) {
+			addEntity(ent);
+		}
+	}
+
+	
+	public void addAll(List<Entity> entities) {
+		for(Entity ent : entities) {
+			addEntity(ent);
+		}
 	}
 	
 	public Entity getEntityOnTile(MapTile tile) {
@@ -103,7 +136,7 @@ public class EntityList implements Renderable {
 		
 		for(int i = 0; i < entities.length; i++) {
 			Entity ent = entities[i]; 
-			if(ent != null) {
+			if(ent != null && ids.validId(i)) {
 				if(bounds.intersects(ent.getBounds()) ||
 				   bounds.contains(ent.getCenterPos())) {
 					return ent;
@@ -117,16 +150,36 @@ public class EntityList implements Renderable {
 	public void endTurn() {
 		for(int i = 0; i < entities.length; i++) {
 			Entity ent = entities[i]; 
-			if(ent != null) {
+			if(ent != null && ids.validId(i)) {
 				ent.endTurn();
 			}
 		}
 	}
 	
 	public void clear() {
-		for(int i = 0; i < entities.length; i++) {
+		for(int i = 0; i < entities.length; i++) {			
 			entities[i] = null;
 		}
+	}
+	
+	public int size() {
+		int size = 0;
+		for(int i = 0; i < entities.length; i++) {
+			if(entities[i] != null && ids.validId(i)) size++;
+		}
+		return size;
+	}
+	
+	public void removeDead() {
+		for(int i = 0; i < entities.length; i++) {
+			if(entities[i] != null) {
+				if(entities[i].isDeleted()) {
+					entities[i] = null;
+					ids.reclaimId(i);
+				}
+			}
+		}
+		
 	}
 	
 	
@@ -138,7 +191,7 @@ public class EntityList implements Renderable {
 	public boolean commandsCompleted() {		
 		for(int i = 0; i < entities.length; i++) {
 			Entity ent = entities[i]; 
-			if(ent != null) {
+			if(ent != null && ids.validId(i)) {
 				if(!ent.isCommandQueueEmpty()) {
 					return false;
 				}
@@ -148,15 +201,51 @@ public class EntityList implements Renderable {
 	}
 	
 	@Override
+	public Iterator<Entity> iterator() {	
+		return new Iterator<Entity>() {
+			int index = 0;
+			
+			@Override
+			public boolean hasNext() {
+				for(int i = index; i < entities.length; i++) {
+					Entity ent = entities[i];
+					if(ent != null && ids.validId(i)) {
+						return true;
+					}
+				}
+				
+				return false;
+			}
+			
+			@Override
+			public Entity next() {
+				for(; index < entities.length;) {
+					Entity ent = entities[index];
+					index++;
+					if(ent != null && ids.validId(index-1)) {						
+						return ent;
+					}
+				}
+								
+				throw new NoSuchElementException();
+			}
+		};
+	}
+	
+	@Override
 	public void update(TimeStep timeStep) {
 		
 		for(int i = 0; i < entities.length; i++) {
 			Entity ent = entities[i]; 
 			if(ent != null) {
-				ent.update(timeStep);
+				if(ids.validId(i)) {
+					ent.update(timeStep);
+				}
+				
 				if(ent.isDeleted()) {
 					ent.getTeam().removeMember(ent);
 					
+					ids.reclaimId(i);
 					entities[i] = null;
 					
 				}

@@ -19,6 +19,7 @@ import franks.gfx.Cursor;
 import franks.gfx.Renderable;
 import franks.gfx.Terminal;
 import franks.map.IsometricMap;
+import franks.map.Map;
 import franks.map.MapTile;
 import franks.math.Vector2f;
 import franks.util.Cons;
@@ -56,13 +57,18 @@ public abstract class Game implements Renderable, ResourceLoader {
 	protected Player greenPlayer;
 	
 	protected Player localPlayer;
+	
+	protected Ids entitityIds;
 		
 	/**
 	 * 
 	 */
 	public Game(FranksGame app, GameState state, Camera camera) {
+		this.app = app;
 		this.camera = camera;
 		this.state = state;				
+		
+		this.entitityIds = app.getEntityIds();
 		
 		this.greenPlayer = state.getGreenPlayer();
 		this.greenTeam = this.greenPlayer.getTeam();
@@ -72,7 +78,7 @@ public abstract class Game implements Renderable, ResourceLoader {
 		
 		this.localPlayer = state.getLocalPlayer();
 		
-		this.entities = new EntityList(this);
+		this.entities = new EntityList(getEntitityIds());
 		this.cursorPos = new Vector2f();
 		
 		this.terminal = app.getTerminal();
@@ -81,6 +87,22 @@ public abstract class Game implements Renderable, ResourceLoader {
 		this.world = createWorld(state);		
 		this.cameraController = new CameraController(world.getMap(), camera);
 	}
+	
+	public void enter() {
+		Map map = getWorld().getMap();
+		this.camera.setWorldBounds(new Vector2f(map.getMapWidth(), map.getMapHeight()));
+		Team localTeam = this.localPlayer.getTeam();
+		if(localTeam.teamSize() > 0) {
+			this.camera.centerAroundNow(localTeam.getMembers().get(0).getScreenPosition());
+		}
+		else {
+			this.camera.centerAround(new Vector2f(map.getMapWidth()/2f, map.getMapHeight()/2f));
+		}
+		
+		this.cameraController.resetToCameraPos();
+	}
+	
+	public void exit() {}
 	
 	/**
 	 * Creates the {@link World} for this {@link Game} instance
@@ -118,6 +140,13 @@ public abstract class Game implements Renderable, ResourceLoader {
 	 */
 	public FranksGame getApp() {
 		return app;
+	}
+	
+	/**
+	 * @return the entitityIds
+	 */
+	public Ids getEntitityIds() {
+		return entitityIds;
 	}
 	
 	/**
@@ -196,7 +225,6 @@ public abstract class Game implements Renderable, ResourceLoader {
 	public void handleNetMessage(NetMessage msg) {		
 	}
 	
-	
 	/**
 	 * Builds the {@link Entity} from the {@link EntityInstanceData}
 	 * 
@@ -205,18 +233,31 @@ public abstract class Game implements Renderable, ResourceLoader {
 	 * @return the {@link Entity}
 	 */
 	public Entity buildEntity(Team team, EntityInstanceData ref) {
+		return buildEntity(getEntities(), team, ref);
+	}
+	
+	/**
+	 * Builds the {@link Entity} from the {@link EntityInstanceData}
+	 * 
+	 * @param team
+	 * @param ref
+	 * @return the {@link Entity}
+	 */
+	public Entity buildEntity(EntityList entities, Team team, EntityInstanceData ref) {
 		EntityData data = loadEntity("assets/entities/" + ref.dataFile);
-		Entity dataEnt = entities.buildEntity(team, data);
+		Entity dataEnt = entities.buildEntity(this, team, data);
 		dataEnt.moveToRegion(ref.x, ref.y);
 		dataEnt.setCurrentDirection(ref.direction);
 		dataEnt.setDesiredDirection(ref.direction);
-				
+		
+		dataEnt.visitTiles(getMap());
+		
 		return dataEnt;
 	}
 	
-	public Entity buildEntity(Team team, NetEntity net) {
+	public Entity buildEntity(EntityList entities, Team team, NetEntity net) {
 		EntityData data = loadEntity(net.dataFile);
-		Entity dataEnt = entities.buildEntity(net.id, team, data);
+		Entity dataEnt = entities.buildEntity(net.id, this, team, data);
 		dataEnt.syncFrom(net);
 		return dataEnt;
 	}

@@ -18,6 +18,12 @@ import franks.util.TimeStep;
  */
 public interface MapTile {
 
+	public static enum Visibility {
+		BLACKED_OUT,
+		VISITED,
+		VISIBLE,
+	}
+	
 	/**
 	 * The type of surface the world {@link ImageTile} has.
 	 * 
@@ -1374,6 +1380,9 @@ public interface MapTile {
 	boolean rectCollide(Rectangle rect);
 
 	void setSize(int width, int height);
+	
+	Visibility getVisibility();
+	void setVisibility(Visibility visibility);
 	
 	/**
 	 * @return the bounds

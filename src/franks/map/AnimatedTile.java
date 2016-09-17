@@ -3,6 +3,7 @@
  */
 package franks.map;
 
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
 import franks.gfx.AnimatedImage;
@@ -19,7 +20,7 @@ import franks.util.TimeStep;
 public class AnimatedTile extends ImageTile {
 
 	private AnimatedImage image;
-	
+	private Sprite sprite;
 	/**
 	 * @param image
 	 * @param width
@@ -29,6 +30,8 @@ public class AnimatedTile extends ImageTile {
 		super(null, layer, width, height);
 		this.image = image;
 		this.image.loop(true);
+		
+		this.sprite = new Sprite(image.getCurrentImage());
 	}
 	
 	/**
@@ -52,7 +55,14 @@ public class AnimatedTile extends ImageTile {
 	@Override
 	public void render(Canvas canvas, Camera camera, float alpha) {	
 		TextureRegion tex = image.getCurrentImage();
-		canvas.drawScaledImage(tex, getRenderX(), getRenderY(), getWidth(), getHeight(), 0xFFFFFFFF);
+		this.sprite.setRegion(tex);
+		this.sprite.setPosition(getRenderX(), getRenderY());
+		this.sprite.setSize(getWidth(), getHeight());
+		this.sprite.setColor(0.0f, 0.5f, 0.5f, 1f);
+		canvas.drawRawSprite(sprite);
+		
+		//0xFFFFFF00
+		//canvas.drawScaledImage(tex, getRenderX(), getRenderY(), getWidth(), getHeight(), null);
 //		canvas.drawImage(tex, getRenderX(), getRenderY(), 0xFFFFFFFF);
 	}
 }

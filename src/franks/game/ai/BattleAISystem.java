@@ -3,8 +3,6 @@
  */
 package franks.game.ai;
 
-import java.util.List;
-
 import franks.game.Game;
 import franks.game.Player;
 import franks.game.Turn;
@@ -14,6 +12,7 @@ import franks.game.commands.CommandQueue.CommandRequest;
 import franks.game.commands.CommandRequestQueue;
 import franks.game.commands.CommandRequestQueue.RequestDispatcher;
 import franks.game.entity.Entity;
+import franks.game.entity.EntityList;
 import franks.game.entity.meta.LeaderEntity;
 import franks.util.TimeStep;
 import franks.util.Updatable;
@@ -22,7 +21,7 @@ import franks.util.Updatable;
  * @author Tony
  *
  */
-public class AIBattleSystem implements Updatable {
+public class BattleAISystem implements Updatable {
 
 	private BattleGame game;	
 	private Player aiPlayer;
@@ -37,7 +36,7 @@ public class AIBattleSystem implements Updatable {
 	/**
 	 * 
 	 */
-	public AIBattleSystem(BattleGame game, Player aiPlayer) {
+	public BattleAISystem(BattleGame game, Player aiPlayer) {
 		this.game = game;
 		this.aiPlayer = aiPlayer;
 		if(game.getAttacker().getPlayer() == aiPlayer) {
@@ -81,7 +80,7 @@ public class AIBattleSystem implements Updatable {
 	 * Figure out what commands to start dispatching
 	 */
 	private void strategize() {
-		List<Entity> team = aiEntityLeader.getEntities();
+		EntityList team = aiEntityLeader.getEntities();
 		
 		double bestScore = 0;
 		BattleEvaluator bestEval = null;

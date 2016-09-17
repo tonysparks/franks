@@ -14,6 +14,7 @@ import franks.game.commands.Command.CommandType;
 import franks.game.commands.CommandQueue.CommandRequest;
 import franks.game.entity.Direction;
 import franks.game.entity.Entity;
+import franks.game.entity.EntityList;
 import franks.map.IsometricMap;
 import franks.map.MapTile;
 import franks.math.Vector2f;
@@ -38,7 +39,7 @@ public class MovementEvaluator implements BattleEvaluator {
 		this.selectedEntity = entity;
 		this.destination = null;
 				
-		List<Entity> enemies = game.getOtherLeader(entity.getPlayer()).getEntities();
+		EntityList enemies = game.getOtherLeader(entity.getPlayer()).getEntities();
 		
 		List<MapTile> walkableTiles = getWalkableTiles(entity, game);		
 		for(MapTile tile : walkableTiles) {
@@ -84,13 +85,13 @@ public class MovementEvaluator implements BattleEvaluator {
 		return walkableTiles;
 	}
 	
-	private double scoreTile(MapTile tile, Game game, List<Entity> enemies) {
+	private double scoreTile(MapTile tile, Game game, EntityList enemies) {
 		Randomizer rand = game.getRandomizer();
 		IsometricMap map = game.getMap();
 		
 		double bestScore = 0;
-		for(int i = 0; i < enemies.size();i++) {
-			Entity enemy = enemies.get(i);
+		for(Entity enemy : enemies) {
+			//Entity enemy = enemies.get(i);
 						
 			double score=0;
 			if(enemy.isAlive()) {

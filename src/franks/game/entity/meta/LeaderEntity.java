@@ -3,17 +3,16 @@
  */
 package franks.game.entity.meta;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import franks.game.Game;
 import franks.game.Randomizer;
 import franks.game.Team;
 import franks.game.World;
+import franks.game.commands.LeaderAttackCommand;
+import franks.game.commands.LeaderMovementCommand;
 import franks.game.entity.Direction;
 import franks.game.entity.Entity;
 import franks.game.entity.EntityData;
-import franks.game.meta.ResourceContainer;
+import franks.game.entity.EntityList;
 import franks.map.IsometricMap;
 import franks.math.Rectangle;
 import franks.math.Vector2f;
@@ -24,8 +23,8 @@ import franks.math.Vector2f;
  */
 public class LeaderEntity extends Entity {
 
-	private List<Entity> entities;
-	private ResourceContainer resources;
+	private EntityList entities;
+	//private ResourceContainer resources;
 	
 	/**
 	 * @param id
@@ -36,30 +35,37 @@ public class LeaderEntity extends Entity {
 	public LeaderEntity(int id, Game game, Team team, EntityData data) {
 		super(id, game, team, data);
 		
-		this.entities = new ArrayList<>();
-		this.resources = new ResourceContainer();
+		this.entities = new EntityList(game.getEntitityIds());
+		//this.resources = new ResourceContainer();
+		
+		//this.availableCommands.clear();
+		addAvailableAction(new LeaderAttackCommand(game, this, data.attackAction.cost, data.attackAction.attackRange));
+		addAvailableAction(new LeaderMovementCommand(game, this, data.moveAction.movementSpeed));
+		
 	}
 	
+	
 	public void addEntity(Entity entity) {
-		entities.add(entity);
+		entities.addEntity(entity);
 	}
 	
 	public void removeDead() {
-		List<Entity> aliveEntities = new ArrayList<>();
-		for(Entity ent : this.entities) {
-			if(ent.isAlive()) {
-				aliveEntities.add(ent);
-			}
-		}
-		
-		this.entities.clear();
-		this.entities.addAll(aliveEntities);
+		this.entities.removeDead();
+//		List<Entity> aliveEntities = new ArrayList<>();
+//		for(Entity ent : this.entities) {
+//			if(ent.isAlive()) {
+//				aliveEntities.add(ent);
+//			}
+//		}
+//		
+//		this.entities.clear();
+//		this.entities.addAll(aliveEntities);
 	}
 	
 	/**
 	 * @return the entities
 	 */
-	public List<Entity> getEntities() {
+	public EntityList getEntities() {
 		return entities;
 	}
 	
@@ -91,6 +97,8 @@ public class LeaderEntity extends Entity {
 			
 			y++;
 		}
+		
+		shufflePosition(game.getRandomizer());
 	}
 
 	public void shufflePosition(Randomizer rand) {

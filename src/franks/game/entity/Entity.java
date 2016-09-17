@@ -27,7 +27,9 @@ import franks.gfx.Canvas;
 import franks.gfx.Colors;
 import franks.gfx.Renderable;
 import franks.map.IsometricMap;
+import franks.map.Map;
 import franks.map.MapTile;
+import franks.map.MapTile.Visibility;
 import franks.math.Rectangle;
 import franks.math.Vector2f;
 import franks.util.TimeStep;
@@ -91,11 +93,9 @@ public class Entity implements Renderable {
 	
 	private boolean isSelected;
 	
-	private java.util.Map<CommandType, Command> availableCommands;
+	protected java.util.Map<CommandType, Command> availableCommands;
 	
 	protected Game game;
-	protected World world;
-	
 	protected int health;
 		
 	private boolean isDeleted;
@@ -122,9 +122,7 @@ public class Entity implements Renderable {
 		
 		this.name = data.name;
 		this.type = data.type;	
-		
-		this.world = game.getWorld();
-		
+				
 		this.meter = new ActionMeter(data.movements);
 		this.commandQueue = new CommandQueue(game);
 		
@@ -290,7 +288,7 @@ public class Entity implements Renderable {
 	public boolean canMove() {
 		return data.moveAction != null;
 	}
-	
+		
 	public int attackBaseCost() {
 		if(data.attackAction!=null) {
 			return data.attackAction.cost;
@@ -313,7 +311,19 @@ public class Entity implements Renderable {
 		return Integer.MAX_VALUE;
 	}
 	
-
+	public int visibilityRange() {
+		return data.visibilityRange;
+	}
+	
+	public void visitTiles(Map map) {
+		Vector2f pos = getRenderPosition(game.getCamera(), 1.0f);
+		game.getWorld().screenRelativeToCamera(pos, pos);
+		
+		List<MapTile> tiles = map.getTilesInCircle( (int)pos.x, (int)pos.y, visibilityRange()*16, new ArrayList<>());
+		for(MapTile tile : tiles) {
+			tile.setVisibility(Visibility.VISIBLE);
+		}
+	}
 	
 	/**
 	 * Action points remaining for this unit
@@ -527,6 +537,7 @@ public class Entity implements Renderable {
 	}
 	
 	public Entity moveToRegion(int x, int y) {
+		World world = game.getWorld();
 		this.pos.set(x * world.getRegionWidth(), y * world.getRegionHeight());
 		this.bounds.setLocation(pos);
 		return this;
@@ -565,6 +576,7 @@ public class Entity implements Renderable {
 	}
 	
 	public Entity lookAt(MapTile tile) {
+		World world = game.getWorld();
 		int tileX = (int)(pos.x / world.getRegionWidth());
 		int tileY = (int)(pos.y / world.getRegionHeight());
 		int dirX = tile.getXIndex() - tileX;
@@ -635,6 +647,7 @@ public class Entity implements Renderable {
 	 * @return the tilePos
 	 */
 	public Vector2f getTilePos() {
+		World world = game.getWorld();
 		float tileX = (pos.x / world.getRegionWidth());
 		float tileY = (pos.y / world.getRegionHeight());
 		tilePos.set(tileX, tileY);
@@ -704,6 +717,30 @@ public class Entity implements Renderable {
 		return (float)Math.sqrt(bounds.width*bounds.width + bounds.height*bounds.height);
 	}
 	
+	
+	/**
+	 * The screen position of this {@link Entity}.  This is 
+	 * almost identical to {@link Entity#getRenderPosition(Camera, float)} other
+	 * than the fact that it isn't offset by the {@link Camera} position.
+	 * 
+	 * @return the screen position of this {@link Entity}
+	 */
+	public Vector2f getScreenPosition() {
+		World world = game.getWorld();
+		Vector2f tilePos = getTilePos();
+		
+		world.getScreenPosByMapTileIndex(tilePos, renderPos);		
+		
+		return renderPos;
+	}
+	
+	/**
+	 * The rendering position on screen relative to the supplied {@link Camera}
+	 * 
+	 * @param camera
+	 * @param alpha
+	 * @return the screen position this entity should be rendered at
+	 */
 	public Vector2f getRenderPosition(Camera camera, float alpha) {
 		Vector2f cameraPos = camera.getRenderPosition(alpha);
 		

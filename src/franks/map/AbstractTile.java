@@ -15,6 +15,8 @@ import franks.util.TimeStep;
  */
 public class AbstractTile implements MapTile {
 
+	
+	
 	/**
 	 * Flip masks
 	 */
@@ -38,6 +40,7 @@ public class AbstractTile implements MapTile {
 	protected SurfaceType surfaceType;
 
 	protected boolean isDestroyed;
+	protected Visibility visibility;
 	
 	/**
 	 * 
@@ -50,6 +53,7 @@ public class AbstractTile implements MapTile {
 		this.collisionMask = CollisionMask.NO_COLLISION;
 		this.surfaceType = SurfaceType.CEMENT;
 		this.isDestroyed = false;
+		this.visibility = Visibility.VISIBLE;
 	}
 
 	/*
@@ -195,6 +199,18 @@ public class AbstractTile implements MapTile {
 		return mask;
 	}
 
+	
+	@Override
+	public void setVisibility(Visibility visibility) {
+		this.visibility = visibility;
+	}
+	
+	
+	@Override
+	public Visibility getVisibility() {	
+		return this.visibility;
+	}
+	
 	/*
 	 * (non-Javadoc)
 	 * 

@@ -10,6 +10,7 @@ import franks.game.entity.Entity;
 import franks.game.entity.Entity.State;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
+import franks.sfx.Sounds;
 import franks.util.TimeStep;
 import franks.util.Timer;
 
@@ -49,6 +50,7 @@ public class DieCommand extends Command {
 			public CommandAction start() {
 				timer.start();
 				getEntity().setCurrentState(State.DEAD);
+				Sounds.playGlobalSound(Sounds.die);
 				return this;
 			}
 			

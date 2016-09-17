@@ -12,6 +12,10 @@ import com.badlogic.gdx.graphics.Color;
 import com.google.gson.Gson;
 
 import franks.FranksGame;
+import franks.gfx.Camera;
+import franks.gfx.Camera2d;
+import franks.math.Rectangle;
+import franks.math.Vector2f;
 import franks.util.Cons;
 
 /**
@@ -32,12 +36,13 @@ public class GameState implements ResourceLoader {
 	private Randomizer random;
 	private Gson gson;
 	
+	private Camera camera;
+	
 	private boolean isSinglePlayer;
 	
 	public GameState(FranksGame app) {
 		this.app = app;
 		
-				
 		this.redPlayer = new Player("Red Player");
 		this.greenPlayer = new Player("Green Player");
 		
@@ -69,10 +74,33 @@ public class GameState implements ResourceLoader {
 		init();
 	}
 	
+	
+	/**
+	 * Creates a new {@link Camera}
+	 * @param map
+	 * @return
+	 */
+	private Camera newCamera() {
+		Camera camera = new Camera2d();						
+		camera.setViewPort(new Rectangle(app.getScreenWidth(), app.getScreenHeight()));
+//		camera.setMovementSpeed(new Vector2f(4000, 4000));
+		camera.setMovementSpeed(new Vector2f(130, 130));
+				
+		return camera;
+	}
+	
 	private void init() {
 		this.random = new Randomizer();	
 		this.textureCache = new TextureCache();
 		this.gson = new Gson();
+		this.camera = newCamera();
+	}
+	
+	/**
+	 * @return the camera
+	 */
+	public Camera getCamera() {
+		return camera;
 	}
 	
 	/**

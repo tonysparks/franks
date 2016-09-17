@@ -13,6 +13,7 @@ import franks.game.entity.Entity;
 import franks.game.entity.EntityList;
 import franks.game.net.NetCommandRequest;
 import franks.game.net.NetTurn;
+import franks.sfx.Sounds;
 
 /**
  * @author Tony
@@ -119,6 +120,13 @@ public class Turn {
 				}
 				
 				handleEndTurn();
+				
+				if(isPlayersTurn(game.getLocalPlayer())) {
+					Sounds.playGlobalSound(Sounds.flagCaptured);
+				}
+				else {
+					Sounds.playGlobalSound(Sounds.flagReturned);
+				}
 				
 				return new Turn(game, nextPlayersTurn, this.number + 1);
 			}

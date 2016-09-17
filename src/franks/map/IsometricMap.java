@@ -3,8 +3,12 @@
  */
 package franks.map;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
+import franks.math.Rectangle;
 import franks.math.Vector2f;
 
 /**
@@ -79,6 +83,63 @@ public class IsometricMap extends OrthoMap {
 		initRenderPositions();
 	}
 	
+	/* (non-Javadoc)
+	 * @see leola.live.game.Map#getTilesInCircle(int, int, float, java.util.List)
+	 */
+	@Override
+	public List<MapTile> getTilesInCircle(int layer, int centerX, int centerY, int radius,
+			List<MapTile> tiles) {
+		List<MapTile> result = (tiles == null) ? new ArrayList<MapTile>() : tiles;
+		result.clear();
+		
+		int length = (radius * 2) + 1;
+		
+		for(int y = centerY - (length /2); 
+			y <= (centerY + (length/2)); 
+			y+=getTileHeight()) {
+			
+			for(int x = centerX - (length/2);
+				x <= (centerX + (length/2));
+				x+=getTileWidth()/2 ) {
+				
+				if(!checkBounds(x, y)) {
+					MapTile tile = getWorldTile(layer, x, y); 
+					if(tile!=null) {
+						result.add(tile);
+					}
+				}
+			}
+		}
+				
+		return result;
+	}
+	
+	@Override
+	public List<MapTile> getTilesInRect(int layer, Rectangle bounds, List<MapTile> tiles) {
+		List<MapTile> result = (tiles == null) ? new ArrayList<MapTile>() : tiles;
+		result.clear();
+		
+		
+		
+		for(int y = bounds.y; 
+			    y <= (bounds.y + bounds.height); 
+			    y+=getTileHeight()) {
+			
+			for(int x = bounds.x;
+				x <= (bounds.x + bounds.width);
+				x+=getTileWidth()/2 ) {
+				
+				if(!checkBounds(x, y)) {
+					MapTile tile = getWorldTile(layer, x, y); 
+					if(tile!=null) {
+						result.add(tile);
+					}
+				}
+			}
+		}
+				
+		return result;
+	}
 	
 	/**
 	 * This actually takes in screen coordinates relative to the current camera position.
