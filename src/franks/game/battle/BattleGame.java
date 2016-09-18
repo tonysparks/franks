@@ -95,7 +95,8 @@ public class BattleGame extends Game {
 	
 	@Override
 	protected World createWorld(GameState state) {
-		World world = new World(this, camera, "frank_map01");
+//		World world = new World(this, camera, "frank_map01");
+		World world = new World(this, camera, "battle01");
 		return world;
 	}
 	

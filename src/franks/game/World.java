@@ -33,12 +33,6 @@ import franks.util.TimeStep;
 public class World implements Renderable {
 	public static final int TileWidth = 32;
 	public static final int TileHeight = 32;
-
-	public static final int CellTileWidth = 2;
-	public static final int CellTileHeight = 2;
-	
-	public static final int CellWidth = TileWidth * CellTileWidth;
-	public static final int CellHeight = TileHeight * CellTileHeight;
 	
 	private IsometricMap map;
 	private Camera camera;
@@ -48,6 +42,9 @@ public class World implements Renderable {
 	private Vector2f cacheVector;
 	
 	private List<MapObject> mapObjects;
+	
+	private int regionWidth;
+	private int regionHeight;
 	
 	/**
 	 * 
@@ -75,36 +72,17 @@ public class World implements Renderable {
 		int numberOfTilesX = this.map.getTileWorldWidth();
 		int numberOfTilesY = this.map.getTileWorldWidth();
 		
-//		int numberOfTilesX = 12;
-//		int numberOfTilesY = 12;
-				
-//		int tileWidth = TileWidth*2;
-//		int tileHeight = TileHeight;
+		this.regionWidth = this.map.getTileWidth();
+		this.regionHeight = this.map.getTileHeight();
 		
-//		SceneDef scene = new SceneDef();
-//		scene.setTileWidth(tileWidth);
-//		scene.setTileHeight(tileHeight);
-//		
-//		Layer background = new Layer("ground", false, false, false, false, true, 0, 0, numberOfTilesY);
-//		scene.setDimensionX(numberOfTilesX);
-//		scene.setDimensionY(numberOfTilesY);
-//		scene.setBackgroundLayers(new Layer[] { background });
-//		scene.setForegroundLayers(new Layer[] {});
-		
-//		int xrow = 1024 / tileWidth;
-//		int xcol = 1024 / tileHeight;
-//		
-//		TextureRegion tex = TextureUtil.loadImage("./assets/gfx/tiles.png", xrow, xcol);
-//		TextureRegion grassTile = new TextureRegion(tex.getTexture(), 0, 0, tileWidth, tileHeight);
-				
 		for(int y = 0; y < numberOfTilesY; y++) {
 			//MapTile[] row = new MapTile[numberOfTilesX];
 		
 			for(int x = 0; x < numberOfTilesX; x++ ) {
 				//MapTile tile = new ImageTile(grassTile, 0, TileWidth, TileHeight);
 				MapTile tile = this.map.getTile(0, x, y);
-				tile.setSize(TileWidth, TileHeight);
-				tile.setPosition(x*TileWidth, y*TileHeight);
+				tile.setSize(regionWidth, regionHeight);
+				tile.setPosition(x*regionWidth, y*regionHeight);
 				tile.setIndexPosition(x, y);
 				if(terrainData!=null) {
 					tile.setTerrainTileData(terrainData.getTileTerrainData(x, y));
@@ -195,11 +173,11 @@ public class World implements Renderable {
 	}
 
 	public int getRegionWidth() {
-		return TileWidth;
+		return regionWidth;
 	}
 	
 	public int getRegionHeight() {
-		return TileHeight;
+		return regionHeight;
 	}
 	
 	/**
