@@ -57,7 +57,7 @@ public class MetaAISystem implements Updatable {
 			else {
 				if(this.requestQueue.isCompleted()) {
 					
-					 if(this.numberOfThoughtCycles > this.aiPlayer.getTeam().armySize()*2) {					
+					 if(this.numberOfThoughtCycles > this.aiPlayer.getTeam().armySize()) {					
 						 game.endCurrentTurnAI();
 						 this.numberOfThoughtCycles = 0;
 					 }

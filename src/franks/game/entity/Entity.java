@@ -9,11 +9,12 @@ import java.util.List;
 import java.util.Optional;
 
 import franks.game.ActionMeter;
+import franks.game.Army;
 import franks.game.Game;
 import franks.game.Player;
-import franks.game.Army;
 import franks.game.World;
 import franks.game.commands.AttackCommand;
+import franks.game.commands.BattleAttackCommand;
 import franks.game.commands.Command;
 import franks.game.commands.Command.CommandType;
 import franks.game.commands.CommandQueue;
@@ -153,7 +154,7 @@ public class Entity implements Renderable {
 		
 		
 		if(data.attackAction!=null) {			
-			addAvailableAction(new AttackCommand(game, this, 
+			addAvailableAction(new BattleAttackCommand(game, this, 
 									data.attackAction.cost,
 									data.attackAction.attackRange,
 									data.attackAction.hitPercentage));
@@ -317,8 +318,9 @@ public class Entity implements Renderable {
 	}
 	
 	public void visitTiles(Map map) {
-		Vector2f pos = getRenderPosition(game.getCamera(), 1.0f);
-		game.getWorld().screenRelativeToCamera(pos, pos);
+//		Vector2f pos = getRenderPosition(game.getCamera(), 1.0f);
+//		game.getWorld().screenRelativeToCamera(pos, pos);
+		Vector2f pos = getScreenPosition();
 		
 		List<MapTile> tiles = map.getTilesInCircle( (int)pos.x, (int)pos.y, visibilityRange()*16, new ArrayList<>());
 		for(MapTile tile : tiles) {
@@ -649,6 +651,8 @@ public class Entity implements Renderable {
 	 */
 	public Vector2f getTilePos() {
 		World world = game.getWorld();
+		// Test out 0 based cells, might have to use
+		// CenterPos for more accurate conversion
 		float tileX = (pos.x / world.getRegionWidth());
 		float tileY = (pos.y / world.getRegionHeight());
 		tilePos.set(tileX, tileY);
@@ -660,7 +664,17 @@ public class Entity implements Renderable {
 	 */
 	public MapTile getTileOn() {
 		Vector2f tilePos = getTilePos();
-		return game.getTile(tilePos);
+		IsometricMap map = game.getMap();
+		
+		// Doesn't like 0 based cells, so I couldn't
+		// use Game.getTile(..); investigate
+		int tileX = (int)tilePos.x;
+		int tileY = (int)tilePos.y;
+		if(!map.checkTileBounds(tileX, tileY)) {
+			return map.getTile(0, tileX, tileY);
+		}
+		
+		return null;
 	}
 	
 	/**
@@ -799,7 +813,14 @@ public class Entity implements Renderable {
 	 * @see newera.gfx.Renderable#render(newera.gfx.Canvas, newera.gfx.Camera, float)
 	 */
 	@Override
-	public void render(Canvas canvas, Camera camera, float alpha) {	
+	public void render(Canvas canvas, Camera camera, float alpha) {
+		MapTile tile = getTileOn();
+		
+		// Don't render the entity if they are not on a Visible tile
+		if(tile!=null && tile.getVisibility() != Visibility.VISIBLE) {
+			return;			
+		}
+		
 		model.render(canvas, camera, alpha);
 		
 		

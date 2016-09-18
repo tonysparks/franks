@@ -11,6 +11,7 @@ import franks.game.GameState;
 import franks.game.Army;
 import franks.game.Turn;
 import franks.game.World;
+import franks.game.ai.MetaAISystem;
 import franks.game.battle.BattleGame;
 import franks.game.entity.Entity;
 import franks.game.entity.meta.LeaderEntity;
@@ -32,6 +33,7 @@ public class MetaGame extends Game {
 	
 	private Timer visibilityCheckTimer;
 	private BattleGame battleGame;
+	private MetaAISystem aiSystem;
 	
 	/**
 	 * 
@@ -44,6 +46,7 @@ public class MetaGame extends Game {
 		this.currentTurn = new Turn(this, state.getLocalPlayer(), 1);
 		this.hud = new MetaHud(this);
 		this.visibilityCheckTimer = new Timer(true, 800);
+		this.aiSystem = new MetaAISystem(this, state.getAIPlayer());
 		
 		StageData stage = this.loadData("assets/stage01.json", StageData.class);
 		
@@ -82,6 +85,7 @@ public class MetaGame extends Game {
 	@Override
 	public void update(TimeStep timeStep) {
 		visibilityCheckTimer.update(timeStep);
+		aiSystem.update(timeStep);
 		
 		super.update(timeStep);
 		

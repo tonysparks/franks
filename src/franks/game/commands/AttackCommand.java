@@ -11,34 +11,30 @@ import franks.game.Randomizer;
 import franks.game.TerrainData.TerrainTileData;
 import franks.game.commands.CommandQueue.CommandRequest;
 import franks.game.entity.Entity;
-import franks.game.entity.Entity.State;
-import franks.gfx.Camera;
-import franks.gfx.Canvas;
 import franks.map.MapTile;
-import franks.sfx.Sounds;
-import franks.util.TimeStep;
-import franks.util.Timer;
 
 /**
  * @author Tony
  *
  */
-public class AttackCommand extends Command {
+public abstract class AttackCommand extends Command {
 
-	private int hitPercentage;
-	private int attackDistance;
+	protected int hitPercentage;
+	protected int attackDistance;
 	
-	private Game game;
-	
+	protected Game game;
+		
 	/**
-	 * @param name
-	 * @param movementCost
+	 * @param game
+	 * @param attacker
+	 * @param cost
+	 * @param attackDistance
+	 * @param hitPercentage
 	 */
 	public AttackCommand(Game game, Entity attacker, int cost, int attackDistance, int hitPercentage) {
 		super(CommandType.Attack,  cost, attacker);
 		
 		this.game = game;
-		
 		this.attackDistance = attackDistance;
 		this.hitPercentage = hitPercentage;
 		
@@ -58,7 +54,6 @@ public class AttackCommand extends Command {
 		}
 		
 		Optional<Entity> target = request.targetEntity; 
-				//game.getEntityOverPos(request.);
 		if(!target.isPresent() || target.get().isDead()) {
 			response.addFailure("No enemy target");
 		}
@@ -79,64 +74,7 @@ public class AttackCommand extends Command {
 		return response;
 	}
 
-	@Override
-	protected CommandAction doActionImpl(Game game, CommandRequest request) {
-//		MapTile tile = game.getTileOverPos(request.cursorTilePos);
-		MapTile tile = game.getTile(request.cursorTilePos);
-		Entity attacker = getEntity();
-		Entity enemy = request.targetEntity.get();
-		return new CommandAction(request) {
-			
-			Timer timer = new Timer(false, attacker.getData().getAnimationTime(State.ATTACKING));
-						
-			@Override
-			public CommandAction start() {
-				timer.start();
-				
-				if(tile != null) {
-					attacker.lookAt(tile);//tile.getX(), tile.getY());
-				}
-				
-				attacker.setCurrentState(State.ATTACKING);
-				return this;
-			}
-			
-			@Override
-			public CommandAction end() {
-				int attackPercentage = calculateAttackPercentage(attacker);
-				int defensePercentage = calculateDefencePercentage(enemy);
-				
-				if(attackPercentage >= defensePercentage) {
-					enemy.damage();
-					Sounds.playGlobalSound(Sounds.meleeHit);
-				}
-				
-				
-				attacker.setCurrentState(State.IDLE);
-				return super.end();
-			}
-			
-			@Override
-			public void update(TimeStep timeStep) {		
-				timer.update(timeStep);
-			}
-			
-			@Override
-			public void render(Canvas canvas, Camera camera, float alpha) {
-			}
-			
-			@Override
-			public CompletionState getCurrentState() {
-				return timer.isTime() ? CompletionState.Success : CompletionState.InProgress;
-			}
-			
-			@Override
-			public void cancel() {
-				timer.setEndTime(0);
-			}
-		};
-	}
-
+	
 	public int calculateCost(MapTile tile) {
 		int numberOfTilesAway = getEntity().distanceFrom(tile);
 		if(numberOfTilesAway <= attackDistance) {
@@ -151,8 +89,8 @@ public class AttackCommand extends Command {
 			return getActionCost();
 		}
 		return -1;
-	}
-
+	}	
+	
 	public int calculateAttackPercentage(Entity attacker) {
 		Randomizer rand = game.getRandomizer();
 		int d10 = rand.nextInt(10) * 10;					

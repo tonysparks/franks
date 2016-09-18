@@ -16,6 +16,7 @@ import franks.game.entity.meta.LeaderEntity;
 import franks.game.meta.MetaGame;
 import franks.map.IsometricMap;
 import franks.map.MapTile;
+import franks.math.Rectangle;
 import franks.math.Vector2f;
 
 /**
@@ -28,6 +29,7 @@ public class MovementMetaEvaluator implements MetaEvaluator {
 
 	private Entity selectedEntity;
 	private MapTile destination;
+	private List<MapTile> tiles = new ArrayList<>();
 		
 	@Override
 	public double calculateScore(LeaderEntity entity, MetaGame game) {
@@ -47,31 +49,35 @@ public class MovementMetaEvaluator implements MetaEvaluator {
 			}
 		}
 				
-		
+		System.out.println("Movement Score: " + bestScore);
 		return bestScore;
 	}
 	
 	private List<MapTile> getWalkableTiles(Entity entity, Game game) {
+		IsometricMap map = game.getMap();
 		
 		List<MapTile> walkableTiles = new ArrayList<>();
 		
 		int availablePoints = entity.getMeter().remaining();
 		Vector2f tilePos = new Vector2f();
+		Rectangle bounds = new Rectangle(availablePoints*map.getTileWidth(), availablePoints*map.getTileHeight());	
+		bounds.centerAround(entity.getScreenPosition());
+		map.getTilesInRect(bounds, tiles);
 		
-		IsometricMap map = game.getMap();
-		for(int y = 0; y < map.getTileWorldHeight(); y++) {
-			for(int x = 0; x < map.getTileWorldWidth(); x++) {
-				MapTile tile = map.getTile(0, x, y);
-				if(tile!=null) {
-					if(game.getEntityOnTile(tile) == null) {
-						if(map.getCollidableTile(x, y)==null) {
-							
-							tilePos.set(tile.getX(), tile.getY());
-							
-							int movementCost = entity.calculateMovementCost(tilePos);
-							if(movementCost > 0 && movementCost <= availablePoints) {							
-								walkableTiles.add(tile);
-							}
+//		for(int y = 0; y < map.getTileWorldHeight(); y++) {
+//			for(int x = 0; x < map.getTileWorldWidth(); x++) {
+		//MapTile tile = map.getTile(0, x, y);
+				
+		for(MapTile tile : tiles) {
+			if(tile!=null) {
+				if(game.getEntityOnTile(tile) == null) {						
+					if(map.getCollidableTile(tile.getXIndex(), tile.getYIndex())==null) {
+						
+						tilePos.set(tile.getX(), tile.getY());
+						
+						int movementCost = entity.calculateMovementCost(tilePos);
+						if(movementCost > 0 && movementCost <= availablePoints) {							
+							walkableTiles.add(tile);
 						}
 					}
 				}
@@ -93,8 +99,8 @@ public class MovementMetaEvaluator implements MetaEvaluator {
 				int attackCost = enemy.calculateAttackCost(tile);
 				
 				int distanceToEnemy = enemy.distanceFrom(tile);
-				
-				double distanceBonus = Math.max(map.getMapWidth() - distanceToEnemy, 0);								
+				//System.out.println(distanceToEnemy);
+				double distanceBonus = Math.max(map.getTileWorldWidth() - distanceToEnemy, 0) / 100.0;								
 				score = distanceBonus * rand.getRandomRange(0.5, 0.75);
 				
 				if(attackCost > startingPoints) {

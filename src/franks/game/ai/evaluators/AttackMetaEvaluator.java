@@ -50,10 +50,10 @@ public class AttackMetaEvaluator implements MetaEvaluator {
 						int enemySquadScore = calculateSquadScore(enemyLeader);
 						
 						if(aiSquadScore >= enemySquadScore) {
-							score += rand.getRandomRange(0.5, 0.9);
+							score += rand.getRandomRange(0.7, 0.9);
 						}					
 						else {
-							score += rand.getRandomRange(0.3, 0.4);
+							score += rand.getRandomRange(0.4, 0.6);
 						}
 					}
 				}
@@ -72,6 +72,8 @@ public class AttackMetaEvaluator implements MetaEvaluator {
 		if(bestScore>0) {
 			bestScore += rand.getRandomRange(0.2, 0.35);
 		}
+		
+		System.out.println("Attack Score: " + bestScore);
 		
 		return bestScore;
 	}
