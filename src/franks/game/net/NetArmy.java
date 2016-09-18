@@ -7,6 +7,6 @@ package franks.game.net;
  * @author Tony
  *
  */
-public class NetTeam {
+public class NetArmy {
 	public String name;
 }

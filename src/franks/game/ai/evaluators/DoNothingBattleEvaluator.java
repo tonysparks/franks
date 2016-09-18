@@ -13,11 +13,11 @@ import franks.game.entity.Entity;
  * @author Tony
  *
  */
-public class DoNothingEvaluator implements BattleEvaluator {
+public class DoNothingBattleEvaluator implements BattleEvaluator {
 
 	@Override
 	public double calculateScore(Entity entity, BattleGame game) {
-		return game.getRandomizer().getRandomRangeMax(0.1);
+		return game.getRandomizer().getRandomRange(0.001, 0.05);
 	}
 
 	@Override

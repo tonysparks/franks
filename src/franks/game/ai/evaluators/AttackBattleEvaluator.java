@@ -19,7 +19,7 @@ import franks.math.Vector2f;
  * @author Tony
  *
  */
-public class AttackEvaluator implements BattleEvaluator {
+public class AttackBattleEvaluator implements BattleEvaluator {
 
 	private Entity selectedEntity;
 	private Entity targetEntity;
@@ -70,7 +70,7 @@ public class AttackEvaluator implements BattleEvaluator {
 		}
 		
 		if(bestScore>0) {
-			bestScore += rand.getRandomRange(0.2, 0.35);
+			bestScore += rand.getRandomRange(0.4, 0.55);
 		}
 		
 		return bestScore;

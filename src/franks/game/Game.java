@@ -30,8 +30,6 @@ import franks.util.TimeStep;
  *
  */
 public abstract class Game implements Renderable, ResourceLoader { 
-
-	public static final int MAX_ENTITIES = 256;
 	
 	private GameState state;
 	private FranksGame app;
@@ -52,7 +50,7 @@ public abstract class Game implements Renderable, ResourceLoader {
 	protected Camera camera;
 	private CameraController cameraController;
 		
-	protected Team redTeam, greenTeam;
+	protected Army redTeam, greenTeam;
 	protected Player redPlayer;
 	protected Player greenPlayer;
 	
@@ -91,9 +89,9 @@ public abstract class Game implements Renderable, ResourceLoader {
 	public void enter() {
 		Map map = getWorld().getMap();
 		this.camera.setWorldBounds(new Vector2f(map.getMapWidth(), map.getMapHeight()));
-		Team localTeam = this.localPlayer.getTeam();
-		if(localTeam.teamSize() > 0) {
-			this.camera.centerAroundNow(localTeam.getMembers().get(0).getScreenPosition());
+		Army localTeam = this.localPlayer.getTeam();
+		if(localTeam.armySize() > 0) {
+			this.camera.centerAroundNow(localTeam.getLeaders().get(0).getScreenPosition());
 		}
 		else {
 			this.camera.centerAround(new Vector2f(map.getMapWidth()/2f, map.getMapHeight()/2f));
@@ -190,11 +188,11 @@ public abstract class Game implements Renderable, ResourceLoader {
 	}
 	
 	/**
-	 * @param team
+	 * @param army
 	 * @return the opposite team of the supplied one
 	 */
-	public Team getOtherTeam(Team team) {
-		if(team == greenTeam) {
+	public Army getOtherTeam(Army army) {
+		if(army == greenTeam) {
 			return redTeam;
 		}
 		return greenTeam;
@@ -228,24 +226,24 @@ public abstract class Game implements Renderable, ResourceLoader {
 	/**
 	 * Builds the {@link Entity} from the {@link EntityInstanceData}
 	 * 
-	 * @param team
+	 * @param army
 	 * @param ref
 	 * @return the {@link Entity}
 	 */
-	public Entity buildEntity(Team team, EntityInstanceData ref) {
-		return buildEntity(getEntities(), team, ref);
+	public Entity buildEntity(Army army, EntityInstanceData ref) {
+		return buildEntity(getEntities(), army, ref);
 	}
 	
 	/**
 	 * Builds the {@link Entity} from the {@link EntityInstanceData}
 	 * 
-	 * @param team
+	 * @param army
 	 * @param ref
 	 * @return the {@link Entity}
 	 */
-	public Entity buildEntity(EntityList entities, Team team, EntityInstanceData ref) {
+	public Entity buildEntity(EntityList entities, Army army, EntityInstanceData ref) {
 		EntityData data = loadEntity("assets/entities/" + ref.dataFile);
-		Entity dataEnt = entities.buildEntity(this, team, data);
+		Entity dataEnt = entities.buildEntity(this, army, data);
 		dataEnt.moveToRegion(ref.x, ref.y);
 		dataEnt.setCurrentDirection(ref.direction);
 		dataEnt.setDesiredDirection(ref.direction);
@@ -255,9 +253,9 @@ public abstract class Game implements Renderable, ResourceLoader {
 		return dataEnt;
 	}
 	
-	public Entity buildEntity(EntityList entities, Team team, NetEntity net) {
+	public Entity buildEntity(EntityList entities, Army army, NetEntity net) {
 		EntityData data = loadEntity(net.dataFile);
-		Entity dataEnt = entities.buildEntity(net.id, this, team, data);
+		Entity dataEnt = entities.buildEntity(net.id, this, army, data);
 		dataEnt.syncFrom(net);
 		return dataEnt;
 	}

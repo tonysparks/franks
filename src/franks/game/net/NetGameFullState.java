@@ -3,7 +3,7 @@
  */
 package franks.game.net;
 
-import franks.game.Team.TeamName;
+import franks.game.Army.ArmyName;
 
 /**
  * @author Tony
@@ -16,5 +16,5 @@ public class NetGameFullState {
 	public long generation;
 	public NetPlayer redPlayer;
 	public NetPlayer greenPlayer;
-	public TeamName currentPlayersTurn;
+	public ArmyName currentPlayersTurn;
 }

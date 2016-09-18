@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import franks.game.entity.Entity;
+import franks.game.entity.meta.LeaderEntity;
 import franks.game.net.NetPlayer;
 
 /**
@@ -16,7 +17,7 @@ import franks.game.net.NetPlayer;
 public class Player {
 
 	private String name;
-	private Team team;
+	private Army army;
 		
 	private NetPlayer net;
 	
@@ -27,11 +28,11 @@ public class Player {
 	}
 	
 	/**
-	 * @param team the team to set
+	 * @param army the army to set
 	 */
-	public void setTeam(Team team) {
-		this.team = team;
-		this.team.setPlayer(this);
+	public void setTeam(Army army) {
+		this.army = army;
+		this.army.setPlayer(this);
 	}
 	
 	public boolean isLocalPlayer() {
@@ -39,23 +40,23 @@ public class Player {
 	}
 	
 	public boolean owns(Entity entity) {
-		return this.team.isMember(entity);
+		return this.army.isMember(entity);
 	}
 	
 	/**
 	 * @param entities the entities to set
 	 */
-	public void setEntities(List<Entity> entities) {
-		this.team.removeAllMembers();
-		this.team.addMembers(entities);
+	public void setEntities(List<LeaderEntity> entities) {
+		this.army.removeAllLeaders();
+		this.army.addLeaders(entities);
 	}
 	
-	public void addEntities(List<Entity> entities) {
-		this.team.addMembers(entities);
+	public void addEntities(List<LeaderEntity> entities) {
+		this.army.addLeaders(entities);
 	}
 	
-	public void addEntity(Entity ent) {
-		this.team.addMember(ent);
+	public void addEntity(LeaderEntity ent) {
+		this.army.addLeader(ent);
 	}
 		
 	/**
@@ -66,15 +67,15 @@ public class Player {
 	}
 	
 	/**
-	 * @return the team
+	 * @return the army
 	 */
-	public Team getTeam() {
-		return team;
+	public Army getTeam() {
+		return army;
 	}
 
 	public NetPlayer getNetPlayer() {
 		net.entities = new ArrayList<>();
-		for(Entity ent : this.team.getMembers()) {
+		for(Entity ent : this.army.getLeaders()) {
 			net.entities.add(ent.getNetEntity());
 		}
 		return net;

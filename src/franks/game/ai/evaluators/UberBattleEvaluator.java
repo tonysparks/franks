@@ -13,20 +13,20 @@ import franks.game.entity.Entity;
  * @author Tony
  *
  */
-public class UberEvaluator implements BattleEvaluator {
+public class UberBattleEvaluator implements BattleEvaluator {
 
-	private AttackEvaluator attackEval;
-	private MovementEvaluator moveEval;
-	private DoNothingEvaluator doNothingEval;
+	private AttackBattleEvaluator attackEval;
+	private MovementBattleEvaluator moveEval;
+	private DoNothingBattleEvaluator doNothingEval;
 	
 	private double attackScore;
 	private double movementScore;
 	private double doNothingScore;
 	
-	public UberEvaluator() {
-		attackEval = new AttackEvaluator();
-		moveEval = new MovementEvaluator();
-		doNothingEval = new DoNothingEvaluator();
+	public UberBattleEvaluator() {
+		attackEval = new AttackBattleEvaluator();
+		moveEval = new MovementBattleEvaluator();
+		doNothingEval = new DoNothingBattleEvaluator();
 	}
 
 	/* (non-Javadoc)

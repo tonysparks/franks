@@ -5,7 +5,7 @@ package franks.game.entity.meta;
 
 import franks.game.Game;
 import franks.game.Randomizer;
-import franks.game.Team;
+import franks.game.Army;
 import franks.game.World;
 import franks.game.commands.LeaderAttackCommand;
 import franks.game.commands.LeaderMovementCommand;
@@ -26,14 +26,16 @@ public class LeaderEntity extends Entity {
 	private EntityList entities;
 	//private ResourceContainer resources;
 	
+	//private int maxSquadSize;
+	
 	/**
 	 * @param id
 	 * @param game
-	 * @param team
+	 * @param army
 	 * @param data
 	 */
-	public LeaderEntity(int id, Game game, Team team, EntityData data) {
-		super(id, game, team, data);
+	public LeaderEntity(int id, Game game, Army army, EntityData data) {
+		super(id, game, army, data);
 		
 		this.entities = new EntityList(game.getEntitityIds());
 		//this.resources = new ResourceContainer();
@@ -68,6 +70,14 @@ public class LeaderEntity extends Entity {
 	public EntityList getEntities() {
 		return entities;
 	}
+	
+	/**
+	 * @return the size of this leaders squad
+	 */
+	public int getSquadSize() {
+		return entities.size();
+	}
+	
 	
 	public void enterBattle(World world, boolean topPosition) {
 		IsometricMap map = world.getMap();

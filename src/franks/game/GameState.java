@@ -46,8 +46,8 @@ public class GameState implements ResourceLoader {
 		this.redPlayer = new Player("Red Player");
 		this.greenPlayer = new Player("Green Player");
 		
-		this.redPlayer.setTeam(new Team("Red", new Color(0.98f, 0.67f, 0.67f, 0.78f)));
-		this.greenPlayer.setTeam(new Team("Green", new Color(0.67f, 0.98f, 0.67f, 0.78f)));
+		this.redPlayer.setTeam(new Army("Red", new Color(0.98f, 0.67f, 0.67f, 0.78f)));
+		this.greenPlayer.setTeam(new Army("Green", new Color(0.67f, 0.98f, 0.67f, 0.78f)));
 		
 		this.localPlayer = this.greenPlayer;
 		

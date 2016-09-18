@@ -79,7 +79,7 @@ public enum Direction {
 //		Vector2f v = new Vector2f(x,y);
 //		if(!v.isZero())System.out.println(v);
 		
-		final float threshold = 0.5f;
+		final float threshold = 0.35f;
 		if(y > threshold) {
 			if(x > threshold) {
 				return Direction.SOUTH;

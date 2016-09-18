@@ -3,17 +3,19 @@
  */
 package franks.game.ai;
 
+import java.util.List;
+
 import franks.game.Game;
 import franks.game.Player;
 import franks.game.Turn;
-import franks.game.ai.evaluators.UberBattleEvaluator;
-import franks.game.battle.BattleGame;
+import franks.game.ai.evaluators.UberMetaEvaluator;
 import franks.game.commands.CommandQueue.CommandRequest;
 import franks.game.commands.CommandRequestQueue;
 import franks.game.commands.CommandRequestQueue.RequestDispatcher;
 import franks.game.entity.Entity;
 import franks.game.entity.EntityList;
 import franks.game.entity.meta.LeaderEntity;
+import franks.game.meta.MetaGame;
 import franks.util.TimeStep;
 import franks.util.Updatable;
 
@@ -21,37 +23,28 @@ import franks.util.Updatable;
  * @author Tony
  *
  */
-public class BattleAISystem implements Updatable {
+public class MetaAISystem implements Updatable {
 
-	private BattleGame game;	
+	private MetaGame game;
 	private Player aiPlayer;
-	private LeaderEntity aiEntityLeader;
 	
 	private CommandRequestQueue requestQueue;
 	
-	private UberBattleEvaluator[] evaluators;
+	private UberMetaEvaluator[] evaluators;
 	private int numberOfThoughtCycles;
-	
+
 	
 	/**
 	 * 
 	 */
-	public BattleAISystem(BattleGame game, Player aiPlayer) {
+	public MetaAISystem(MetaGame game, Player aiPlayer) {
 		this.game = game;
 		this.aiPlayer = aiPlayer;
-		if(game.getAttacker().getPlayer() == aiPlayer) {
-			this.aiEntityLeader = game.getAttacker();
-		}
-		else {
-			this.aiEntityLeader = game.getDefender();
-		}
-		
+				
 		this.requestQueue = new CommandRequestQueue(game);
-		this.evaluators = new UberBattleEvaluator[EntityList.MAX_ENTITIES];
-
+		this.evaluators = new UberMetaEvaluator[EntityList.MAX_ENTITIES];
 	}
-	
-	
+
 	@Override
 	public void update(TimeStep timeStep) {
 		Turn currentTurn = game.getCurrentTurn();
@@ -64,7 +57,7 @@ public class BattleAISystem implements Updatable {
 			else {
 				if(this.requestQueue.isCompleted()) {
 					
-					 if(this.numberOfThoughtCycles > this.aiEntityLeader.getEntities().size()*2) {					
+					 if(this.numberOfThoughtCycles > this.aiPlayer.getTeam().armySize()*2) {					
 						 game.endCurrentTurnAI();
 						 this.numberOfThoughtCycles = 0;
 					 }
@@ -80,15 +73,15 @@ public class BattleAISystem implements Updatable {
 	 * Figure out what commands to start dispatching
 	 */
 	private void strategize() {
-		EntityList team = aiEntityLeader.getEntities();
+		List<LeaderEntity> team = aiPlayer.getTeam().getLeaders();
 		
 		double bestScore = 0;
-		BattleEvaluator bestEval = null;
+		MetaEvaluator bestEval = null;
 		
-		for(Entity ent : team) {
+		for(LeaderEntity ent : team) {
 			double score = 0;
 			if(this.evaluators[ent.getId()] == null) {
-				this.evaluators[ent.getId()] = new UberBattleEvaluator();
+				this.evaluators[ent.getId()] = new UberMetaEvaluator();
 			}
 	
 			score = this.evaluators[ent.getId()].calculateScore(ent, game);

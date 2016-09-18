@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import franks.game.Game;
-import franks.game.Team;
+import franks.game.Army;
 
 /**
  * A group of {@link Entity}'s
@@ -38,15 +38,15 @@ public class EntityGroupData {
 	/**
 	 * Build the entities from this {@link EntityGroupData}
 	 * 
-	 * @param team
+	 * @param army
 	 * @param game
 	 * @return the list of {@link Entity}s
 	 */
-	public List<Entity> buildEntities(EntityList list, Team team, Game game) {
+	public List<Entity> buildEntities(EntityList list, Army army, Game game) {
 		List<Entity> result = new ArrayList<>();
 		if(entities!=null) {
 			for(EntityInstanceData ref : entities) {
-				result.add(game.buildEntity(list, team, ref));
+				result.add(game.buildEntity(list, army, ref));
 			}
 		}
 		

@@ -11,7 +11,7 @@ import java.util.NoSuchElementException;
 
 import franks.game.Ids;
 import franks.game.Game;
-import franks.game.Team;
+import franks.game.Army;
 import franks.game.entity.meta.LeaderEntity;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
@@ -66,19 +66,19 @@ public class EntityList implements Renderable, Iterable<Entity> {
 		return ids.getNextId();
 	}
 	
-	public Entity buildEntity(Game game, Team team, EntityData data) {
-		return buildEntity(getNextId(), game, team, data);
+	public Entity buildEntity(Game game, Army army, EntityData data) {
+		return buildEntity(getNextId(), game, army, data);
 	}
 	
-	public Entity buildEntity(int id, Game game, Team team, EntityData data) {
+	public Entity buildEntity(int id, Game game, Army army, EntityData data) {
 		Entity ent = null;
 		switch(data.type) {
 			case GENERAL:
 			case SCOUT:
-				ent = new LeaderEntity(id, game, team, data);
+				ent = new LeaderEntity(id, game, army, data);
 				break;
 			default:
-				ent = new Entity(id, game, team, data);
+				ent = new Entity(id, game, army, data);
 		}		
 		addEntity(ent);
 		return ent;

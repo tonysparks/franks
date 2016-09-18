@@ -133,7 +133,7 @@ public class MapObject implements Renderable {
 	@Override
 	public void render(Canvas canvas, Camera camera, float alpha) {
 		Rectangle cameraViewPort = camera.getWorldViewPort();
-		//if(cameraViewPort.intersects(bounds)) 
+		if(cameraViewPort.intersects(bounds)) 
 		{
 		
 			TextureRegion tex = model.animations.getCurrentImage();

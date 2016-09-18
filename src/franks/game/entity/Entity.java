@@ -11,7 +11,7 @@ import java.util.Optional;
 import franks.game.ActionMeter;
 import franks.game.Game;
 import franks.game.Player;
-import franks.game.Team;
+import franks.game.Army;
 import franks.game.World;
 import franks.game.commands.AttackCommand;
 import franks.game.commands.Command;
@@ -110,14 +110,14 @@ public class Entity implements Renderable {
 	private ActionMeter meter;
 	
 	private CommandQueue commandQueue;
-	private Team team;
+	private Army army;
 	
 	private EntityData data;
 				
-	public Entity(int id, Game game, Team team, EntityData data) {
+	public Entity(int id, Game game, Army army, EntityData data) {
 		this.id = id;
 		this.game = game;
-		this.team = team;
+		this.army = army;
 		this.data = data;
 		
 		this.name = data.name;
@@ -146,9 +146,7 @@ public class Entity implements Renderable {
 		this.desiredDirection = Direction.SOUTH;
 		
 		this.health = 5;
-		
-		this.team.addMember(this);
-		
+				
 		this.model = new EntityModel(game, this, data.graphics);
 		
 		this.health = data.health;
@@ -208,6 +206,9 @@ public class Entity implements Renderable {
 		return data;
 	}
 	
+	public int defenseBaseScore() {
+		return data.defense.defensePercentage;
+	}
 	
 	/**
 	 * Calculates the defensive score.
@@ -215,7 +216,7 @@ public class Entity implements Renderable {
 	 * @return the total defense score
 	 */
 	public int calculateDefenseScore() {
-		return data.defense.defensePercentage + calculateAdjacentBonus();
+		return defenseBaseScore() + calculateAdjacentBonus();
 	}
 	
 	/**
@@ -454,7 +455,7 @@ public class Entity implements Renderable {
 	 */
 	public void delete() {
 		this.isDeleted = true;
-		this.team.removeMember(this);
+		this.army.removeMember(this);
 	}
 	
 	/**
@@ -501,15 +502,15 @@ public class Entity implements Renderable {
 	}
 	
 	/**
-	 * If this entity and the supplied entity are team mates.
+	 * If this entity and the supplied entity are army mates.
 	 * 
 	 * @param other
-	 * @return true if they are team mates
+	 * @return true if they are army mates
 	 */
 	public boolean isTeammate(Entity other) {
 		if(other!=null) {
-			if(other.team != null && team!=null) {
-				return other.team.equals(team);
+			if(other.army != null && army!=null) {
+				return other.army.equals(army);
 			}
 		}
 		return false;
@@ -626,14 +627,14 @@ public class Entity implements Renderable {
 	}
 	
 	public Player getPlayer() {
-		return team.getPlayer();
+		return army.getPlayer();
 	}
 	
 	/**
-	 * @return the team
+	 * @return the army
 	 */
-	public Team getTeam() {
-		return team;
+	public Army getTeam() {
+		return army;
 	}
 	
 	/**

@@ -25,7 +25,7 @@ import franks.math.Vector2f;
  * @author Tony
  *
  */
-public class MovementEvaluator implements BattleEvaluator {
+public class MovementBattleEvaluator implements BattleEvaluator {
 
 	private Entity selectedEntity;
 	private MapTile destination;

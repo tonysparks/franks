@@ -8,7 +8,7 @@ import java.util.List;
 import franks.FranksGame;
 import franks.game.Game;
 import franks.game.GameState;
-import franks.game.Team;
+import franks.game.Army;
 import franks.game.Turn;
 import franks.game.World;
 import franks.game.battle.BattleGame;
@@ -51,11 +51,13 @@ public class MetaGame extends Game {
 		buildArmy(stage.redArmy, state.getRedPlayer().getTeam());		
 	}
 	
-	private void buildArmy(ArmyData army, Team team) {
-		for(GeneralInstanceData general : army.generals) {
-			LeaderEntity leader = (LeaderEntity)buildEntity(team, general);
+	private void buildArmy(ArmyData armyData, Army army) {
+		for(GeneralInstanceData general : armyData.generals) {
+			LeaderEntity leader = (LeaderEntity)buildEntity(army, general);
+			army.addLeader(leader);
+			
 			if(general.holding != null) {
-				List<Entity> entities = general.holding.buildEntities(leader.getEntities(), team, this.battleGame);
+				List<Entity> entities = general.holding.buildEntities(leader.getEntities(), army, this.battleGame);
 				for(Entity ent : entities) {
 					leader.addEntity(ent);
 				}
@@ -103,6 +105,6 @@ public class MetaGame extends Game {
 		this.entities.render(canvas, camera, alpha);
 		this.world.renderOverEntities(canvas, camera, alpha);
 		
-		//this.hud.render(canvas, camera, alpha);
+		this.hud.render(canvas, camera, alpha);
 	}
 }
