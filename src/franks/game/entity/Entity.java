@@ -721,6 +721,11 @@ public class Entity implements Renderable {
 				              (tile.getYIndex() - tilePos.y) * (tile.getYIndex() - tilePos.y));
 	}
 	
+	public boolean inAttackRange(Entity enemy) {
+		int numberOfTilesAway = distanceFrom(enemy);
+		return (numberOfTilesAway <= attackRange());
+	}
+	
 	public int distanceFrom(Entity other) {
 		Vector2f tilePos = getTilePos();
 		Vector2f otherTilePos = other.getTilePos();

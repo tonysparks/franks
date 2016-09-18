@@ -11,6 +11,10 @@ import franks.game.Player;
 import franks.game.Turn;
 import franks.game.World;
 import franks.game.ai.BattleAISystem;
+import franks.game.commands.Command.CommandType;
+import franks.game.commands.CommandQueue.CommandRequest;
+import franks.game.entity.Entity;
+import franks.game.entity.EntityList;
 import franks.game.entity.meta.LeaderEntity;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
@@ -26,11 +30,21 @@ import franks.util.TimeStep;
  */
 public class BattleGame extends Game {  
 
+	public static enum BattleState {
+		InProgress,
+		Decided,
+		Completed,
+	}
+	
 	private Hud hud;			
 	private BattleAISystem ai;
 	
 	private LeaderEntity attacker;
 	private LeaderEntity defender;
+	
+	private BattleState battleState;
+	private LeaderEntity victor;
+	
 	
 	/**
 	 * 
@@ -39,9 +53,13 @@ public class BattleGame extends Game {
 		super(app, state, camera);
 		
 		this.hud = new Hud(this);	
+		this.battleState = BattleState.Completed;
 	}
 	
 	public void enterBattle(Battle battle) {
+		this.battleState = BattleState.InProgress;
+		this.victor = null;
+		
 		this.attacker = battle.getAttacker();
 		this.defender = battle.getDefender();
 		
@@ -61,7 +79,7 @@ public class BattleGame extends Game {
 		});		
 		
 		prepareEntities();
-	}
+	}		
 	
 	private void prepareEntities() {	
 		this.entities.clear();
@@ -87,6 +105,8 @@ public class BattleGame extends Game {
 		
 		this.ai.update(timeStep);
 		this.hud.update(timeStep);
+		
+		checkVictoryConditions();
 	}
 
 	@Override
@@ -108,6 +128,89 @@ public class BattleGame extends Game {
 		return this.attacker;
 	}
 	
+	public LeaderEntity getLeader(Player player) {
+		if(this.attacker.getPlayer() == player) {
+			return this.attacker;
+		}
+		return this.defender;
+	}
+	
+	
+	public void retreat() {
+		doRetreat(getLocalPlayer());
+	}
+	
+	public void aiRetreat() {
+		doRetreat(getAIPlayer());
+	}
+	
+	private void doRetreat(Player retreater) {
+		if(this.currentTurn.isPlayersTurn(retreater)) {
+			retreatPenalty(retreater);
+		}
+	}
+	
+	private void retreatPenalty(Player retreater) {
+		LeaderEntity victors = getOtherLeader(retreater);
+		LeaderEntity losers = getLeader(retreater);
+		for(Entity ent : victors.getEntities()) {
+			for(Entity loser : losers.getEntities()) {
+				if(ent.inAttackRange(loser)) {
+					ent.queueAction(new CommandRequest(this, CommandType.Attack, ent, loser));
+				}
+			}
+		}
+		
+		this.battleState = BattleState.Decided;
+		this.victor = victors;
+	}
+	
+	private void checkVictoryConditions() {
+		if(this.battleState == BattleState.InProgress) {
+			EntityList attackerArmy = this.attacker.getEntities();
+			if(attackerArmy.size() <= 0) {
+				this.battleState = BattleState.Decided;
+				this.victor = this.defender;
+			}
+			
+			EntityList defendingArmy = this.defender.getEntities();
+			if(defendingArmy.size() <= 0) {
+				this.battleState = BattleState.Decided;
+				this.victor = this.attacker;
+			}
+			
+		}
+		
+		
+		if(this.battleState == BattleState.Decided) {
+			boolean isCompleted = this.attacker.getEntities().commandsCompleted() &&
+					              this.defender.getEntities().commandsCompleted();
+			
+			if(isCompleted) {
+				this.battleState = BattleState.Completed;
+				
+				
+				LeaderEntity loser = getOtherLeader(this.victor.getPlayer());
+				if(loser.getEntities().size()<=0) {
+					loser.kill();
+				}
+			}
+		}
+	}
+	
+	/**
+	 * @return the victor
+	 */
+	public LeaderEntity getVictor() {
+		return victor;
+	}
+	
+	/**
+	 * @return the battleState
+	 */
+	public BattleState getBattleState() {
+		return battleState;
+	}
 	
 	/**
 	 * @return the attacker

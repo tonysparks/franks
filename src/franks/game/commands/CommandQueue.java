@@ -37,6 +37,10 @@ public class CommandQueue implements Updatable {
 			this(game, type, selectedEntity, game.getEntityOverMouse(), game.getCursorTilePos()!=null ? game.getCursorTilePos().createClone():new Vector2f());
 		}
 		
+		public CommandRequest(Game game, CommandType type, Entity selectedEntity, Entity targetEntity) {
+			this(game, type, selectedEntity, targetEntity, new Vector2f());
+		}
+		
 		public CommandRequest(Game game, CommandType type, Entity selectedEntity, Entity targetEntity, Vector2f cursorTilePos) {
 			this.type = type;
 			this.selectedEntity = selectedEntity;

@@ -162,6 +162,10 @@ public abstract class Game implements Renderable, ResourceLoader {
 		return localPlayer;
 	}
 	
+	public Player getAIPlayer() {
+		return state.getAIPlayer();
+	}
+	
 	/**
 	 * @return the greenPlayer
 	 */

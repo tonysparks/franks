@@ -4,9 +4,9 @@
 package franks.screens;
 
 import franks.FranksGame;
-import franks.game.Game;
 import franks.game.GameState;
 import franks.game.battle.BattleGame;
+import franks.game.battle.BattleGame.BattleState;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
 import franks.gfx.Cursor;
@@ -17,6 +17,7 @@ import franks.gfx.Screen;
 import franks.math.Rectangle;
 import franks.sfx.Sounds;
 import franks.ui.Button;
+import franks.ui.Dialog;
 import franks.ui.Label.TextAlignment;
 import franks.ui.events.ButtonEvent;
 import franks.ui.events.OnButtonClickedListener;
@@ -33,11 +34,12 @@ import franks.util.TimeStep;
 public class BattleScreen implements Screen {
 
 	private FranksGame app;
-	private Game game;
+	private BattleGame game;
 	private Camera camera;
 	private Cursor cursor;
 	private Button endTurnBtn;
-	
+	private Button retreatBtn;
+	private Dialog dialog;
 	
 	private PanelView<Renderable> panel;
 	
@@ -100,7 +102,30 @@ public class BattleScreen implements Screen {
 				game.endCurrentTurn();
 			}
 		});
+		
+		
+		this.retreatBtn = new Button();
+		this.retreatBtn.setBounds(new Rectangle(710, 700, 120, 40));
+		//this.endTurnBtn.getBounds().centerAround(600, 500);
+		this.retreatBtn.setText("Retreat");
+		this.retreatBtn.setTextSize(16f);
+		this.retreatBtn.setHoverTextSize(18f);
+		this.retreatBtn.setBackgroundColor(0xffcacaca);
+		this.retreatBtn.getTextLabel().setTextAlignment(TextAlignment.CENTER);
+		this.retreatBtn.addOnButtonClickedListener(new OnButtonClickedListener() {
+			
+			@Override
+			public void onButtonClicked(ButtonEvent event) {
+				game.retreat();
+			}
+		});
+		
 		this.panel.addElement(new ButtonView(endTurnBtn));
+		this.panel.addElement(new ButtonView(retreatBtn));
+		
+		//this.dialog = new Dialog();
+		
+		
 		app.addInput(app.getUiManager());
 	}
 		
@@ -120,7 +145,18 @@ public class BattleScreen implements Screen {
 	@Override
 	public void enter() {
 		this.endTurnBtn.show();
+		this.retreatBtn.show();
 		this.game.enter();
+	}
+
+	/* (non-Javadoc)
+	 * @see newera.util.State#exit()
+	 */
+	@Override
+	public void exit() {
+		this.endTurnBtn.hide();
+		this.retreatBtn.hide();
+		this.game.exit();
 	}
 
 	/* (non-Javadoc)
@@ -129,7 +165,11 @@ public class BattleScreen implements Screen {
 	@Override
 	public void update(TimeStep timeStep) {	
 		this.game.update(timeStep);		
-		this.panel.update(timeStep);		
+		this.panel.update(timeStep);	
+		
+		if(this.game.getBattleState() == BattleState.Completed) {
+			app.popScreen();
+		}
 	}
 
 	/* (non-Javadoc)
@@ -143,14 +183,6 @@ public class BattleScreen implements Screen {
 		this.cursor.render(canvas);
 	}
 	
-	/* (non-Javadoc)
-	 * @see newera.util.State#exit()
-	 */
-	@Override
-	public void exit() {
-		this.endTurnBtn.hide();
-		this.game.exit();
-	}
 
 	/* (non-Javadoc)
 	 * @see newera.gfx.Screen#destroy()
