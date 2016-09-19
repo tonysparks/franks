@@ -205,45 +205,6 @@ public class JoystickGameController extends ControllerInput implements GameContr
 
         if (isConnected()) {
             inputKeys = handleMovement(keyMap, cursor, inputKeys);
-            
-            if (isButtonDown(keyMap.getFireBtn())) {
-                inputKeys |= KeyActions.FIRE.getMask();
-            }
-            if (isButtonDown(keyMap.getThrowGrenadeBtn())) {
-                inputKeys |= KeyActions.THROW_GRENADE.getMask();
-            }
-            if (isButtonDown(keyMap.getReloadBtn())) {
-                inputKeys |= KeyActions.RELOAD.getMask();
-            }
-            
-            // TODO: Make configurable
-            if (isButtonReleased(ControllerButtons.Y_BTN)) {
-                inputKeys |= KeyActions.WEAPON_SWITCH_UP.getMask();
-            }
-            
-            if (isButtonDown(keyMap.getMeleeAttackBtn())) {
-                inputKeys |= KeyActions.MELEE_ATTACK.getMask();
-            }
-            
-            if (isButtonDown(keyMap.getCrouchBtn())) {
-                inputKeys |= KeyActions.CROUCH.getMask();
-            }            
-            
-            if (isButtonDown(keyMap.getSprintBtn())) {
-                inputKeys |= KeyActions.SPRINT.getMask();
-            }
-            
-            if (isButtonDown(keyMap.getWalkBtn())) {
-                inputKeys |= KeyActions.WALK.getMask();
-            }
-            
-            if (isButtonDown(keyMap.getDropWeaponBtn())) {
-                inputKeys |= KeyActions.DROP_WEAPON.getMask();
-            }
-            
-            if (isButtonDown(keyMap.getUseBtn())) {
-                inputKeys |= KeyActions.USE.getMask();
-            }
         }
 
         flushButtonReleaseState();

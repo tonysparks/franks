@@ -96,11 +96,11 @@ public class IsometricMap extends OrthoMap {
 		
 		for(int y = centerY - (length /2); 
 			y <= (centerY + (length/2)); 
-			y+=getTileHeight()) {
+			y+=getTileHeight()/8) {
 			
 			for(int x = centerX - (length/2);
 				x <= (centerX + (length/2));
-				x+=getTileWidth()/2 ) {
+				x+=getTileWidth()/8 ) {
 				
 				if(!checkBounds(x, y)) {
 					MapTile tile = getWorldTile(layer, x, y); 

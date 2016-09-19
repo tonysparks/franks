@@ -86,9 +86,6 @@ public class LeaderMovementCommand extends MovementCommand {
 						atDestination = true;
 					}
 				}
-//				else {
-//					entity.visitTiles(game.getMap());
-//				}
 			}
 			
 			@Override

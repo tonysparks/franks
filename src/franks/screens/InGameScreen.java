@@ -40,7 +40,7 @@ public class InGameScreen implements Screen {
 		
 	private PanelView<Renderable> panel;
 	
-	private Inputs inputs = new KeyboardGameController() {
+	private KeyboardGameController inputs = new KeyboardGameController() {
 		
 		@Override
 		public boolean mouseMoved(int x, int y) {

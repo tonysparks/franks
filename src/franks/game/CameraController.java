@@ -3,7 +3,10 @@
  */
 package franks.game;
 
+import franks.game.entity.Entity;
+import franks.game.entity.EntityList;
 import franks.gfx.Camera;
+import franks.gfx.KeyActions;
 import franks.map.Map;
 import franks.math.Rectangle;
 import franks.math.Vector2f;
@@ -25,10 +28,18 @@ public class CameraController implements Updatable {
 	private Rectangle bounds;
 	
 	private int viewportWidth, viewportHeight;
+
+	private EntityList entities;
+	private int entitySelection;
+	
+	private int previousInputKeys;
+	private int inputKeys;
+	
 	/**
 	 * 
 	 */
-	public CameraController(Map map, Camera camera) {
+	public CameraController(EntityList entities, Map map, Camera camera) {
+		this.entities = entities;
 		this.camera = camera;
 		this.map = map;
 		
@@ -56,7 +67,10 @@ public class CameraController implements Updatable {
 	 * @param mx
 	 * @param my
 	 */
-	public void applyPlayerMouseInput(float mx, float my) {
+	public void applyPlayerInput(float mx, float my, int keys) {
+		this.previousInputKeys = inputKeys;
+		this.inputKeys = keys;
+		
 		this.playerVelocity.zeroOut();
 		
 		final float threshold = 25.0f;
@@ -73,8 +87,37 @@ public class CameraController implements Updatable {
 		else if(my > this.viewportHeight-threshold) {
 			this.playerVelocity.y = 1;
 		}
+		
+		checkMoveToCharacter(keys);
 	}
 	
+	private void checkMoveToCharacter(int keys) {
+		boolean moveCamera = false;
+		if(KeyActions.UP.isDown(previousInputKeys) && !KeyActions.UP.isDown(keys)) {
+			int size = this.entities.size();
+			if(this.entitySelection++ >= size) {
+				this.entitySelection = 0;
+			}
+			
+			moveCamera = true;
+		}
+		else if(KeyActions.DOWN.isDown(previousInputKeys) && !KeyActions.DOWN.isDown(keys)) {
+			int size = this.entities.size();
+			if(this.entitySelection-- < 0) {
+				this.entitySelection = size-1;
+			}
+			
+			moveCamera = true;
+		}
+		
+		if(moveCamera) {
+			Entity entity = this.entities.get(this.entitySelection);
+			if(entity!=null) {
+				camera.centerAroundNow(entity.getScreenPosition());
+			}
+		}
+	}
+		
 	/**
 	 * Updates the camera roaming position
 	 * 

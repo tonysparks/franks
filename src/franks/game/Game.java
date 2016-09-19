@@ -16,6 +16,7 @@ import franks.game.net.NetEntity;
 import franks.game.net.NetMessage;
 import franks.gfx.Camera;
 import franks.gfx.Cursor;
+import franks.gfx.GameController;
 import franks.gfx.Renderable;
 import franks.gfx.Terminal;
 import franks.map.IsometricMap;
@@ -49,6 +50,7 @@ public abstract class Game implements Renderable, ResourceLoader {
 		
 	protected Camera camera;
 	private CameraController cameraController;
+	private int inputKeys;
 		
 	protected Army redTeam, greenTeam;
 	protected Player redPlayer;
@@ -83,7 +85,7 @@ public abstract class Game implements Renderable, ResourceLoader {
 		this.cursor = app.getUiManager().getCursor();
 		
 		this.world = createWorld(state);		
-		this.cameraController = new CameraController(world.getMap(), camera);
+		this.cameraController = new CameraController(this.entities, world.getMap(), camera);
 	}
 	
 	public void enter() {
@@ -91,16 +93,23 @@ public abstract class Game implements Renderable, ResourceLoader {
 		this.camera.setWorldBounds(new Vector2f(map.getMapWidth(), map.getMapHeight()));
 		Army localTeam = this.localPlayer.getTeam();
 		if(localTeam.armySize() > 0) {
-			this.camera.centerAroundNow(localTeam.getLeaders().get(0).getScreenPosition());
+			centerCameraAround(localTeam.getLeaders().get(0).getScreenPosition());
 		}
 		else {
-			this.camera.centerAround(new Vector2f(map.getMapWidth()/2f, map.getMapHeight()/2f));
-		}
-		
-		this.cameraController.resetToCameraPos();
+			centerCameraAround(new Vector2f(map.getMapWidth()/2f, map.getMapHeight()/2f));
+		}				
 	}
 	
 	public void exit() {}
+	
+	/**
+	 * Centers the camera around the supplied screen position
+	 * @param screenPos
+	 */
+	public void centerCameraAround(Vector2f screenPos) {
+		this.camera.centerAroundNow(screenPos);
+		this.cameraController.resetToCameraPos();
+	}
 	
 	/**
 	 * Creates the {@link World} for this {@link Game} instance
@@ -459,8 +468,15 @@ public abstract class Game implements Renderable, ResourceLoader {
 	public void update(TimeStep timeStep) {				
 		Vector2f mousePos = cursor.getCursorPos();
 		if(!terminal.isActive()) {
-			this.cameraController.applyPlayerMouseInput(mousePos.x, mousePos.y);
+			GameController controller = (GameController)this.app.getActiveInputs();
+			inputKeys = controller.pollInputs(timeStep, app.getKeyMap(), cursor, inputKeys);
+			if(inputKeys!=0) {
+				System.out.println(inputKeys);
+			}
+			
+			this.cameraController.applyPlayerInput(mousePos.x, mousePos.y, inputKeys);
 			this.cameraController.update(timeStep);
+			inputKeys = 0;
 		}
 		this.world.update(timeStep);
 		

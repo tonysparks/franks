@@ -29,41 +29,23 @@ public class KeyMap {
 	/**
 	 * Keyboard settings
 	 */
-	private int reloadKey,
-				walkKey,
-				crouchKey,
-				sprintKey,
-				upKey,
+	private int	upKey,
 				downKey,
 				leftKey,
-				rightKey,
-				fireKey,
-				throwGrenadeKey,
-				useKey,
-				dropWeaponKey,
-				meleeAttackKey,
-				
-				sayKey,
-				teamSayKey;
+				rightKey
+				;
 	
 	private boolean invertMouse;
 	
 	/**
 	 * Joystick settings
 	 */
-	private ControllerInput.ControllerButtons reloadBtn,
-                walkBtn,
-                crouchBtn,
-                sprintBtn,
+	private ControllerInput.ControllerButtons 
                 upBtn,
                 downBtn,
                 leftBtn,
-                rightBtn,
-                fireBtn,
-                throwGrenadeBtn,
-                useBtn,
-                dropWeaponBtn,
-                meleeAttackBtn;
+                rightBtn
+                ;
 	
 	private boolean invertJoystick;
 	private boolean isSouthPaw;
@@ -472,38 +454,21 @@ public class KeyMap {
 		refresh();
 	}
 	
-	private void refresh() {
-		this.reloadKey = getKey(config, "reload", Keys.R);
-		this.walkKey = getKey(config, "walk", Keys.SHIFT_LEFT);
-		this.crouchKey = getKey(config, "crouch", Keys.CONTROL_LEFT);
-		this.sprintKey = getKey(config, "sprint", Keys.SPACE);
+	private void refresh() {		
 		this.upKey = getKey(config, "up", Keys.W);
 		this.downKey = getKey(config, "down", Keys.S);
 		this.leftKey = getKey(config, "left", Keys.A);
 		this.rightKey = getKey(config, "right", Keys.D);
-		this.fireKey = getKey(config, "fire", Buttons.LEFT);
-		this.throwGrenadeKey = getKey(config, "throw_grenade", Buttons.RIGHT);
-		this.useKey  = getKey(config, "use", Keys.E);
-		this.dropWeaponKey  = getKey(config, "drop_weapon", Keys.F);
-		this.meleeAttackKey = getKey(config, "melee_attack", Keys.Q);
+		
 		this.invertMouse = LeoObject.isTrue(config.getByString("inverted"));
 		
-		this.sayKey = getKey(config, "say", Keys.Y);
-		this.teamSayKey = getKey(config, "team_say", Keys.T);
 		
-		this.reloadBtn = getKey(joystick, "reload", ControllerButtons.X_BTN);
-        this.walkBtn = getKey(joystick, "walk", ControllerButtons.LEFT_TRIGGER_BTN);
-        this.crouchBtn = getKey(joystick, "crouch", ControllerButtons.LEFT_BUMPER_BTN);
-        this.sprintBtn = getKey(joystick, "sprint", ControllerButtons.LEFT_JOYSTICK_BTN);
+		
         this.upBtn = getKey(joystick, "up", ControllerButtons.NORTH_DPAD_BTN);
         this.downBtn = getKey(joystick, "down", ControllerButtons.SOUTH_DPAD_BTN);
         this.leftBtn = getKey(joystick, "left", ControllerButtons.WEST_DPAD_BTN);
         this.rightBtn = getKey(joystick, "right", ControllerButtons.EAST_DPAD_BTN);
-        this.fireBtn = getKey(joystick, "fire", ControllerButtons.RIGHT_TRIGGER_BTN);
-        this.throwGrenadeBtn = getKey(joystick, "throw_grenade", ControllerButtons.B_BTN);
-        this.useBtn  = getKey(joystick, "use", ControllerButtons.A_BTN);
-        this.dropWeaponBtn = getKey(joystick, "drop_weapon", ControllerButtons.SELECT_BTN);
-        this.meleeAttackBtn = getKey(joystick, "melee_attack", ControllerButtons.RIGHT_JOYSTICK_BTN);
+        
         this.invertJoystick = LeoObject.isTrue(joystick.getByString("inverted"));
         this.isSouthPaw = LeoObject.isTrue(joystick.getByString("south_paw"));
 	}
@@ -576,34 +541,6 @@ public class KeyMap {
     }
 
     /**
-     * @return the reloadBtn
-     */
-    public ControllerInput.ControllerButtons getReloadBtn() {
-        return reloadBtn;
-    }
-
-    /**
-     * @return the walkBtn
-     */
-    public ControllerInput.ControllerButtons getWalkBtn() {
-        return walkBtn;
-    }
-
-    /**
-     * @return the crouchBtn
-     */
-    public ControllerInput.ControllerButtons getCrouchBtn() {
-        return crouchBtn;
-    }
-
-    /**
-     * @return the sprintBtn
-     */
-    public ControllerInput.ControllerButtons getSprintBtn() {
-        return sprintBtn;
-    }
-
-    /**
      * @return the upBtn
      */
     public ControllerInput.ControllerButtons getUpBtn() {
@@ -631,89 +568,7 @@ public class KeyMap {
         return rightBtn;
     }
 
-    /**
-     * @return the fireBtn
-     */
-    public ControllerInput.ControllerButtons getFireBtn() {
-        return fireBtn;
-    }
-
-    /**
-     * @return the throwGrenadeBtn
-     */
-    public ControllerInput.ControllerButtons getThrowGrenadeBtn() {
-        return throwGrenadeBtn;
-    }
-
-    /**
-     * @return the useBtn
-     */
-    public ControllerInput.ControllerButtons getUseBtn() {
-        return useBtn;
-    }
-
-    /**
-     * @return the dropWeaponBtn
-     */
-    public ControllerInput.ControllerButtons getDropWeaponBtn() {
-        return dropWeaponBtn;
-    }
-
-    /**
-     * @return the meleeAttackBtn
-     */
-    public ControllerInput.ControllerButtons getMeleeAttackBtn() {
-        return meleeAttackBtn;
-    }
-
-
-
-    /**
-	 * @return the meleeAttack
-	 */
-	public int getMeleeAttackKey() {
-		return meleeAttackKey;
-	}
-	
-	
-	/**
-	 * @return the dropWeaponKey
-	 */
-	public int getDropWeaponKey() {
-		return dropWeaponKey;
-	}
-
-	/**
-	 * @return the reloadKey
-	 */
-	public int getReloadKey() {
-		return reloadKey;
-	}
-
-
-	/**
-	 * @return the walkKey
-	 */
-	public int getWalkKey() {
-		return walkKey;
-	}
-
-
-	/**
-	 * @return the crouchKey
-	 */
-	public int getCrouchKey() {
-		return crouchKey;
-	}
-
-
-	/**
-	 * @return the sprintKey
-	 */
-	public int getSprintKey() {
-		return sprintKey;
-	}
-
+ 
 
 	/**
 	 * @return the upKey
@@ -747,70 +602,6 @@ public class KeyMap {
 	}
 
 
-	/**
-	 * @return the fireKey
-	 */
-	public int getFireKey() {
-		return fireKey;
-	}
-
-
-	/**
-	 * @return the throwGrenadeKey
-	 */
-	public int getThrowGrenadeKey() {
-		return throwGrenadeKey;
-	}
-
-
-	/**
-	 * @return the useKey
-	 */
-	public int getUseKey() {
-		return useKey;
-	}
-	
-	/**
-	 * @return the sayKey
-	 */
-	public int getSayKey() {
-		return sayKey;
-	}
-	
-	/**
-	 * @return the teamSayKey
-	 */
-	public int getTeamSayKey() {
-		return teamSayKey;
-	}
-
-	/**
-	 * @param reloadKey the reloadKey to set
-	 */
-	public void setReloadKey(int reloadKey) {
-		this.reloadKey = reloadKey;
-	}
-
-	/**
-	 * @param walkKey the walkKey to set
-	 */
-	public void setWalkKey(int walkKey) {
-		this.walkKey = walkKey;
-	}
-
-	/**
-	 * @param crouchKey the crouchKey to set
-	 */
-	public void setCrouchKey(int crouchKey) {
-		this.crouchKey = crouchKey;
-	}
-
-	/**
-	 * @param sprintKey the sprintKey to set
-	 */
-	public void setSprintKey(int sprintKey) {
-		this.sprintKey = sprintKey;
-	}
 
 	/**
 	 * @param upKey the upKey to set
@@ -840,54 +631,6 @@ public class KeyMap {
 		this.rightKey = rightKey;
 	}
 
-	/**
-	 * @param fireKey the fireKey to set
-	 */
-	public void setFireKey(int fireKey) {
-		this.fireKey = fireKey;
-	}
-
-	/**
-	 * @param throwGrenadeKey the throwGrenadeKey to set
-	 */
-	public void setThrowGrenadeKey(int throwGrenadeKey) {
-		this.throwGrenadeKey = throwGrenadeKey;
-	}
-
-	/**
-	 * @param useKey the useKey to set
-	 */
-	public void setUseKey(int useKey) {
-		this.useKey = useKey;
-	}
-
-	/**
-	 * @param dropWeaponKey the dropWeaponKey to set
-	 */
-	public void setDropWeaponKey(int dropWeaponKey) {
-		this.dropWeaponKey = dropWeaponKey;
-	}
-
-	/**
-	 * @param meleeAttack the meleeAttack to set
-	 */
-	public void setMeleeAttack(int meleeAttack) {
-		this.meleeAttackKey = meleeAttack;
-	}
-
-	/**
-	 * @param sayKey the sayKey to set
-	 */
-	public void setSayKey(int sayKey) {
-		this.sayKey = sayKey;
-	}
-	
-	/**
-	 * @param teamSayKey the teamSayKey to set
-	 */
-	public void setTeamSayKey(int teamSayKey) {
-		this.teamSayKey = teamSayKey;
-	}
 	
 	/**
 	 * Sets the key map binding

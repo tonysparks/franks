@@ -113,7 +113,7 @@ public class FranksGame implements ApplicationListener {
 		Cons.println("Start Stamp: " + new Date());
 
 		this.config = config;		
-		//TODO this.keyMap = config.getKeyMap();
+		this.keyMap = config.getKeyMap();
 						
 	
 		this.entityIds = new Ids(EntityList.MAX_ENTITIES);
@@ -583,6 +583,10 @@ public class FranksGame implements ApplicationListener {
 	 */
 	public void removeInput(Inputs inputs) {
 		this.inputs.removeProcessor(inputs);
+	}
+	
+	public Inputs getActiveInputs() {
+		return this.sm.getCurrentState().getInputs();
 	}
 	
 	/* (non-Javadoc)

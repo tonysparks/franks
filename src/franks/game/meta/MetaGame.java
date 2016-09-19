@@ -6,9 +6,9 @@ package franks.game.meta;
 import java.util.List;
 
 import franks.FranksGame;
+import franks.game.Army;
 import franks.game.Game;
 import franks.game.GameState;
-import franks.game.Army;
 import franks.game.Turn;
 import franks.game.World;
 import franks.game.ai.MetaAISystem;
@@ -21,7 +21,6 @@ import franks.gfx.Camera;
 import franks.gfx.Canvas;
 import franks.map.MapTile.Visibility;
 import franks.util.TimeStep;
-import franks.util.Timer;
 
 /**
  * @author Tony
@@ -31,9 +30,10 @@ public class MetaGame extends Game {
 
 	private MetaHud hud;
 	
-	private Timer visibilityCheckTimer;
 	private BattleGame battleGame;
 	private MetaAISystem aiSystem;
+	
+	private FogOfWar fow;
 	
 	/**
 	 * 
@@ -45,8 +45,10 @@ public class MetaGame extends Game {
 		
 		this.currentTurn = new Turn(this, state.getLocalPlayer(), 1);
 		this.hud = new MetaHud(this);
-		this.visibilityCheckTimer = new Timer(true, 800);
+	
 		this.aiSystem = new MetaAISystem(this, state.getAIPlayer());
+		this.fow = new FogOfWar(this); 
+		
 		
 		StageData stage = this.loadData("assets/stage01.json", StageData.class);
 		
@@ -84,19 +86,10 @@ public class MetaGame extends Game {
 	
 	@Override
 	public void update(TimeStep timeStep) {
-		visibilityCheckTimer.update(timeStep);
-		aiSystem.update(timeStep);
-		
+		this.aiSystem.update(timeStep);		
 		super.update(timeStep);
 		
-		if(this.visibilityCheckTimer.isOnFirstTime()) {
-			world.updateVisibility();
-			for(Entity ent : getEntities()) {
-				if(this.localPlayer.owns(ent)) {
-					ent.visitTiles(getMap());
-				}
-			}
-		}
+		this.fow.update(timeStep);
 		
 		this.hud.update(timeStep);
 	}

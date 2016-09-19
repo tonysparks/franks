@@ -11,6 +11,7 @@ import java.io.RandomAccessFile;
 import java.util.Map;
 
 import franks.VideoConfig;
+import franks.gfx.KeyMap;
 import leola.vm.Leola;
 import leola.vm.types.LeoArray;
 import leola.vm.types.LeoDouble;
@@ -32,6 +33,7 @@ public class Config {
 	private String fileName;
 	private LeoMap config;
 	private VideoConfig videoConfig;
+	private franks.gfx.KeyMap keyMap;
 	
 	public Config(String configName, String rootConfig) throws Exception {
 		this(configName, rootConfig, new Leola());
@@ -44,6 +46,9 @@ public class Config {
 		this.configName = rootConfig;		
 		this.config = loadConfig(runtime, configName, rootConfig);
 		this.videoConfig = new VideoConfig(this);
+		
+		LeoObject controls = this.config.get("controls");
+		this.keyMap = new KeyMap( (controls.isMap()) ? (LeoMap)controls : new LeoMap() );
 	}
 	
 	private LeoMap loadConfig(Leola runtime, String file, String rootConfig) throws Exception {
@@ -52,7 +57,7 @@ public class Config {
 		LeoMap configMap = runtime.get(rootConfig).as();	
 		return configMap;
 	}
-
+		
 	/**
 	 * @return the videoConfig
 	 */
@@ -112,6 +117,13 @@ public class Config {
 	 */
 	public String getFileName() {
 		return fileName;
+	}
+	
+	/**
+	 * @return the keyMap
+	 */
+	public franks.gfx.KeyMap getKeyMap() {
+		return keyMap;
 	}
 	
 	/**

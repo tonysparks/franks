@@ -18,6 +18,8 @@ import franks.game.entity.EntityList;
 import franks.game.entity.meta.LeaderEntity;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
+import franks.map.IsometricMap;
+import franks.math.Vector2f;
 import franks.util.Command;
 import franks.util.Console;
 import franks.util.TimeStep;
@@ -80,6 +82,16 @@ public class BattleGame extends Game {
 		
 		prepareEntities();
 	}		
+	
+	/* (non-Javadoc)
+	 * @see franks.game.Game#enter()
+	 */
+	@Override
+	public void enter() {
+		super.enter();
+		IsometricMap map = getMap();
+		centerCameraAround(new Vector2f(map.getMapWidth()/2f, map.getMapHeight()/2f));		
+	}
 	
 	private void prepareEntities() {	
 		this.entities.clear();

@@ -318,8 +318,6 @@ public class Entity implements Renderable {
 	}
 	
 	public void visitTiles(Map map) {
-//		Vector2f pos = getRenderPosition(game.getCamera(), 1.0f);
-//		game.getWorld().screenRelativeToCamera(pos, pos);
 		Vector2f pos = getScreenPosition();
 		
 		List<MapTile> tiles = map.getTilesInCircle( (int)pos.x, (int)pos.y, visibilityRange()*16, new ArrayList<>());
@@ -541,7 +539,17 @@ public class Entity implements Renderable {
 	
 	public Entity moveToRegion(int x, int y) {
 		World world = game.getWorld();
-		this.pos.set(x * world.getRegionWidth(), y * world.getRegionHeight());
+		IsometricMap map = world.getMap();
+		
+		if(map.getTileWidth() > 32) {		
+			this.pos.set((x * world.getRegionWidth()) + map.getTileWidth()/2 + bounds.width/2, 
+					     (y * world.getRegionHeight()) + map.getTileHeight()/2 - bounds.height/2);
+		}
+		else {
+			this.pos.set((x * world.getRegionWidth()), 
+				         (y * world.getRegionHeight()) );
+		}
+		
 		this.bounds.setLocation(pos);
 		return this;
 	}
