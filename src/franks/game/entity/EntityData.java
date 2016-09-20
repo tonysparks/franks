@@ -110,10 +110,9 @@ public class EntityData {
 	
 	public Entity.Type type;
 	public String name;	
-	public Map<String, Object> attributes;
+	public Map<String, EntityAttribute> attributes;
 	public int width, height;
-	public int movements;	
-	public int health;
+	public int movements;		
 	public int visibilityRange;
 	
 	public DefenseData defense;
@@ -130,29 +129,17 @@ public class EntityData {
 	public EntityData() {
 	}
 	
-	public Double getNumber(String key, Double defaultValue) {
-		return EntityData.getNumber(attributes, key, defaultValue);
-	}
 	
-	public String getStr(String key, String defaultValue) {
-		return EntityData.getStr(attributes, key, defaultValue);
-	}
-	
-	public static Double getNumber(Map<String, Object> params, String key, Double defaultValue) {
-		if(params.containsKey(key)) {
-			Object v = params.get(key);
-			if(v instanceof Double) {
-				return (Double)v;
-			}
+	public EntityAttribute getAttribute(String name) {
+		if(this.attributes == null) {
+			return null;
 		}
-		return defaultValue;
-	}
-	
-	public static String getStr(Map<String, Object> params, String key, String defaultValue) {
-		if(params.containsKey(key)) {
-			return params.get(key).toString();
+		EntityAttribute att = this.attributes.get(name);
+		if(att!=null) {
+			att.setName(name);
 		}
-		return defaultValue;
+		
+		return att;
 	}
 	
 	public long getAnimationTime(State state) {

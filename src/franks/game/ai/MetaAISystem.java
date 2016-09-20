@@ -50,6 +50,8 @@ public class MetaAISystem implements Updatable {
 		Turn currentTurn = game.getCurrentTurn();
 		
 		if(currentTurn.isPlayersTurn(aiPlayer)) {
+			
+			
 			if(!this.requestQueue.isReady()) {
 				strategize();
 				this.numberOfThoughtCycles++;
@@ -74,6 +76,11 @@ public class MetaAISystem implements Updatable {
 	 */
 	private void strategize() {
 		List<LeaderEntity> team = aiPlayer.getTeam().getLeaders();
+		if(team.isEmpty()) {
+			game.endCurrentTurnAI();
+			return;
+		}
+		
 		
 		double bestScore = 0;
 		MetaEvaluator bestEval = null;

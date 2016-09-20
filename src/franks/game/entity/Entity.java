@@ -97,7 +97,7 @@ public class Entity implements Renderable {
 	protected java.util.Map<CommandType, Command> availableCommands;
 	
 	protected Game game;
-	protected int health;
+	protected EntityAttribute health;
 		
 	private boolean isDeleted;
 		
@@ -146,11 +146,12 @@ public class Entity implements Renderable {
 		this.currentDirection = Direction.SOUTH;
 		this.desiredDirection = Direction.SOUTH;
 		
-		this.health = 5;
+		this.health = data.getAttribute("health");
+		if(this.health == null) {
+			this.health = new EntityAttribute("health", 1, 5);
+		}
 				
 		this.model = new EntityModel(game, this, data.graphics);
-		
-		this.health = data.health;
 		
 		
 		if(data.attackAction!=null) {			
@@ -429,7 +430,7 @@ public class Entity implements Renderable {
 	 * @return the health
 	 */
 	public int getHealth() {
-		return health;
+		return health.getCurrentValue();
 	}
 	
 	
@@ -439,7 +440,7 @@ public class Entity implements Renderable {
 	 * @return The maximum health this unit can obtain
 	 */
 	public int getMaxHealth() {
-		return 5;
+		return health.getMaxValue();
 	}
 	
 	/**
@@ -484,8 +485,8 @@ public class Entity implements Renderable {
 	 * is placed in the DEAD state.
 	 */
 	public void damage() {
-		this.health--;
-		if(this.health<=0) {
+		this.health.delta(-1);
+		if(this.health.getCurrentValue()<=0) {
 			kill();
 		}
 	}
@@ -788,6 +789,17 @@ public class Entity implements Renderable {
 		this.meter.reset(data.movements);
 	}
 	
+	
+	/**
+	 * Calculate the battle experience points attained
+	 */
+	public void calculateBattleXP(boolean isVictor) {
+		if(isAlive()) {
+			endTurn();
+			this.health.postBattle(isVictor);
+		}
+	}
+	
 	public NetEntity getNetEntity() {
 		NetEntity net = new NetEntity();
 		net.id = id;
@@ -797,7 +809,7 @@ public class Entity implements Renderable {
 		net.currentDirection = currentDirection;
 		net.currentState = currentState;
 		net.actionPointsAmount = meter.remaining();
-		net.health = health;
+		net.health = health.getCurrentValue();
 		net.dataFile = data.dataFile;
 		return net;
 	}
@@ -810,7 +822,7 @@ public class Entity implements Renderable {
 		setCurrentState(net.currentState);
 		setDesiredDirection(net.currentDirection);
 		meter.reset(net.actionPointsAmount);
-		health=net.health;
+		health.setCurrentValue(net.health);
 	}
 	
 	/* (non-Javadoc)
@@ -869,7 +881,7 @@ public class Entity implements Renderable {
 		foregroundColor = isSelected ? foregroundColor : Colors.setAlpha(foregroundColor, 0x7f);
 		
 		canvas.fillRect( x, y, width, height, backgroundColor );
-		if (health > 0) {
+		if (getHealth() > 0) {
 			canvas.fillRect( x, y, (width * metric/max), height, foregroundColor );
 		}
 		canvas.drawRect( x-1, y, width+1, height, 0xff000000 );

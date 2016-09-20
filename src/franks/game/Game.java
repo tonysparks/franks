@@ -258,8 +258,10 @@ public abstract class Game implements Renderable, ResourceLoader {
 		EntityData data = loadEntity("assets/entities/" + ref.dataFile);
 		Entity dataEnt = entities.buildEntity(this, army, data);
 		dataEnt.moveToRegion(ref.x, ref.y);
-		dataEnt.setCurrentDirection(ref.direction);
-		dataEnt.setDesiredDirection(ref.direction);
+		if(ref.direction!=null) {
+			dataEnt.setCurrentDirection(ref.direction);
+			dataEnt.setDesiredDirection(ref.direction);
+		}
 		
 		dataEnt.visitTiles(getMap());
 		

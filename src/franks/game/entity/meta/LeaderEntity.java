@@ -108,10 +108,20 @@ public class LeaderEntity extends Entity {
 			y++;
 		}
 		
-		shufflePosition(game.getRandomizer());
+		shufflePossePositions(game.getRandomizer());
+	}
+	
+	public void leaveBattle(boolean isVictor) {		
+		if(getEntities().size()<=0) {
+			kill();
+		}
+		else {
+			calculateBattleXP(isVictor);
+			getEntities().forEach(ent -> ent.calculateBattleXP(isVictor));			
+		}
 	}
 
-	public void shufflePosition(Randomizer rand) {
+	private void shufflePossePositions(Randomizer rand) {
 		int minX = 0;
 		int maxX = 0;
 		int minY = 0;

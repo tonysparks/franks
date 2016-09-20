@@ -202,11 +202,8 @@ public class BattleGame extends Game {
 			if(isCompleted) {
 				this.battleState = BattleState.Completed;
 				
-				
-				LeaderEntity loser = getOtherLeader(this.victor.getPlayer());
-				if(loser.getEntities().size()<=0) {
-					loser.kill();
-				}
+				this.attacker.leaveBattle(this.victor==this.attacker);
+				this.defender.leaveBattle(this.victor==this.defender);				
 			}
 		}
 	}
