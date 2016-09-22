@@ -124,7 +124,8 @@ public class Entity implements Renderable {
 		this.name = data.name;
 		this.type = data.type;	
 				
-		this.meter = new ActionMeter(data.movements);
+		EntityAttribute actionPoints = data.getActionPoints();
+		this.meter = new ActionMeter(actionPoints.getMaxValue());
 		this.commandQueue = new CommandQueue(game);
 		
 		this.pos = new Vector2f();
@@ -146,11 +147,7 @@ public class Entity implements Renderable {
 		this.currentDirection = Direction.SOUTH;
 		this.desiredDirection = Direction.SOUTH;
 		
-		this.health = data.getAttribute("health");
-		if(this.health == null) {
-			this.health = new EntityAttribute("health", 1, 5);
-		}
-				
+		this.health = data.getHealth();		
 		this.model = new EntityModel(game, this, data.graphics);
 		
 		
@@ -315,7 +312,7 @@ public class Entity implements Renderable {
 	}
 	
 	public int visibilityRange() {
-		return data.visibilityRange;
+		return data.getVisibilityRange().getCurrentValue();
 	}
 	
 	public void visitTiles(Map map) {
@@ -340,7 +337,7 @@ public class Entity implements Renderable {
 	 * at the start of a turn
 	 */
 	public int startingActionPoints() {
-		return this.data.movements;
+		return this.data.getActionPoints().getMaxValue();
 	}
 	
 	
@@ -416,9 +413,11 @@ public class Entity implements Renderable {
 		IsometricMap map = game.getMap();
 		if(!map.checkTileBounds(tileX, tileY)) {
 			MapTile tile = map.getTile(0, tileX, tileY);
-			Entity ent = game.getEntityOnTile(tile);
-			if(ent!=null && ent.isTeammate(this)) {
-				return data.defense.groupBonusPercentage;
+			if(tile!=null) {
+				Entity ent = game.getEntityOnTile(tile);
+				if(ent!=null && ent.isTeammate(this)) {
+					return data.defense.groupBonusPercentage;
+				}
 			}
 		}
 		return 0;
@@ -786,7 +785,7 @@ public class Entity implements Renderable {
 	}
 
 	public void endTurn() {
-		this.meter.reset(data.movements);
+		this.meter.reset(startingActionPoints());
 	}
 	
 	
@@ -796,7 +795,7 @@ public class Entity implements Renderable {
 	public void calculateBattleXP(boolean isVictor) {
 		if(isAlive()) {
 			endTurn();
-			this.health.postBattle(isVictor);
+			this.data.postBattle(isVictor);			
 		}
 	}
 	
@@ -853,7 +852,7 @@ public class Entity implements Renderable {
 		int health = getHealth();
 		
 		drawMeter(canvas, pos.x + 42, pos.y + 68, health, getMaxHealth(), 0x9fFF0000, 0xffafFFaf);
-		drawMeter(canvas, pos.x + 42, pos.y + 74, meter.remaining(), data.movements, 0x8f4a5f8f, 0xff3a9aFF);
+		drawMeter(canvas, pos.x + 42, pos.y + 74, meter.remaining(), startingActionPoints(), 0x8f4a5f8f, 0xff3a9aFF);
 		
 		
 		

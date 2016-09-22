@@ -412,7 +412,9 @@ public class IsometricMap extends OrthoMap {
 						MapTile tile = this.backgroundLayers[layerIndex].getRow(yTile)[xTile];
 						if(tile!=null) {
 							tile.setRenderingPosition(x1,y1);
-							tile.render(canvas, camera, alpha);							
+							tile.render(canvas, camera, alpha);
+							//canvas.resizeFont(8f);
+							//canvas.drawString(xTile +"," + yTile, x1, y1+16, 0xffffffff);
 						}
 					}					
 				}

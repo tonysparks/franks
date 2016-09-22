@@ -81,11 +81,13 @@ public class World implements Renderable {
 			for(int x = 0; x < numberOfTilesX; x++ ) {
 				//MapTile tile = new ImageTile(grassTile, 0, TileWidth, TileHeight);
 				MapTile tile = this.map.getTile(0, x, y);
-				tile.setSize(regionWidth, regionHeight);
-				tile.setPosition(x*regionWidth, y*regionHeight);
-				tile.setIndexPosition(x, y);
-				if(terrainData!=null) {
-					tile.setTerrainTileData(terrainData.getTileTerrainData(x, y));
+				if(tile!=null) {
+					tile.setSize(regionWidth, regionHeight);
+					tile.setPosition(x*regionWidth, y*regionHeight);
+					tile.setIndexPosition(x, y);
+					if(terrainData!=null) {
+						tile.setTerrainTileData(terrainData.getTileTerrainData(x, y));
+					}
 				}
 				//row[x] = tile;
 			}
@@ -126,10 +128,12 @@ public class World implements Renderable {
 		for(int y = 0; y < this.map.getTileWorldHeight(); y++) {
 			for(int x = 0; x < this.map.getTileWorldWidth(); x++) {
 				for(Layer layer : bkLayers) {
-					layer.getRow(y)[x].setVisibility(visibility);
+					MapTile tile = layer.getRow(y)[x];
+					if(tile!=null) tile.setVisibility(visibility);
 				}
 				for(Layer layer : fgLayers) {
-					layer.getRow(y)[x].setVisibility(visibility);
+					MapTile tile = layer.getRow(y)[x];
+					if(tile!=null) tile.setVisibility(visibility);
 				}
 			}
 		}

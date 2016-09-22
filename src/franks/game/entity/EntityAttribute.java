@@ -41,6 +41,24 @@ public class EntityAttribute {
 		this.regenVictoryAmount = currentValue;
 	}
 	
+	public EntityAttribute clone() {
+		EntityAttribute a = new EntityAttribute();
+		
+		a.absoluteMax = this.absoluteMax;
+		a.currentValue = this.currentValue;
+		a.maxValue = this.maxValue;
+		a.name = this.name;
+		//a.numberOfDefeates = this.numberOfDefeates;
+		a.numberOfDefeatsBeforeXPGain = this.numberOfDefeatsBeforeXPGain;
+		//a.numberOfVictories = this.numberOfVictories;
+		a.numberOfVictoriesBeforeXPGain = this.numberOfVictoriesBeforeXPGain;
+		a.regenDefeatAmount = this.regenDefeatAmount;
+		a.regenVictoryAmount = this.regenVictoryAmount;
+		a.xpGainFromDefeat = this.xpGainFromDefeat;
+		a.xpGainFromVictory = this.xpGainFromVictory;
+		return a;
+	}
+	
 	/**
 	 * @param name the name to set
 	 */

@@ -205,8 +205,10 @@ public class MetaHud implements Renderable {
 					int deltaX = tileX + (dir.getX() * i);
 					int deltaY = tileY + (dir.getY() * i);
 					if(!map.checkTileBounds(deltaX, deltaY)) {
-						MapTile tile = map.getTile(0, deltaX, deltaY);							
-						map.renderIsoRect(canvas, tile.getIsoX()-cameraPos.x, tile.getIsoY()-cameraPos.y, tile.getWidth(), tile.getHeight(), 0x4fFF0000);
+						MapTile tile = map.getTile(0, deltaX, deltaY);	
+						if(tile!=null) {
+							map.renderIsoRect(canvas, tile.getIsoX()-cameraPos.x, tile.getIsoY()-cameraPos.y, tile.getWidth(), tile.getHeight(), 0x4fFF0000);
+						}
 					}
 				}
 			}

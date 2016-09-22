@@ -3,6 +3,7 @@
  */
 package franks.game.entity;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -100,7 +101,7 @@ public class EntityData {
 		public int movementSpeed;		
 	}
 	
-	public static class DieActionData {		
+	public static class DieActionData {				
 	}
 	
 	public static class DefenseData {
@@ -112,9 +113,7 @@ public class EntityData {
 	public String name;	
 	public Map<String, EntityAttribute> attributes;
 	public int width, height;
-	public int movements;		
-	public int visibilityRange;
-	
+		
 	public DefenseData defense;
 	
 	public AttackActionData attackAction;
@@ -129,6 +128,67 @@ public class EntityData {
 	public EntityData() {
 	}
 	
+	public EntityData clone() {
+		EntityData clone = new EntityData();
+		clone.type = this.type;
+		clone.name = this.name;
+		clone.attributes = attributes();
+		clone.width = this.width;
+		clone.height = this.height;
+		clone.defense = this.defense;
+		clone.attackAction = this.attackAction;
+		clone.moveAction = this.moveAction;
+		clone.dieAction = this.dieAction;
+		clone.dataFile = this.dataFile;
+		clone.graphics = this.graphics;
+		
+		return clone;
+	}
+	
+	public void postBattle(boolean isVictorious) {
+		if(this.attributes!=null) {
+			this.attributes.forEach( (k,v) -> v.postBattle(isVictorious));
+		}
+	}
+	
+	/**
+	 * Clones the attributes so that it can be used by another {@link Entity}
+	 * @return the cloned attributes
+	 */
+	private Map<String, EntityAttribute> attributes() {
+		Map<String, EntityAttribute> cloned = new HashMap<>();
+		if(attributes!=null) {
+			attributes.forEach( (k,v) -> {
+				cloned.put(k, v.clone());
+			});
+		}
+		
+		return cloned;
+	}
+	
+	public EntityAttribute getActionPoints() {
+		EntityAttribute attr = getAttribute("actionPoints");
+		if(attr==null) {
+			return new EntityAttribute("actionPoints", 0, 0);
+		}
+		return attr;
+	}
+	
+	public EntityAttribute getHealth() {
+		EntityAttribute attr = getAttribute("health");
+		if(attr==null) {
+			return new EntityAttribute("health", 1, 5);
+		}
+		return attr;
+	}
+	
+	public EntityAttribute getVisibilityRange() {
+		EntityAttribute attr = getAttribute("visibilityRange");
+		if(attr==null) {
+			return new EntityAttribute("visibilityRange", 8, 8);
+		}
+		return attr;
+	}
 	
 	public EntityAttribute getAttribute(String name) {
 		if(this.attributes == null) {
