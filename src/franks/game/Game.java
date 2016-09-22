@@ -262,9 +262,7 @@ public abstract class Game implements Renderable, ResourceLoader {
 			dataEnt.setCurrentDirection(ref.direction);
 			dataEnt.setDesiredDirection(ref.direction);
 		}
-		
-		dataEnt.visitTiles(getMap());
-		
+				
 		return dataEnt;
 	}
 	

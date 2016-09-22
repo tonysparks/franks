@@ -117,7 +117,10 @@ public class LeaderEntity extends Entity {
 		}
 		else {
 			calculateBattleXP(isVictor);
-			getEntities().forEach(ent -> ent.calculateBattleXP(isVictor));			
+			getEntities().forEach(ent -> ent.calculateBattleXP(isVictor));
+			
+			// don't allow this leader to do anything after a battle
+			getMeter().decrementBy(getMeter().remaining());
 		}
 	}
 
