@@ -3,10 +3,15 @@
  */
 package franks.screens;
 
+import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.maps.tiled.TiledMap;
+import com.badlogic.gdx.maps.tiled.TmxMapLoader;
+import com.badlogic.gdx.maps.tiled.renderers.IsometricTiledMapRenderer;
+
 import franks.FranksGame;
-import franks.game.Game;
+import franks.game.CameraController;
 import franks.game.GameState;
-import franks.game.meta.MetaGame;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
 import franks.gfx.Cursor;
@@ -15,7 +20,7 @@ import franks.gfx.KeyboardGameController;
 import franks.gfx.Renderable;
 import franks.gfx.Screen;
 import franks.math.Rectangle;
-import franks.sfx.Sounds;
+import franks.math.Vector2f;
 import franks.ui.Button;
 import franks.ui.Label.TextAlignment;
 import franks.ui.events.ButtonEvent;
@@ -30,15 +35,19 @@ import franks.util.TimeStep;
  * @author Tony
  *
  */
-public class InGameScreen implements Screen {
+public class TestScreen implements Screen {
 
 	private FranksGame app;
-	private Game game;
 	private Camera camera;
 	private Cursor cursor;
 	private Button endTurnBtn;
 		
 	private PanelView<Renderable> panel;
+	
+	private IsometricTiledMapRenderer mapRenderer;
+	private CameraController cameraController;
+
+	private com.badlogic.gdx.graphics.OrthographicCamera mapCamera;
 	
 	private KeyboardGameController inputs = new KeyboardGameController() {
 		
@@ -51,41 +60,38 @@ public class InGameScreen implements Screen {
 		@Override
 		public boolean touchDragged(int x, int y, int button) {
 			return mouseMoved(x,y);				
-		}
+		}			
 		
 		@Override
-		public boolean touchUp(int x, int y, int pointer, int button) {
-			if(button == 0) {
-				if(game.selectEntity()) {
-					Sounds.playGlobalSound(Sounds.uiSelect);
-				}			
-			}
-			if(button == 1) {
-				game.queueCommand();
-			}
-			
-			return super.touchUp(x, y, pointer, button);
+		public boolean scrolled(int amount) {
+			if(amount < 0) mapCamera.zoom += 0.01f;
+			else mapCamera.zoom -= 0.01f;
+			return super.scrolled(amount);
 		}
 	};
-	
-	
-	public InGameScreen(FranksGame app) {
-		this(app, true, false);
-	}
-	
-	public InGameScreen(FranksGame app, boolean startServer, boolean isSinglePlayer) {
+
+	public TestScreen(FranksGame app) {
 		this.app = app;
 				
 		GameState state = new GameState(app);
 		this.camera = state.getCamera();
 		
-		this.game = new MetaGame(app, state, this.camera);
 		this.cursor = app.getUiManager().getCursor();
 		
 		consoleCommands(app.getConsole());
 		
+		this.mapCamera = new OrthographicCamera(app.getScreenWidth(), app.getScreenHeight());
+		this.mapCamera.setToOrtho(false, app.getScreenWidth(), app.getScreenHeight());
+		
+		TmxMapLoader loader = new TmxMapLoader();
+		TiledMap tmap = loader.load("./assets/maps/franks_stage_03.tmx");
+		
+		SpriteBatch batch = new SpriteBatch();
+		this.mapRenderer = new IsometricTiledMapRenderer(tmap, batch/*app.getCanvas().getSpriteBatch()*/);
 		
 		createUI();
+		
+		
 	}
 
 	private void createUI() {
@@ -102,7 +108,6 @@ public class InGameScreen implements Screen {
 			
 			@Override
 			public void onButtonClicked(ButtonEvent event) {
-				game.endCurrentTurn();
 			}
 		});
 		this.panel.addElement(new ButtonView(endTurnBtn));
@@ -121,13 +126,41 @@ public class InGameScreen implements Screen {
 		});
 	}
 	
+	private Vector2f playerVelocity = new Vector2f();
+	public void applyPlayerInput(float mx, float my) {
+		
+		this.playerVelocity.zeroOut();
+		
+		final float threshold = 25.0f;
+		final float viewportWidth = camera.getViewPort().width;
+		final float viewportHeight = camera.getViewPort().height;
+		
+		if(mx < threshold) {
+			this.playerVelocity.x = -1;
+		}
+		else if(mx > viewportWidth-threshold) {
+			this.playerVelocity.x = 1;
+		}
+		
+		if(my < threshold) {
+			this.playerVelocity.y = 1;
+		}
+		else if(my > viewportHeight-threshold) {
+			this.playerVelocity.y = -1;
+		}
+		
+		Vector2f.Vector2fMult(playerVelocity, 10f, playerVelocity);
+		
+		
+		this.mapCamera.translate(this.playerVelocity.x, /*app.getScreenHeight()-*/this.playerVelocity.y);
+	}
+	
 	/* (non-Javadoc)
 	 * @see newera.util.State#enter()
 	 */
 	@Override
 	public void enter() {
 		this.endTurnBtn.show();
-		this.game.enter();
 	}
 
 	/* (non-Javadoc)
@@ -135,16 +168,23 @@ public class InGameScreen implements Screen {
 	 */
 	@Override
 	public void update(TimeStep timeStep) {	
-		this.game.update(timeStep);		
-		this.panel.update(timeStep);		
+		this.panel.update(timeStep);
+		
+		applyPlayerInput(cursor.getX(), cursor.getY());
+		
+		//camera.setToOrtho(false);
+		//camera.update(true);
+		this.mapCamera.update();
+		this.mapRenderer.setView(this.mapCamera);
+		//camera.setToOrtho(true);
 	}
 
 	/* (non-Javadoc)
 	 * @see newera.gfx.Screen#render(newera.gfx.Canvas, float)
 	 */
 	@Override
-	public void render(Canvas canvas, float alpha) {		
-		this.game.render(canvas, camera, alpha);		
+	public void render(Canvas canvas, float alpha) {
+		this.mapRenderer.render();
 		this.panel.render(canvas, camera, alpha);
 				
 		this.cursor.render(canvas);
@@ -156,7 +196,6 @@ public class InGameScreen implements Screen {
 	@Override
 	public void exit() {
 		this.endTurnBtn.hide();
-		this.game.exit();
 	}
 
 	/* (non-Javadoc)

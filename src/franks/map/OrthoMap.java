@@ -63,7 +63,7 @@ public class OrthoMap implements Map {
 	 * Layers
 	 */
 	protected Layer[] backgroundLayers, foregroundLayers, collidableLayers, destructableLayer;
-	
+	private int totalNumberOfLayers;
 	/**
 	 * original destructable layer; used for comparison to get delta
 	 */
@@ -119,6 +119,14 @@ public class OrthoMap implements Map {
 	 */
 	public Layer[] getForegroundLayers() {
 		return foregroundLayers;
+	}
+	
+	/* (non-Javadoc)
+	 * @see franks.map.Map#getNumberOfLayers()
+	 */
+	@Override
+	public int getNumberOfLayers() {
+		return this.totalNumberOfLayers;
 	}
 	
 	/* (non-Javadoc)
@@ -681,6 +689,9 @@ public class OrthoMap implements Map {
 		List<Layer> destructableLayers = new ArrayList<Layer>();
 		
 		int bgSize = info.getBackgroundLayers().length;
+		this.totalNumberOfLayers = 0;
+		this.totalNumberOfLayers += bgSize;
+		
 		this.backgroundLayers = new Layer[bgSize];	
 		for(int i = 0; i < bgSize; i++ ) {
 			this.backgroundLayers[i] = info.getBackgroundLayers()[i];
@@ -694,6 +705,8 @@ public class OrthoMap implements Map {
 		}
 		
 		int fgSize = info.getForegroundLayers().length;
+		this.totalNumberOfLayers += fgSize;
+		
 		this.foregroundLayers = new Layer[fgSize];	
 		for(int i = 0; i < fgSize; i++ ) {
 			this.foregroundLayers[i] = info.getForegroundLayers()[i];

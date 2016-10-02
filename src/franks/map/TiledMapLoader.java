@@ -77,7 +77,7 @@ public class TiledMapLoader implements MapLoader {
 		
 		String orientation = map.orientation;
 		
-		Map theMap = orientation.equals("isometric") ? new IsometricMap(loadAssets) : new OrthoMap(loadAssets);
+		Map theMap = orientation.equals("isometric") ? new IsometricMap() : new OrthoMap(loadAssets);
 		theMap.init(def);
 		
 		return theMap;

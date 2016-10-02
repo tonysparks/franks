@@ -9,6 +9,8 @@ import org.hjson.JsonValue;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.google.gson.Gson;
 
 import franks.FranksGame;
@@ -37,6 +39,8 @@ public class GameState implements ResourceLoader {
 	private Gson gson;
 	
 	private Camera camera;
+	private com.badlogic.gdx.graphics.OrthographicCamera mapCamera;
+	private SpriteBatch spriteBatch;
 	
 	private boolean isSinglePlayer;
 	
@@ -94,6 +98,27 @@ public class GameState implements ResourceLoader {
 		this.textureCache = new TextureCache();
 		this.gson = new Gson();
 		this.camera = newCamera();
+		
+		int screenWidth = camera.getViewPort().width;
+		int screenHeight = camera.getViewPort().height;
+		this.mapCamera = new OrthographicCamera(screenWidth, screenHeight);
+		this.mapCamera.setToOrtho(false, screenWidth, screenHeight);
+		
+		this.spriteBatch = new SpriteBatch();
+	}
+	
+	/**
+	 * @return the mapCamera
+	 */
+	public com.badlogic.gdx.graphics.OrthographicCamera getMapCamera() {
+		return mapCamera;
+	}
+	
+	/**
+	 * @return the spriteBatch
+	 */
+	public SpriteBatch getSpriteBatch() {
+		return spriteBatch;
 	}
 	
 	/**

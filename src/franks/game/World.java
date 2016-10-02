@@ -10,18 +10,16 @@ import franks.gfx.Camera;
 import franks.gfx.Canvas;
 import franks.gfx.Renderable;
 import franks.graph.GraphNode;
+import franks.map.GdxTmxMapLoader;
 import franks.map.GraphNodeFactory;
 import franks.map.IsometricMap;
 import franks.map.Layer;
 import franks.map.Map;
 import franks.map.MapGraph;
-import franks.map.MapLoader;
-import franks.map.MapLoader.TiledData;
 import franks.map.MapObject;
 import franks.map.MapObjectData;
 import franks.map.MapTile;
 import franks.map.MapTile.Visibility;
-import franks.map.TiledMapLoader;
 import franks.math.Vector2f;
 import franks.util.Cons;
 import franks.util.TimeStep;
@@ -46,55 +44,32 @@ public class World implements Renderable {
 	private int regionWidth;
 	private int regionHeight;
 	
+	private List<MapTile> visibilityTiles = new ArrayList<>();
+	
 	/**
 	 * 
 	 */
-	public World(ResourceLoader resourceLoader, Camera camera, String map) {
-		this.camera = camera;		
+	public World(GameState state, ResourceLoader resourceLoader, String map) {
+		this.camera = state.getCamera();		
 		this.cacheVector = new Vector2f();
 		this.mapObjects = new ArrayList<>();
 	
 		String path = "assets/maps/%s.json";
 		String terrainFile = String.format(path, map + "-terrain");
-		String mapFile = String.format(path, map);
 		
 		TerrainData terrainData = resourceLoader.loadData(terrainFile, TerrainData.class);
-		TiledData tiledData = resourceLoader.loadData(mapFile, TiledData.class);
 		
-		MapLoader loader = new TiledMapLoader();
-		try {
-			this.map = (IsometricMap)loader.loadMap(tiledData, true);
+		try {						
+			GdxTmxMapLoader mapLoader = new GdxTmxMapLoader();
+			this.map = mapLoader.loadMap(state, resourceLoader, map);
+			
 		} 
 		catch (Exception e) {
 			Cons.println("Unable to load map: " + e);
 		}
 		
-		int numberOfTilesX = this.map.getTileWorldWidth();
-		int numberOfTilesY = this.map.getTileWorldWidth();
-		
 		this.regionWidth = this.map.getTileWidth();
 		this.regionHeight = this.map.getTileHeight();
-		
-		for(int y = 0; y < numberOfTilesY; y++) {
-			//MapTile[] row = new MapTile[numberOfTilesX];
-		
-			for(int x = 0; x < numberOfTilesX; x++ ) {
-				//MapTile tile = new ImageTile(grassTile, 0, TileWidth, TileHeight);
-				MapTile tile = this.map.getTile(0, x, y);
-				if(tile!=null) {
-					tile.setSize(regionWidth, regionHeight);
-					tile.setPosition(x*regionWidth, y*regionHeight);
-					tile.setIndexPosition(x, y);
-					if(terrainData!=null) {
-						tile.setTerrainTileData(terrainData.getTileTerrainData(x, y));
-					}
-				}
-				//row[x] = tile;
-			}
-			
-			
-//			background.addRow(y, row);
-		}
 		
 		TextureCache textureCache = resourceLoader.getTextureCache();
 		if(terrainData != null && terrainData.mapObjects != null) { 
@@ -107,10 +82,6 @@ public class World implements Renderable {
 			}
 		}
 
-		
-//		this.map = new IsometricMap(true);
-//		this.map.init(scene);
-		
 		this.graph = this.map.createMapGraph(new GraphNodeFactory<Void>() {
 			@Override
 			public Void createEdgeData(Map map, GraphNode<MapTile, Void> left, GraphNode<MapTile, Void> right) {
@@ -139,10 +110,10 @@ public class World implements Renderable {
 		}
 	}
 	
-	List<MapTile> visibilityTiles = new ArrayList<>();
+	
 	public void updateVisibility() {
 		
-		map.getTilesInRect(camera.getWorldViewPort(), visibilityTiles);
+		map.getAllTilesInRect(camera.getWorldViewPort(), visibilityTiles);
 		for(MapTile tile : visibilityTiles) {
 			Visibility visibility = tile.getVisibility();
 			switch(visibility) {
@@ -150,30 +121,6 @@ public class World implements Renderable {
 				default : 
 			}
 		}
-		
-		/*
-		Layer[] bkLayers = map.getBackgroundLayers();
-		Layer[] fgLayers = map.getForegroundLayers();
-		for(int y = 0; y < this.map.getTileWorldHeight(); y++) {
-			for(int x = 0; x < this.map.getTileWorldWidth(); x++) {
-				for(Layer layer : bkLayers) {
-					MapTile tile = layer.getRow(y)[x]; 
-					Visibility visibility = tile.getVisibility();
-					switch(visibility) {
-						case VISIBLE: tile.setVisibility(Visibility.VISITED);
-						default : 
-					}
-				}
-				for(Layer layer : fgLayers) {
-					MapTile tile = layer.getRow(y)[x]; 
-					Visibility visibility = tile.getVisibility();
-					switch(visibility) {
-						case VISIBLE: tile.setVisibility(Visibility.VISITED);
-						default : 
-					}
-				}
-			}
-		}*/
 	}
 
 	public int getRegionWidth() {

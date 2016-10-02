@@ -62,7 +62,7 @@ public class MovementMetaEvaluator implements MetaEvaluator {
 		Vector2f tilePos = new Vector2f();
 		Rectangle bounds = new Rectangle(availablePoints*map.getTileWidth(), availablePoints*map.getTileHeight());	
 		bounds.centerAround(entity.getScreenPosition());
-		map.getTilesInRect(bounds, tiles);
+		map.getTilesInRect(0, bounds, tiles);
 		
 //		for(int y = 0; y < map.getTileWorldHeight(); y++) {
 //			for(int x = 0; x < map.getTileWorldWidth(); x++) {

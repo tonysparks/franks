@@ -198,6 +198,12 @@ public abstract interface Map extends Renderable {
 	 */
 	public abstract void destroy();
 	
+	
+	/**
+	 * @return the total number of layers
+	 */
+	public int getNumberOfLayers();
+	
 	/**
 	 * @return the backgroundLayers
 	 */

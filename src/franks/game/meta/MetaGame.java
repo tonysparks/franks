@@ -79,7 +79,7 @@ public class MetaGame extends Game {
 
 	@Override
 	protected World createWorld(GameState state) {	
-		World world = new World(this, camera, "franks_stage_01");	
+		World world = new World(state, this, "franks_stage_03");	
 		world.setVisibility(Visibility.BLACKED_OUT);
 		return world;
 	}
@@ -99,9 +99,9 @@ public class MetaGame extends Game {
 		this.world.render(canvas, camera, alpha);
 		
 		this.hud.renderUnderEntities(canvas, camera, alpha);
+		this.world.getMap().mapRenderFoW(canvas, camera, alpha);
 		this.entities.render(canvas, camera, alpha);
 		this.world.renderOverEntities(canvas, camera, alpha);
-		
 		this.hud.render(canvas, camera, alpha);
 	}
 }

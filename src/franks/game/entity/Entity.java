@@ -28,7 +28,6 @@ import franks.gfx.Canvas;
 import franks.gfx.Colors;
 import franks.gfx.Renderable;
 import franks.map.IsometricMap;
-import franks.map.Map;
 import franks.map.MapTile;
 import franks.map.MapTile.Visibility;
 import franks.math.Rectangle;
@@ -315,10 +314,10 @@ public class Entity implements Renderable {
 		return data.getVisibilityRange().getCurrentValue();
 	}
 	
-	public void visitTiles(Map map) {
+	public void visitTiles(IsometricMap map) {
 		Vector2f pos = getScreenPosition();
 		
-		List<MapTile> tiles = map.getTilesInCircle( (int)pos.x, (int)pos.y, visibilityRange()*16, new ArrayList<>());
+		List<MapTile> tiles = map.getAllTilesInCircle( (int)pos.x, (int)pos.y, visibilityRange()*16, new ArrayList<>());
 		for(MapTile tile : tiles) {
 			tile.setVisibility(Visibility.VISIBLE);
 		}

@@ -481,6 +481,13 @@ public class FranksGame implements ApplicationListener {
 	}
 	
 	/**
+	 * @return the canvas
+	 */
+	public Canvas getCanvas() {
+		return canvas;
+	}
+	
+	/**
 	 * @return the screenHeight
 	 */
 	public int getScreenHeight() {

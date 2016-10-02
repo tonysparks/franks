@@ -915,7 +915,7 @@ public class GdxCanvas implements Canvas {
 	 */
 	@Override
 	public void clearTransform() {
-		//this.transform.idt();	
+		this.transform.idt();	
 		this.shapes.identity();
 	}
 
