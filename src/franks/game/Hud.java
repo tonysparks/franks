@@ -45,7 +45,6 @@ public class Hud implements Renderable {
 		
 		this.movementAnalyzer = new MovementCostAnalyzer(game);
 		this.attackAnalyzer = new AttackCostAnalyzer(game);
-	
 		
 		this.cursor = game.getCursor();
 		this.world = game.getWorld();

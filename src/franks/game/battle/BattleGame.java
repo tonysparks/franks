@@ -10,9 +10,8 @@ import franks.game.Hud;
 import franks.game.Player;
 import franks.game.Turn;
 import franks.game.World;
-import franks.game.ai.BattleAISystem;
-import franks.game.commands.Command.CommandType;
-import franks.game.commands.CommandQueue.CommandRequest;
+import franks.game.actions.Action.ActionType;
+import franks.game.actions.Command;
 import franks.game.entity.Entity;
 import franks.game.entity.EntityList;
 import franks.game.entity.meta.LeaderEntity;
@@ -20,7 +19,6 @@ import franks.gfx.Camera;
 import franks.gfx.Canvas;
 import franks.map.IsometricMap;
 import franks.math.Vector2f;
-import franks.util.Command;
 import franks.util.Console;
 import franks.util.TimeStep;
 
@@ -33,13 +31,12 @@ import franks.util.TimeStep;
 public class BattleGame extends Game {  
 
 	public static enum BattleState {
-		InProgress,
+		InProgress, 
 		Decided,
 		Completed,
 	}
 	
 	private Hud hud;			
-	private BattleAISystem ai;
 	
 	private LeaderEntity attacker;
 	private LeaderEntity defender;
@@ -68,10 +65,9 @@ public class BattleGame extends Game {
 		
 		Player playersTurn = battle.getAttacker().getPlayer();
 		this.currentTurn = new Turn(this, playersTurn, 0);
-		this.ai = new BattleAISystem(this, getState().getAIPlayer());
 		
 		// temp
-		getApp().getConsole().addCommand(new Command("reload") {
+		getApp().getConsole().addCommand(new franks.util.Command("reload") {
 			
 			@Override
 			public void execute(Console console, String... args) {
@@ -90,7 +86,7 @@ public class BattleGame extends Game {
 	public void enter() {
 		super.enter();
 		IsometricMap map = getMap();
-		centerCameraAround(new Vector2f(map.getMapWidth()/2f, map.getMapHeight()/2f));		
+		centerCameraAround(new Vector2f(map.getMapWidth()/2f, map.getMapHeight()/2f));				
 	}
 	
 	private void prepareEntities() {	
@@ -116,9 +112,7 @@ public class BattleGame extends Game {
 	public void update(TimeStep timeStep) {				
 		super.update(timeStep);
 		
-		this.ai.update(timeStep);
 		this.hud.update(timeStep);
-		
 		checkVictoryConditions();
 	}
 
@@ -169,10 +163,10 @@ public class BattleGame extends Game {
 		for(Entity ent : victors.getEntities()) {
 			for(Entity loser : losers.getEntities()) {
 				if(ent.inAttackRange(loser)) {
-					ent.queueAction(new CommandRequest(this, CommandType.Attack, ent, loser));
+					ent.queueAction(new Command(this, ActionType.Attack, ent, loser));
 				}
 			}
-		}
+		} 
 		
 		this.battleState = BattleState.Decided;
 		this.victor = victors;
@@ -235,4 +229,5 @@ public class BattleGame extends Game {
 	public LeaderEntity getDefender() {
 		return defender;
 	}
+	
 }

@@ -11,7 +11,7 @@ import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.websocket.jsr356.server.deploy.WebSocketServerContainerInitializer;
 
-import franks.game.Game;
+import franks.game.GameState;
 import franks.util.Cons;
 
 /**
@@ -23,10 +23,10 @@ public class GameServer {
 	private Server server;	
 	
 	/**
-	 * 
+	 * @param gameState
 	 */
-	public GameServer(Game game) {
-		WebSocketServer.game = game;
+	public GameServer(GameState gameState) {
+		WebSocketServer.gameState = gameState;
 	}
 	
 	public boolean start(int port) {

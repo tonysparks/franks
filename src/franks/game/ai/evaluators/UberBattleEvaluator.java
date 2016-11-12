@@ -4,9 +4,9 @@
 package franks.game.ai.evaluators;
 
 import franks.game.Game;
+import franks.game.actions.Command;
 import franks.game.ai.BattleEvaluator;
 import franks.game.battle.BattleGame;
-import franks.game.commands.CommandQueue.CommandRequest;
 import franks.game.entity.Entity;
 
 /**
@@ -45,17 +45,17 @@ public class UberBattleEvaluator implements BattleEvaluator {
 	 * @see franks.game.ai.Evaluator#getCommandRequest(franks.game.Game)
 	 */
 	@Override
-	public CommandRequest getCommandRequest(Game game) {
+	public Command getCommand(Game game) {
 		if(doNothingScore > attackScore && doNothingScore > movementScore) {
-			return doNothingEval.getCommandRequest(game);
+			return doNothingEval.getCommand(game);
 		}
 		
 		
 		if(attackScore < movementScore) {			
-			return moveEval.getCommandRequest(game);			
+			return moveEval.getCommand(game);			
 		}
 		
-		return attackEval.getCommandRequest(game);
+		return attackEval.getCommand(game);
 	}
 
 }

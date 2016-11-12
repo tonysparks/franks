@@ -1,7 +1,7 @@
 /*
  * see license.txt 
  */
-package franks.game.commands;
+package franks.game.actions;
 
 import java.util.Optional;
 
@@ -9,7 +9,6 @@ import franks.game.Game;
 import franks.game.PreconditionResponse;
 import franks.game.Randomizer;
 import franks.game.TerrainData.TerrainTileData;
-import franks.game.commands.CommandQueue.CommandRequest;
 import franks.game.entity.Entity;
 import franks.map.MapTile;
 
@@ -17,7 +16,7 @@ import franks.map.MapTile;
  * @author Tony
  *
  */
-public abstract class AttackCommand extends Command {
+public abstract class AttackAction extends Action {
 
 	protected int hitPercentage;
 	protected int attackDistance;
@@ -31,8 +30,8 @@ public abstract class AttackCommand extends Command {
 	 * @param attackDistance
 	 * @param hitPercentage
 	 */
-	public AttackCommand(Game game, Entity attacker, int cost, int attackDistance, int hitPercentage) {
-		super(CommandType.Attack,  cost, attacker);
+	public AttackAction(Game game, Entity attacker, int cost, int attackDistance, int hitPercentage) {
+		super(ActionType.Attack,  cost, attacker);
 		
 		this.game = game;
 		this.attackDistance = attackDistance;
@@ -45,7 +44,7 @@ public abstract class AttackCommand extends Command {
 	 * @see franks.game.Command#checkPreconditions(franks.game.Game, franks.game.CommandQueue.CommandRequest)
 	 */
 	@Override
-	public PreconditionResponse checkPreconditions(Game game, CommandRequest request) {
+	public PreconditionResponse checkPreconditions(Game game, Command command) {
 		PreconditionResponse response = new PreconditionResponse();
 		
 		Entity attacker = getEntity();
@@ -53,7 +52,7 @@ public abstract class AttackCommand extends Command {
 			response.addFailure("This entity can not attack");
 		}
 		
-		Optional<Entity> target = request.targetEntity; 
+		Optional<Entity> target = command.targetEntity; 
 		if(!target.isPresent() || target.get().isDead()) {
 			response.addFailure("No enemy target");
 		}

@@ -1,10 +1,9 @@
 /*
  * see license.txt 
  */
-package franks.game.commands;
+package franks.game.actions;
 
 import franks.game.Game;
-import franks.game.commands.CommandQueue.CommandRequest;
 import franks.game.entity.Direction;
 import franks.game.entity.Entity;
 import franks.game.entity.Entity.State;
@@ -17,32 +16,32 @@ import franks.util.TimeStep;
  * @author Tony
  *
  */
-public class LeaderMovementCommand extends MovementCommand {
+public class LeaderMovementAction extends MovementAction {
 
 	/**
 	 * @param name
 	 * @param movementCost
 	 */
-	public LeaderMovementCommand(Game game, Entity entity, int movementSpeed) {
+	public LeaderMovementAction(Game game, Entity entity, int movementSpeed) {
 		super(game, entity, movementSpeed);
 
 	}
 
 	@Override
-	protected CommandAction doActionImpl(Game game, CommandRequest request) {
+	protected ExecutedAction doActionImpl(Game game, Command command) {
 		Entity entity = getEntity();				
-		return new CommandAction(request) {
+		return new ExecutedAction(command) {
 			boolean isCancelled;
 			boolean atDestination;
 			
 			@Override
-			public CommandAction start() {
+			public ExecutedAction start() {
 				entity.setCurrentState(State.WALKING);
 				return this;
 			}
 			
 			@Override
-			public CommandAction end() {
+			public ExecutedAction end() {
 				entity.setCurrentState(State.IDLE);				
 				return super.end();
 			}

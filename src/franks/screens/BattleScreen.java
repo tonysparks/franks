@@ -64,7 +64,7 @@ public class BattleScreen implements Screen {
 				}			
 			}
 			if(button == 1) {
-				game.queueCommand();
+				game.dispatchCommand();
 			}
 			
 			return super.touchUp(x, y, pointer, button);

@@ -4,16 +4,18 @@
 package franks.game;
 
 import franks.FranksGame;
-import franks.game.commands.Command.CommandType;
-import franks.game.commands.CommandQueue.CommandRequest;
+import franks.game.actions.Action.ActionType;
+import franks.game.actions.Command;
 import franks.game.entity.Entity;
 import franks.game.entity.Entity.Type;
 import franks.game.entity.EntityData;
 import franks.game.entity.EntityGroupData;
 import franks.game.entity.EntityGroupData.EntityInstanceData;
 import franks.game.entity.EntityList;
+import franks.game.entity.meta.LeaderEntity;
 import franks.game.net.NetEntity;
-import franks.game.net.NetMessage;
+import franks.game.net.NetLeaderEntity;
+import franks.game.net.PeerConnection;
 import franks.gfx.Camera;
 import franks.gfx.Cursor;
 import franks.gfx.GameController;
@@ -25,6 +27,7 @@ import franks.map.MapTile;
 import franks.math.Vector2f;
 import franks.util.Cons;
 import franks.util.TimeStep;
+import leola.frontend.listener.Event;
 
 /**
  * @author Tony
@@ -32,8 +35,8 @@ import franks.util.TimeStep;
  */
 public abstract class Game implements Renderable, ResourceLoader { 
 	
-	private GameState state;
 	private FranksGame app;
+	protected GameState gameState;
 	protected World world;
 	
 	protected EntityList entities;
@@ -55,28 +58,29 @@ public abstract class Game implements Renderable, ResourceLoader {
 	protected Army redTeam, greenTeam;
 	protected Player redPlayer;
 	protected Player greenPlayer;
-	
-	protected Player localPlayer;
+		
+	protected OtherPlayer otherPlayer;
 	
 	protected Ids entitityIds;
-		
+	
+	
 	/**
 	 * 
 	 */
 	public Game(FranksGame app, GameState state, Camera camera) {
 		this.app = app;
 		this.camera = camera;
-		this.state = state;				
+		this.gameState = state;				
 		
 		this.entitityIds = app.getEntityIds();
-		
+				
 		this.greenPlayer = state.getGreenPlayer();
 		this.greenTeam = this.greenPlayer.getTeam();
 		
 		this.redPlayer = state.getRedPlayer();
 		this.redTeam = this.redPlayer.getTeam();
-		
-		this.localPlayer = state.getLocalPlayer();
+				
+		this.otherPlayer = state.getOtherPlayer();
 		
 		this.entities = new EntityList(getEntitityIds());
 		this.cursorPos = new Vector2f();
@@ -86,12 +90,19 @@ public abstract class Game implements Renderable, ResourceLoader {
 		
 		this.world = createWorld(state);		
 		this.cameraController = new CameraController(this.entities, world.getMap(), camera);
+		
+	}
+	
+	public void setTurn(Player active, int turnNumber) {
+		this.currentTurn = new Turn(this, active, turnNumber);
 	}
 	
 	public void enter() {
+		this.gameState.setActiveGame(this);
+		
 		Map map = getWorld().getMap();
 		this.camera.setWorldBounds(new Vector2f(map.getMapWidth(), map.getMapHeight()));
-		Army localTeam = this.localPlayer.getTeam();
+		Army localTeam = getLocalPlayer().getTeam();
 		if(localTeam.armySize() > 0) {
 			centerCameraAround(localTeam.getLeaders().get(0).getScreenPosition());
 		}
@@ -101,6 +112,16 @@ public abstract class Game implements Renderable, ResourceLoader {
 	}
 	
 	public void exit() {}
+	
+	
+	public boolean isConnected() {
+		return this.gameState.isConnected();
+	}
+	
+	public PeerConnection getConnection() {
+		return this.gameState.getConnection();
+	}
+
 	
 	/**
 	 * Centers the camera around the supplied screen position
@@ -114,7 +135,7 @@ public abstract class Game implements Renderable, ResourceLoader {
 	/**
 	 * Creates the {@link World} for this {@link Game} instance
 	 * 
-	 * @param state
+	 * @param gameState
 	 * @return the {@link World}
 	 */
 	protected abstract World createWorld(GameState state);
@@ -132,14 +153,22 @@ public abstract class Game implements Renderable, ResourceLoader {
 	
 	@Override
 	public <T> T loadData(String file, Class<T> type) {
-		return state.loadData(file, type);
+		return gameState.loadData(file, type);
 	}
 	
 	/**
-	 * @return the state
+	 * Dispatches an event
+	 * @param event
+	 */
+	public void dispatchEvent(Event event) {
+		this.gameState.getDispatcher().queueEvent(event);
+	}
+	
+	/**
+	 * @return the gameState
 	 */
 	public GameState getState() {
-		return state;
+		return gameState;
 	}
 	
 	/**
@@ -168,11 +197,11 @@ public abstract class Game implements Renderable, ResourceLoader {
 	 * @return the localPlayer
 	 */
 	public Player getLocalPlayer() {
-		return localPlayer;
+		return gameState.getLocalPlayer();
 	}
 	
 	public Player getAIPlayer() {
-		return state.getAIPlayer();
+		return gameState.getAIPlayer();
 	}
 	
 	/**
@@ -212,7 +241,7 @@ public abstract class Game implements Renderable, ResourceLoader {
 	}
 	
 	public boolean isSinglePlayer() {
-		return state.isSinglePlayer();
+		return gameState.isSinglePlayer();
 	}
 	
 	/**
@@ -225,17 +254,9 @@ public abstract class Game implements Renderable, ResourceLoader {
 	
 	@Override
 	public TextureCache getTextureCache() {
-		return this.state.getTextureCache();
+		return this.gameState.getTextureCache();
 	}
-	
-	/**
-	 * Handles a remote message
-	 * 
-	 * @param msg
-	 */
-	public void handleNetMessage(NetMessage msg) {		
-	}
-	
+		
 	/**
 	 * Builds the {@link Entity} from the {@link EntityInstanceData}
 	 * 
@@ -266,6 +287,19 @@ public abstract class Game implements Renderable, ResourceLoader {
 		return dataEnt;
 	}
 	
+	public LeaderEntity buildLeaderEntity(Army army, NetLeaderEntity net, Game battle) {
+		LeaderEntity leader = (LeaderEntity)buildEntity(army, net);		
+		for(NetEntity netEntity : net.entities) {
+			Entity ent = buildEntity(leader.getEntities(), army, netEntity);
+			leader.addEntity(ent);
+		}
+		return leader;
+	}
+	
+	public Entity buildEntity(Army army, NetEntity net) {
+		return buildEntity(getEntities(), army, net);
+	}
+	
 	public Entity buildEntity(EntityList entities, Army army, NetEntity net) {
 		EntityData data = loadEntity(net.dataFile);
 		Entity dataEnt = entities.buildEntity(net.id, this, army, data);
@@ -285,18 +319,18 @@ public abstract class Game implements Renderable, ResourceLoader {
 	}
 	
 	public void endCurrentTurn() {
-		if(this.currentTurn.isPlayersTurn(this.localPlayer)) {
+		if(this.currentTurn.isPlayersTurn(getLocalPlayer())) {
 			if(entities.commandsCompleted()) {
-				this.currentTurn.markTurnCompleted();
+				this.currentTurn.requestForTurnCompletion();
 			}
 		}
 	}
 	
 	public void endCurrentTurnAI() {
 		if(isSinglePlayer()) {
-			if(!this.currentTurn.isPlayersTurn(this.localPlayer)) {
+			if(!this.currentTurn.isPlayersTurn(getLocalPlayer())) {
 				if(entities.commandsCompleted()) {
-					this.currentTurn.markTurnCompleted();
+					this.currentTurn.requestForTurnCompletion();
 				}
 			}
 		}
@@ -385,7 +419,7 @@ public abstract class Game implements Renderable, ResourceLoader {
 	 * @return the randomizer
 	 */
 	public Randomizer getRandomizer() {
-		return this.state.getRandom();
+		return this.gameState.getRandom();
 	}
 	
 	/**
@@ -404,52 +438,71 @@ public abstract class Game implements Renderable, ResourceLoader {
 	public Vector2f getCursorTilePos() {
 		return world.getMapTilePosByScreenPos(getCursorPos());
 	}
+		
 	
-	
-	protected void dispatchCommand(Entity entity, CommandType type) {				
-		entity.queueAction(new CommandRequest(this, type, entity));		
+	/**
+	 * Dispatches the supplied {@link Command}
+	 * 
+	 * @param command
+	 * @return true if the command was dispatched, false otherwise
+	 */
+	public boolean dispatchCommand(Command command) {
+		if(command.selectedEntity==null) {
+			return false;
+		}
+		
+		command.selectedEntity.queueAction(command);
+		return true;
 	}
 	
-	public void queueCommand() {
-		if(!currentTurn.isPlayersTurn(localPlayer)) {
-			return;
+	/**
+	 * Dispatches the most appropriate command based on the players
+	 * selection and mouse position
+	 * 
+	 * @return true if the command was dispatched, false otherwise
+	 */
+	public boolean dispatchCommand() {
+		if(!currentTurn.isPlayersTurn(getLocalPlayer())) {
+			return false;
 		}
 		
 		if(this.selectedEntity==null) {
-			return;
+			return false;
 		}
 		
-		if(!localPlayer.owns(selectedEntity)) {
-			return;
+		if(!getLocalPlayer().owns(selectedEntity)) {
+			return false;
 		}
 		
 		Entity target = getEntityOverMouse();
 		if(target!=null && this.selectedEntity!=target) {
 			Type type = target.getType();
-			if(type.isAttackable()) {
-				dispatchCommand(selectedEntity, CommandType.Attack);
+			if(!type.isAttackable()) {
+				Cons.println("Unsupported type: " + target.getType());
+				return false;
 			}
 			else {
-				Cons.println("Unsupported type: " + target.getType());
-			}			
+				dispatchCommand(new Command(this, ActionType.Attack, selectedEntity));					
+			}	
+			
 		}
 		else {
-			dispatchCommand(selectedEntity, CommandType.Move);
+			dispatchCommand(new Command(this, ActionType.Move, selectedEntity));
 		}
+		
+		return true;
 		
 	}
 	
 	
 	/**
-	 * Adds the completed command's {@link CommandRequest} to this turns
-	 * history buffer
+	 * Records the fact that the supplied {@link Command} was executed
+	 * this turn.
 	 * 
 	 * @param request
 	 */
-	public void addCommandRequestToHistory(CommandRequest request) {
-//		if(!isSinglePlayer()) {
-//			this.currentTurn.addCommandRequest(request);
-//		}
+	public void recordCommand(Command command) {		
+		this.currentTurn.recordCommand(command);		
 	}
 	
 	/**
@@ -470,14 +523,17 @@ public abstract class Game implements Renderable, ResourceLoader {
 		if(!terminal.isActive()) {
 			GameController controller = (GameController)this.app.getActiveInputs();
 			inputKeys = controller.pollInputs(timeStep, app.getKeyMap(), cursor, inputKeys);
-			if(inputKeys!=0) {
-				System.out.println(inputKeys);
-			}
+//			if(inputKeys!=0) {
+//				System.out.println(inputKeys);
+//			}
 			
 			this.cameraController.applyPlayerInput(mousePos.x, mousePos.y, inputKeys);
 			this.cameraController.update(timeStep);
 			inputKeys = 0;
 		}
+		
+		this.gameState.update(timeStep);		
+		this.otherPlayer.update(timeStep);		
 		this.world.update(timeStep);
 		
 		this.entities.update(timeStep);
@@ -485,4 +541,7 @@ public abstract class Game implements Renderable, ResourceLoader {
 				
 		this.currentTurn = this.currentTurn.checkTurnState();		
 	}			
+	
+	
+	
 }

@@ -4,9 +4,8 @@
 package franks.game.ai;
 
 import franks.game.Game;
-import franks.game.commands.CommandQueue.CommandRequest;
+import franks.game.actions.Command;
 import franks.game.entity.meta.LeaderEntity;
-import franks.game.meta.MetaGame;
 
 /**
  * Evaluates a situation
@@ -16,6 +15,6 @@ import franks.game.meta.MetaGame;
  */
 public interface MetaEvaluator {
 
-	public double calculateScore(LeaderEntity entity, MetaGame game);	
-	public CommandRequest getCommandRequest(Game game);
+	public double calculateScore(LeaderEntity entity, Game game);	
+	public Command getCommand(Game game);
 }

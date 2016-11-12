@@ -7,12 +7,14 @@ import franks.game.Game;
 import franks.game.Randomizer;
 import franks.game.Army;
 import franks.game.World;
-import franks.game.commands.LeaderAttackCommand;
-import franks.game.commands.LeaderMovementCommand;
+import franks.game.actions.LeaderAttackAction;
+import franks.game.actions.LeaderMovementAction;
 import franks.game.entity.Direction;
 import franks.game.entity.Entity;
 import franks.game.entity.EntityData;
 import franks.game.entity.EntityList;
+import franks.game.net.NetEntity;
+import franks.game.net.NetLeaderEntity;
 import franks.map.IsometricMap;
 import franks.math.Rectangle;
 import franks.math.Vector2f;
@@ -27,6 +29,7 @@ public class LeaderEntity extends Entity {
 	//private ResourceContainer resources;
 	
 	//private int maxSquadSize;
+	private NetLeaderEntity netEntity;
 	
 	/**
 	 * @param id
@@ -38,11 +41,12 @@ public class LeaderEntity extends Entity {
 		super(id, game, army, data);
 		
 		this.entities = new EntityList(game.getEntitityIds());
+		this.netEntity = new NetLeaderEntity();
 		//this.resources = new ResourceContainer();
 		
 		//this.availableCommands.clear();
-		addAvailableAction(new LeaderAttackCommand(game, this, data.attackAction.cost, data.attackAction.attackRange));
-		addAvailableAction(new LeaderMovementCommand(game, this, data.moveAction.movementSpeed));
+		addAvailableAction(new LeaderAttackAction(game, this, data.attackAction.cost, data.attackAction.attackRange));
+		addAvailableAction(new LeaderMovementAction(game, this, data.moveAction.movementSpeed));
 		
 	}
 	
@@ -53,15 +57,6 @@ public class LeaderEntity extends Entity {
 	
 	public void removeDead() {
 		this.entities.removeDead();
-//		List<Entity> aliveEntities = new ArrayList<>();
-//		for(Entity ent : this.entities) {
-//			if(ent.isAlive()) {
-//				aliveEntities.add(ent);
-//			}
-//		}
-//		
-//		this.entities.clear();
-//		this.entities.addAll(aliveEntities);
 	}
 	
 	/**
@@ -158,5 +153,20 @@ public class LeaderEntity extends Entity {
 				rightEnt.moveTo(t);
 			}
 		}
+	}
+	
+	public NetLeaderEntity getNetLeaderEntity() {
+		getNetEntity(this.netEntity);
+		
+		this.netEntity.entities.clear();
+		for(Entity entity : this.entities) {
+			this.netEntity.entities.add(entity.getNetEntity());
+		}
+		return this.netEntity;
+	}
+	
+	@Override
+	public NetEntity getNetEntity() {
+		return getNetLeaderEntity();
 	}
 }

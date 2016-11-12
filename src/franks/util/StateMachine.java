@@ -5,7 +5,7 @@ package franks.util;
 
 
 /**
- * A very simple finite state machine
+ * A very simple finite gameState machine
  * 
  * @author Tony
  *
@@ -13,7 +13,7 @@ package franks.util;
 public class StateMachine<T extends State> {
 
 	/**
-	 * Listens to state transitions
+	 * Listens to gameState transitions
 	 * 
 	 * @author Tony
 	 *
@@ -34,14 +34,14 @@ public class StateMachine<T extends State> {
 	}
 
 	/**
-	 * @param listener the listener to set
+	 * @param gameState the gameState to set
 	 */
 	public void setListener(StateMachineListener<T> listener) {
 		this.listener = listener;
 	}
 	
 	/**
-	 * @return the listener
+	 * @return the gameState
 	 */
 	public StateMachineListener<T> getListener() {
 		return listener;

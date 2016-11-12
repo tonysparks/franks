@@ -11,7 +11,7 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
-import franks.game.Game;
+import franks.game.GameState;
 import franks.game.net.NetMessage;
 import franks.game.net.PeerConnection;
 import franks.util.Cons;
@@ -22,7 +22,7 @@ import franks.util.Cons;
  */
 @ServerEndpoint(value="/socket")
 public class WebSocketServer {
-	public static Game game;
+	public static GameState gameState;
 	
 	private PeerConnection connection;
 	
@@ -31,15 +31,18 @@ public class WebSocketServer {
 		session.setMaxIdleTimeout(0);
 		
 		Cons.println("Session connected: " + session.getId());
-//		this.connection = game.peerConnection(session);
-//		
-//		NetMessage msg = NetMessage.fullStateMessage(game.getNetGameFullState());
-//		this.connection.sendMessage(msg);
+		this.connection = gameState.peerConnection(session);
+
+		// send the full game gameState to the remote client
+		NetMessage msg = NetMessage.fullStateMessage(gameState.getNetGameFullState());
+		this.connection.sendMessage(msg);
 	}
 	
 	@OnClose
 	public void onClose(Session session) {
-		this.connection.close();
+		if(this.connection!=null) {
+			this.connection.close();
+		}
 	}
 	
 	@OnError

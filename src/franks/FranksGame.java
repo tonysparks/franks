@@ -410,7 +410,7 @@ public class FranksGame implements ApplicationListener {
 	}
 	
 	/**
-	 * Preserves the stack state
+	 * Preserves the stack gameState
 	 * @param newScreen
 	 */
 	private void preserveStackSetScreen(Screen newScreen) {
@@ -569,7 +569,7 @@ public class FranksGame implements ApplicationListener {
 	}
 	
 	/**
-	 * Adds an input listener
+	 * Adds an input gameState
 	 * @param inputs
 	 */
 	public void addInput(Inputs inputs) {
@@ -577,7 +577,7 @@ public class FranksGame implements ApplicationListener {
 	}
 	
 	/**
-	 * Adds an input listener to the front
+	 * Adds an input gameState to the front
 	 * @param inputs
 	 */
 	public void addInputToFront(Inputs inputs) {
@@ -585,7 +585,7 @@ public class FranksGame implements ApplicationListener {
 	}
 	
 	/**
-	 * Removes an input listener
+	 * Removes an input gameState
 	 * @param inputs
 	 */
 	public void removeInput(Inputs inputs) {

@@ -1,20 +1,19 @@
 /*
  * see license.txt 
  */
-package franks.game.commands;
+package franks.game.actions;
 
 import franks.game.Game;
 import franks.game.PreconditionResponse;
-import franks.game.commands.CommandQueue.CommandRequest;
 import franks.game.entity.Entity;
 
 /**
  * @author Tony
  *
  */
-public abstract class Command {
+public abstract class Action {
 
-	public static enum CommandType {
+	public static enum ActionType {
 		Move,
 		Attack,
 		Die,
@@ -23,14 +22,14 @@ public abstract class Command {
 	}
 	
 	private Entity entity;
-	private CommandType type;
+	private ActionType type;
 	private int actionCost;
 	
 	
 	/**
 	 * 
 	 */
-	public Command(CommandType type, int actionCost, Entity entity) {
+	public Action(ActionType type, int actionCost, Entity entity) {
 		this.type = type;
 		this.actionCost = actionCost;
 		this.entity = entity;
@@ -48,7 +47,7 @@ public abstract class Command {
 	/**
 	 * @return the type
 	 */
-	public CommandType getType() {
+	public ActionType getType() {
 		return type;
 	}
 	
@@ -79,10 +78,10 @@ public abstract class Command {
 		}		
 	}
 	
-	public abstract PreconditionResponse checkPreconditions(Game game, CommandRequest request);
-	protected abstract CommandAction doActionImpl(Game game, CommandRequest request);
+	public abstract PreconditionResponse checkPreconditions(Game game, Command request);
+	protected abstract ExecutedAction doActionImpl(Game game, Command request);
 	
-	public CommandAction doAction(Game game, CommandRequest request) {
+	public ExecutedAction doAction(Game game, Command request) {
 		getEntity().getMeter().decrementBy(getActionCost());
 		return doActionImpl(game, request);
 	}

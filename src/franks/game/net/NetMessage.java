@@ -14,7 +14,7 @@ import com.google.gson.JsonElement;
 public class NetMessage {
 	public static enum MessageType {
 		FullState,
-		PartialState,
+		Battle,
 		Turn,
 	}
 	
@@ -30,6 +30,10 @@ public class NetMessage {
 		return gson.fromJson(data, NetGameFullState.class);
 	}
 	
+	public NetBattle asNetBattle() {
+		return gson.fromJson(data, NetBattle.class);
+	}
+	
 	public String toJson() {
 		return gson.toJson(this);
 	}
@@ -40,6 +44,13 @@ public class NetMessage {
 		NetMessage msg = new NetMessage();
 		msg.type = MessageType.FullState;
 		msg.data = gson.toJsonTree(state);
+		return msg;
+	}
+	
+	public static NetMessage battleMessage(NetBattle battle) {
+		NetMessage msg = new NetMessage();
+		msg.type = MessageType.Battle;
+		msg.data = gson.toJsonTree(battle);
 		return msg;
 	}
 	

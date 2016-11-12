@@ -97,7 +97,7 @@ public class OBB {
 	}
 	
 	/**
-	 * Updates the OOB internal state
+	 * Updates the OOB internal gameState
 	 * 
 	 * @param newOrientation
 	 * @param px

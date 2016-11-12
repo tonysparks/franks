@@ -7,10 +7,9 @@ import java.util.Arrays;
 import java.util.List;
 
 import franks.game.Game;
+import franks.game.actions.Command;
 import franks.game.ai.MetaEvaluator;
-import franks.game.commands.CommandQueue.CommandRequest;
 import franks.game.entity.meta.LeaderEntity;
-import franks.game.meta.MetaGame;
 
 /**
  * @author Tony
@@ -26,7 +25,7 @@ public class UberMetaEvaluator implements MetaEvaluator {
 	}
 
 	@Override
-	public double calculateScore(LeaderEntity entity, MetaGame game) {
+	public double calculateScore(LeaderEntity entity, Game game) {
 		best = evaluators.get(0);
 		double bestScore = 0;
 		for(MetaEvaluator eval : evaluators) {
@@ -41,8 +40,8 @@ public class UberMetaEvaluator implements MetaEvaluator {
 	}
 
 	@Override
-	public CommandRequest getCommandRequest(Game game) {
-		return best.getCommandRequest(game);
+	public Command getCommand(Game game) {
+		return best.getCommand(game);
 	}
 
 }

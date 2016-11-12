@@ -1,10 +1,9 @@
 /*
  * see license.txt 
  */
-package franks.game.commands;
+package franks.game.actions;
 
 import franks.game.Game;
-import franks.game.commands.CommandQueue.CommandRequest;
 import franks.game.entity.Entity;
 import franks.game.entity.Entity.State;
 import franks.gfx.Camera;
@@ -18,27 +17,27 @@ import franks.util.Timer;
  * @author Tony
  *
  */
-public class BattleAttackCommand extends AttackCommand {
+public class BattleAttackAction extends AttackAction {
 
 	/**
 	 * @param name
 	 * @param movementCost
 	 */
-	public BattleAttackCommand(Game game, Entity attacker, int cost, int attackDistance, int hitPercentage) {
+	public BattleAttackAction(Game game, Entity attacker, int cost, int attackDistance, int hitPercentage) {
 		super(game, attacker, cost, attackDistance, hitPercentage);
 	}
 
 	@Override
-	protected CommandAction doActionImpl(Game game, CommandRequest request) {
-		MapTile tile = game.getTile(request.cursorTilePos);
+	protected ExecutedAction doActionImpl(Game game, Command command) {
+		MapTile tile = game.getTile(command.cursorTilePos);
 		Entity attacker = getEntity();
-		Entity enemy = request.targetEntity.get();
-		return new CommandAction(request) {
+		Entity enemy = command.targetEntity.get();
+		return new ExecutedAction(command) {
 			
 			Timer timer = new Timer(false, attacker.getData().getAnimationTime(State.ATTACKING));
 						
 			@Override
-			public CommandAction start() {
+			public ExecutedAction start() {
 				timer.start();
 				
 				if(tile != null) {
@@ -50,7 +49,7 @@ public class BattleAttackCommand extends AttackCommand {
 			}
 			
 			@Override
-			public CommandAction end() {
+			public ExecutedAction end() {
 				int attackPercentage = calculateAttackPercentage(attacker);
 				int defensePercentage = calculateDefencePercentage(enemy);
 				

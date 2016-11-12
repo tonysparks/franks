@@ -4,13 +4,14 @@
 package franks.game.ai;
 
 import franks.game.Game;
+import franks.game.GameState;
 import franks.game.Player;
 import franks.game.Turn;
+import franks.game.actions.Command;
+import franks.game.actions.CommandDispatcherQueue;
+import franks.game.actions.CommandDispatcherQueue.CommandDispatcher;
 import franks.game.ai.evaluators.UberBattleEvaluator;
 import franks.game.battle.BattleGame;
-import franks.game.commands.CommandQueue.CommandRequest;
-import franks.game.commands.CommandRequestQueue;
-import franks.game.commands.CommandRequestQueue.RequestDispatcher;
 import franks.game.entity.Entity;
 import franks.game.entity.EntityList;
 import franks.game.entity.meta.LeaderEntity;
@@ -23,11 +24,11 @@ import franks.util.Updatable;
  */
 public class BattleAISystem implements Updatable {
 
-	private BattleGame game;	
+	private GameState gameState;	
 	private Player aiPlayer;
 	private LeaderEntity aiEntityLeader;
 	
-	private CommandRequestQueue requestQueue;
+	private CommandDispatcherQueue requestQueue;
 	
 	private UberBattleEvaluator[] evaluators;
 	private int numberOfThoughtCycles;
@@ -36,24 +37,29 @@ public class BattleAISystem implements Updatable {
 	/**
 	 * 
 	 */
-	public BattleAISystem(BattleGame game, Player aiPlayer) {
-		this.game = game;
+	public BattleAISystem(GameState gameState, Player aiPlayer) {
+		this.gameState = gameState;
 		this.aiPlayer = aiPlayer;
+				
+		this.requestQueue = new CommandDispatcherQueue(gameState);
+		this.evaluators = new UberBattleEvaluator[EntityList.MAX_ENTITIES];
+
+	}
+	
+	public void onEnterBattle(BattleGame game) {
 		if(game.getAttacker().getPlayer() == aiPlayer) {
 			this.aiEntityLeader = game.getAttacker();
 		}
 		else {
 			this.aiEntityLeader = game.getDefender();
 		}
-		
-		this.requestQueue = new CommandRequestQueue(game);
-		this.evaluators = new UberBattleEvaluator[EntityList.MAX_ENTITIES];
-
 	}
 	
 	
 	@Override
 	public void update(TimeStep timeStep) {
+		Game game = this.gameState.getActiveGame();
+		
 		Turn currentTurn = game.getCurrentTurn();
 		
 		if(currentTurn.isPlayersTurn(aiPlayer)) {
@@ -80,6 +86,8 @@ public class BattleAISystem implements Updatable {
 	 * Figure out what commands to start dispatching
 	 */
 	private void strategize() {
+		BattleGame game = (BattleGame)this.gameState.getActiveGame();
+		
 		EntityList team = aiEntityLeader.getEntities();
 		
 		double bestScore = 0;
@@ -99,13 +107,14 @@ public class BattleAISystem implements Updatable {
 		}
 		
 		if(bestEval!=null) {
-			CommandRequest request = bestEval.getCommandRequest(game);
-			if(request != null) {
-				this.requestQueue.addRequest(new RequestDispatcher() {
+			Command command = bestEval.getCommand(game);
+			if(command != null) {
+				this.requestQueue.addDispatcher(new CommandDispatcher() {
 					
 					@Override
-					public Entity dispatchRequest(Game game) {
-						return request.getNetCommandRequest().dispatchRequest(game);
+					public Entity dispatchCommand(Game game) {
+						game.dispatchCommand(command);
+						return command.selectedEntity;
 					}
 				});
 			}

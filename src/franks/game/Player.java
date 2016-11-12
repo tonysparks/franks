@@ -75,8 +75,8 @@ public class Player {
 
 	public NetPlayer getNetPlayer() {
 		net.entities = new ArrayList<>();
-		for(Entity ent : this.army.getLeaders()) {
-			net.entities.add(ent.getNetEntity());
+		for(LeaderEntity ent : this.army.getLeaders()) {
+			net.entities.add(ent.getNetLeaderEntity());
 		}
 		return net;
 	}

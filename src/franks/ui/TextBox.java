@@ -226,7 +226,7 @@ public class TextBox extends Widget {
 	}
 	
 	/**
-	 * Distributes the {@link TextBoxActionEvent} to each listener
+	 * Distributes the {@link TextBoxActionEvent} to each gameState
 	 * @param event
 	 */
 	protected void fireTextBoxActionEvent(TextBoxActionEvent event) {

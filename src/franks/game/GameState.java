@@ -4,6 +4,11 @@
 package franks.game;
 
 import java.io.IOException;
+import java.net.URI;
+
+import javax.websocket.ContainerProvider;
+import javax.websocket.Session;
+import javax.websocket.WebSocketContainer;
 
 import org.hjson.JsonValue;
 
@@ -14,25 +19,47 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.google.gson.Gson;
 
 import franks.FranksGame;
+import franks.game.Army.ArmyName;
+import franks.game.ai.AIPlayer;
+import franks.game.battle.BattleGame;
+import franks.game.entity.meta.LeaderEntity;
+import franks.game.events.BattleEvent;
+import franks.game.events.TurnCompletedEvent;
+import franks.game.meta.MetaGame;
+import franks.game.net.GameNetworkProtocol;
+import franks.game.net.NetBattle;
+import franks.game.net.NetBattleFinished;
+import franks.game.net.NetGameFullState;
+import franks.game.net.NetLeaderEntity;
+import franks.game.net.NetTurn;
+import franks.game.net.NetworkProtocol;
+import franks.game.net.PeerConnection;
+import franks.game.net.RemotePlayer;
+import franks.game.net.websocket.GameServer;
+import franks.game.net.websocket.WebSocketClient;
 import franks.gfx.Camera;
 import franks.gfx.Camera2d;
 import franks.math.Rectangle;
 import franks.math.Vector2f;
 import franks.util.Cons;
+import franks.util.TimeStep;
+import franks.util.Updatable;
+import leola.frontend.listener.EventDispatcher;
 
 /**
- * Persistent game state
+ * Persistent game gameState
  * 
  * @author Tony
  *
  */
-public class GameState implements ResourceLoader {
+public class GameState implements ResourceLoader, NetworkProtocol, Updatable {
 	public static final int MAX_ENTITIES = 256;
 	
 	private FranksGame app;
 	private Player greenPlayer;
 	private Player redPlayer;		
 	private Player localPlayer;
+	private OtherPlayer otherPlayer;
 
 	private TextureCache textureCache;
 	private Randomizer random;
@@ -42,9 +69,19 @@ public class GameState implements ResourceLoader {
 	private com.badlogic.gdx.graphics.OrthographicCamera mapCamera;
 	private SpriteBatch spriteBatch;
 	
-	private boolean isSinglePlayer;
+	private Game activeGame;
+	private EventDispatcher dispatcher;
 	
-	public GameState(FranksGame app) {
+	private boolean isSinglePlayer;
+	private boolean isHost;
+	
+	private GameServer server;
+	private PeerConnection connection;
+	private NetworkProtocol protocol;
+	
+	private MetaGame metaGame;
+	
+	public GameState(FranksGame app, boolean isHost, boolean isSinglePlayer) {
 		this.app = app;
 		
 		this.redPlayer = new Player("Red Player");
@@ -55,7 +92,8 @@ public class GameState implements ResourceLoader {
 		
 		this.localPlayer = this.greenPlayer;
 		
-		this.isSinglePlayer = true;
+		this.isHost = isHost;
+		this.isSinglePlayer = isSinglePlayer;
 		
 		init();
 	}
@@ -67,12 +105,13 @@ public class GameState implements ResourceLoader {
 	 * @param isSinglePlayer
 	 * @param app
 	 */
-	public GameState(FranksGame app, Player greenPlayer, Player redPlayer, boolean isSinglePlayer) {
+	public GameState(FranksGame app, Player greenPlayer, Player redPlayer, boolean isHost, boolean isSinglePlayer) {
 		this.app = app;		
 		this.greenPlayer = greenPlayer;
 		this.redPlayer = redPlayer;
 		
 		this.localPlayer = greenPlayer;				
+		this.isHost = isHost;
 		this.isSinglePlayer = isSinglePlayer;
 		
 		init();
@@ -94,6 +133,7 @@ public class GameState implements ResourceLoader {
 	}
 	
 	private void init() {
+		this.dispatcher = new EventDispatcher();
 		this.random = new Randomizer();	
 		this.textureCache = new TextureCache();
 		this.gson = new Gson();
@@ -105,6 +145,76 @@ public class GameState implements ResourceLoader {
 		this.mapCamera.setToOrtho(false, screenWidth, screenHeight);
 		
 		this.spriteBatch = new SpriteBatch();
+		
+		this.protocol = new GameNetworkProtocol(this);
+		
+		if(isHost()) {
+			this.server = new GameServer(this);
+			this.server.start(8121);
+		}
+		
+		if(isSinglePlayer()) {
+			this.otherPlayer = new AIPlayer(this);
+		}
+		else {
+			this.otherPlayer = new RemotePlayer(this);					
+		}
+		
+		this.metaGame = new MetaGame(getApp(), this, this.camera);
+		
+		this.dispatcher.addEventListener(TurnCompletedEvent.class, this.otherPlayer);
+		this.dispatcher.addEventListener(BattleEvent.class, otherPlayer);
+	}
+	
+	@Override
+	public void update(TimeStep timeStep) {
+		this.dispatcher.processQueue();
+		if(this.isConnected()) {
+			this.connection.update(timeStep);
+		}
+	}
+	
+	
+	public boolean isConnected() {
+		return this.connection != null && this.connection.isConnected();
+	}
+	
+	/**
+	 * @return the connection
+	 */
+	public PeerConnection getConnection() {
+		return connection;
+	}
+	
+	public PeerConnection peerConnection(Session session) {
+		if(this.connection!=null) {
+			this.connection.close();
+		}
+		
+		this.connection = new PeerConnection(this.protocol, session);
+		return this.connection;
+	}
+	
+	public boolean connectToPeer(String uri) {
+		try {
+			WebSocketContainer container = ContainerProvider.getWebSocketContainer();
+			Session session = container.connectToServer(new WebSocketClient(this), URI.create(uri));
+			if(session!=null && session.isOpen()) {
+				return true;
+			}
+		}
+		catch(Exception e) {
+			Cons.println("*** Unable to connect to remote peer: " + e);
+		}
+		
+		return false;
+	}
+	
+	/**
+	 * @return the dispatcher
+	 */
+	public EventDispatcher getDispatcher() {
+		return dispatcher;
 	}
 	
 	/**
@@ -136,10 +246,45 @@ public class GameState implements ResourceLoader {
 	}
 	
 	/**
+	 * @return the isHost
+	 */
+	public boolean isHost() {
+		return isHost;
+	}
+	
+	/**
 	 * @return the random
 	 */
 	public Randomizer getRandom() {
 		return random;
+	}
+		
+	
+	/**
+	 * @return the activeGame
+	 */
+	public Game getActiveGame() {
+		return activeGame;
+	}
+	
+	/**
+	 * @return the metaGame
+	 */
+	public MetaGame getMetaGame() {
+		return metaGame;
+	}
+	
+	/**
+	 * @param activeGame the activeGame to set
+	 */
+	public void setActiveGame(Game activeGame) {
+		this.activeGame = activeGame;
+		if(activeGame instanceof MetaGame) {
+			this.otherPlayer.enterMetaGame((MetaGame)activeGame);
+		}
+		else if(activeGame instanceof BattleGame) {
+			this.otherPlayer.enterBattleGame((BattleGame)activeGame);
+		}
 	}
 	
 	/**
@@ -188,6 +333,13 @@ public class GameState implements ResourceLoader {
 	}
 
 	/**
+	 * @return the otherPlayer
+	 */
+	public OtherPlayer getOtherPlayer() {
+		return otherPlayer;
+	}
+	
+	/**
 	 * @return the app
 	 */
 	public FranksGame getApp() {
@@ -195,6 +347,77 @@ public class GameState implements ResourceLoader {
 	}
 	
 	
-	
+	public NetGameFullState getNetGameFullState() {
+		NetGameFullState net = new NetGameFullState();
+		net.greenPlayer = greenPlayer.getNetPlayer();
+		net.redPlayer = redPlayer.getNetPlayer();
+		
+		Turn currentTurn = getActiveGame().getCurrentTurn();
+		net.turnNumber = currentTurn.getNumber();
+		
+		net.seed = this.random.getStartingSeed();
+		net.generation = this.random.getIteration();
+		
+		net.currentPlayersTurn = currentTurn.getActivePlayer()==greenPlayer 
+									? ArmyName.Green : ArmyName.Red;
+		
+		return net;
+	}
 
+	@Override
+	public void onGameFullState(NetGameFullState state) {		
+		this.random = new Randomizer(state.seed, state.generation);
+		
+		MetaGame game = getMetaGame();
+		
+		this.greenPlayer.syncFrom(state.greenPlayer);
+		for(NetLeaderEntity ent : state.greenPlayer.entities) {
+			LeaderEntity leader = game.buildLeaderEntity(this.greenPlayer.getTeam(), ent);
+			greenPlayer.addEntity(leader);
+		}
+		
+		this.redPlayer.syncFrom(state.redPlayer);
+		for(NetLeaderEntity ent : state.redPlayer.entities) {
+			LeaderEntity leader = game.buildLeaderEntity(this.redPlayer.getTeam(), ent);
+			redPlayer.addEntity(leader);
+		}
+		
+		Player activePlayer = greenPlayer;
+		if(state.currentPlayersTurn==ArmyName.Red) {
+			activePlayer = redPlayer;
+		}
+		
+		getActiveGame().setTurn(activePlayer, state.turnNumber);
+		this.localPlayer = redPlayer;
+	}
+	
+	/* (non-Javadoc)
+	 * @see franks.game.net.NetworkProtocol#onBattle(franks.game.net.NetBattle)
+	 */
+	@Override
+	public void onBattle(NetBattle battle) {
+		if(this.otherPlayer instanceof RemotePlayer) {
+			((RemotePlayer)this.otherPlayer).onRemoteBattleMessage(battle);
+		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see franks.game.net.NetworkProtocol#onBattleFinished(franks.game.net.NetBattleFinished)
+	 */
+	@Override
+	public void onBattleFinished(NetBattleFinished battle) {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	
+	/* (non-Javadoc)
+	 * @see franks.game.net.NetworkProtocol#onTurnEnd(franks.game.net.NetTurn)
+	 */
+	@Override
+	public void onTurnEnd(NetTurn turn) {
+		if(this.otherPlayer instanceof RemotePlayer) {
+			((RemotePlayer)this.otherPlayer).onRemoteTurnEndMessage(turn);
+		}
+	}
 }

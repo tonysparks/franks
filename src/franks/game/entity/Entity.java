@@ -13,14 +13,14 @@ import franks.game.Army;
 import franks.game.Game;
 import franks.game.Player;
 import franks.game.World;
-import franks.game.commands.AttackCommand;
-import franks.game.commands.BattleAttackCommand;
-import franks.game.commands.Command;
-import franks.game.commands.Command.CommandType;
-import franks.game.commands.CommandQueue;
-import franks.game.commands.CommandQueue.CommandRequest;
-import franks.game.commands.DieCommand;
-import franks.game.commands.MovementCommand;
+import franks.game.actions.Action;
+import franks.game.actions.Action.ActionType;
+import franks.game.actions.AttackAction;
+import franks.game.actions.BattleAttackAction;
+import franks.game.actions.Command;
+import franks.game.actions.CommandQueue;
+import franks.game.actions.DieAction;
+import franks.game.actions.MovementAction;
 import franks.game.net.NetEntity;
 import franks.game.net.NetEntityPartial;
 import franks.gfx.Camera;
@@ -67,7 +67,7 @@ public class Entity implements Renderable {
 	
 		
 	/**
-	 * The state the Entity can be in
+	 * The gameState the Entity can be in
 	 * 
 	 * @author Tony
 	 *
@@ -93,7 +93,7 @@ public class Entity implements Renderable {
 	
 	private boolean isSelected;
 	
-	protected java.util.Map<CommandType, Command> availableCommands;
+	protected java.util.Map<ActionType, Action> availableActions;
 	
 	protected Game game;
 	protected EntityAttribute health;
@@ -139,7 +139,7 @@ public class Entity implements Renderable {
 		this.bounds = new Rectangle(data.width, data.height);
 		this.bounds.setLocation(pos);
 		
-		this.availableCommands = new HashMap<>();
+		this.availableActions = new HashMap<>();
 		this.isDeleted = false;
 		
 		this.currentState = State.IDLE;
@@ -151,18 +151,18 @@ public class Entity implements Renderable {
 		
 		
 		if(data.attackAction!=null) {			
-			addAvailableAction(new BattleAttackCommand(game, this, 
+			addAvailableAction(new BattleAttackAction(game, this, 
 									data.attackAction.cost,
 									data.attackAction.attackRange,
 									data.attackAction.hitPercentage));
 		}
 		
 		if(data.moveAction != null) {
-			addAvailableAction(new MovementCommand(game, this, data.moveAction.movementSpeed));
+			addAvailableAction(new MovementAction(game, this, data.moveAction.movementSpeed));
 		}
 		
 		if(data.dieAction != null) {
-			addAvailableAction(new DieCommand(this));
+			addAvailableAction(new DieAction(this));
 		}
 	}
 	
@@ -224,9 +224,9 @@ public class Entity implements Renderable {
 	 * @return the movement cost of moving, or -1 if invalid
 	 */
 	public int calculateMovementCost(Vector2f tilePos) {
-		Command cmd = this.availableCommands.get(CommandType.Move);
-		if(cmd instanceof MovementCommand) {
-			MovementCommand moveCmd = (MovementCommand)cmd;
+		Action cmd = this.availableActions.get(ActionType.Move);
+		if(cmd instanceof MovementAction) {
+			MovementAction moveCmd = (MovementAction)cmd;
 			return moveCmd.calculateCost(tilePos);
 		}
 		return -1;
@@ -240,7 +240,7 @@ public class Entity implements Renderable {
 	 * @return the total cost of attacking the supplied entity, or -1 if invalid
 	 */
 	public int calculateAttackCost(Entity enemy) {
-		AttackCommand attackCmd = getAttackCommand();
+		AttackAction attackCmd = getAttackAction();
 		if(attackCmd != null) {
 			return attackCmd.calculateCost(enemy);
 		}
@@ -248,7 +248,7 @@ public class Entity implements Renderable {
 	}
 	
 	public int calculateAttackCost(MapTile tile) {
-		AttackCommand attackCmd = getAttackCommand();
+		AttackAction attackCmd = getAttackAction();
 		if(attackCmd != null) {
 			return attackCmd.calculateCost(tile);
 		}
@@ -256,7 +256,7 @@ public class Entity implements Renderable {
 	}
 	
 	public int calculateStrictAttackPercentage() {
-		AttackCommand attackCmd = getAttackCommand();
+		AttackAction attackCmd = getAttackAction();
 		if(attackCmd != null) {			
 			return attackCmd.calculateStrictAttackPercentage(this);
 		}
@@ -264,17 +264,17 @@ public class Entity implements Renderable {
 	}
 	
 	public int calculateStrictDefensePercentage() {
-		AttackCommand attackCmd = getAttackCommand();
+		AttackAction attackCmd = getAttackAction();
 		if(attackCmd != null) {			
 			return attackCmd.calculateStrictDefencePercentage(this);
 		}
 		return -1;
 	}
 	
-	public AttackCommand getAttackCommand() {
-		Command cmd = this.availableCommands.get(CommandType.Attack);
-		if(cmd instanceof AttackCommand) {
-			AttackCommand attackCmd = (AttackCommand) cmd;
+	public AttackAction getAttackAction() {
+		Action cmd = this.availableActions.get(ActionType.Attack);
+		if(cmd instanceof AttackAction) {
+			AttackAction attackCmd = (AttackAction) cmd;
 			return attackCmd;
 		}
 		return null;
@@ -468,19 +468,19 @@ public class Entity implements Renderable {
 	
 	
 	/**
-	 * Place this unit in the DEAD state, which is still
+	 * Place this unit in the DEAD gameState, which is still
 	 * part of the game world
 	 */
 	public void kill() {
 		if(this.isAlive()) {
-			doAction(new CommandRequest(game, CommandType.Die, this));
+			doAction(new Command(game, ActionType.Die, this));
 		}
 	}
 	
 	
 	/**
 	 * Damage this unit.  If the health get to zero, the unit
-	 * is placed in the DEAD state.
+	 * is placed in the DEAD gameState.
 	 */
 	public void damage() {
 		this.health.delta(-1);
@@ -532,8 +532,8 @@ public class Entity implements Renderable {
 		this.isSelected = selected;
 	}
 	
-	public Optional<Command> getCommand(final CommandType type) {
-		return Optional.ofNullable(this.availableCommands.get(type));
+	public Optional<Action> getCommand(final ActionType type) {
+		return Optional.ofNullable(this.availableActions.get(type));
 	}
 	
 	public Entity moveToRegion(int x, int y) {
@@ -595,25 +595,25 @@ public class Entity implements Renderable {
 		return this;
 	}
 	
-	public boolean hasAction(CommandType type) {
-		return this.availableCommands.get(type) != null;
+	public boolean hasAction(ActionType type) {
+		return this.availableActions.get(type) != null;
 	}
 	
-	public void queueAction(CommandRequest request) {
+	public void queueAction(Command request) {
 		this.commandQueue.add(request);
 	}
-	
-	public void doAction(CommandRequest request) {
+		
+	public void doAction(Command request) {
 		this.commandQueue.cancel();
 		queueAction(request);
 	}
 	
-	public boolean canDo(CommandType type) {
+	public boolean canDo(ActionType type) {
 		return hasAction(type);
 	}
 	
-	public Entity addAvailableAction(Command action) {
-		this.availableCommands.put(action.getType(), action);
+	public Entity addAvailableAction(Action action) {
+		this.availableActions.put(action.getType(), action);
 		return this;
 	}
 	
@@ -631,8 +631,8 @@ public class Entity implements Renderable {
 	/**
 	 * @return the availableActions
 	 */
-	public List<Command> getAvailableActions() {
-		return new ArrayList<>(availableCommands.values());
+	public List<Action> getAvailableActions() {
+		return new ArrayList<>(availableActions.values());
 	}
 	
 	public Player getPlayer() {
@@ -798,8 +798,7 @@ public class Entity implements Renderable {
 		}
 	}
 	
-	public NetEntity getNetEntity() {
-		NetEntity net = new NetEntity();
+	protected NetEntity getNetEntity(NetEntity net) {
 		net.id = id;
 		net.type = type;
 		net.name = name;
@@ -810,6 +809,10 @@ public class Entity implements Renderable {
 		net.health = health.getCurrentValue();
 		net.dataFile = data.dataFile;
 		return net;
+	}
+	
+	public NetEntity getNetEntity() {		
+		return getNetEntity(new NetEntity());
 	}
 	
 	public void syncFrom(NetEntityPartial net) {

@@ -7,12 +7,11 @@ import java.util.List;
 
 import franks.game.Game;
 import franks.game.Randomizer;
+import franks.game.actions.Action.ActionType;
+import franks.game.actions.Command;
 import franks.game.ai.MetaEvaluator;
-import franks.game.commands.Command.CommandType;
-import franks.game.commands.CommandQueue.CommandRequest;
 import franks.game.entity.Entity;
 import franks.game.entity.meta.LeaderEntity;
-import franks.game.meta.MetaGame;
 import franks.math.Vector2f;
 
 /**
@@ -27,7 +26,7 @@ public class AttackMetaEvaluator implements MetaEvaluator {
 	private LeaderEntity targetEntity;
 
 	@Override
-	public double calculateScore(LeaderEntity entity, MetaGame game) {		
+	public double calculateScore(LeaderEntity entity, Game game) {		
 		Randomizer rand = game.getRandomizer();
 		
 		double bestScore = 0;
@@ -94,7 +93,7 @@ public class AttackMetaEvaluator implements MetaEvaluator {
 	 * @see franks.game.ai.Evaluator#getCommandRequest(franks.game.Game)
 	 */
 	@Override
-	public CommandRequest getCommandRequest(Game game) {
-		return new CommandRequest(game, CommandType.Attack, this.selectedEntity, this.targetEntity, new Vector2f());
+	public Command getCommand(Game game) {
+		return new Command(game, ActionType.Attack, this.selectedEntity, this.targetEntity, new Vector2f());
 	}
 }

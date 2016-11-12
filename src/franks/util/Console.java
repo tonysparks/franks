@@ -34,12 +34,12 @@ public interface Console extends Logger {
 	
 	/**
 	 * @param commandName
-	 * @return the Command if found, otherwise null
+	 * @return the Action if found, otherwise null
 	 */
 	public Command getCommand(String commandName);
 	
 	/**
-	 * Attempts to find the best {@link Command} given the 
+	 * Attempts to find the best {@link Action} given the 
 	 * partial name
 	 * @param partialName
 	 * @return a list of command names with the partialName

@@ -230,7 +230,7 @@ public class DefaultConsole implements Console {
 			}
 		}
 		else {
-			println("*** Command not found: " + commandName);
+			println("*** Action not found: " + commandName);
 		}
 	}
 	

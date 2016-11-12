@@ -1,7 +1,7 @@
 /*
  * see license.txt 
  */
-package franks.game.commands;
+package franks.game.actions;
 
 import java.util.List;
 
@@ -9,7 +9,6 @@ import franks.game.Game;
 import franks.game.PathPlanner;
 import franks.game.PreconditionResponse;
 import franks.game.TerrainData.TerrainTileData;
-import franks.game.commands.CommandQueue.CommandRequest;
 import franks.game.entity.Direction;
 import franks.game.entity.Entity;
 import franks.game.entity.Entity.State;
@@ -26,7 +25,7 @@ import franks.util.Timer;
  * @author Tony
  *
  */
-public class MovementCommand extends Command {
+public class MovementAction extends Action {
 
 	protected PathPlanner<Void> planner, costPlanner;
 	protected int movementSpeed;
@@ -35,8 +34,8 @@ public class MovementCommand extends Command {
 	 * @param name
 	 * @param movementCost
 	 */
-	public MovementCommand(Game game, Entity entity, int movementSpeed) {
-		super(CommandType.Move, -1, entity);
+	public MovementAction(Game game, Entity entity, int movementSpeed) {
+		super(ActionType.Move, -1, entity);
 		this.game = game;
 		
 		this.movementSpeed = movementSpeed;
@@ -77,10 +76,10 @@ public class MovementCommand extends Command {
 	 * @see newera.game.Action#checkPreconditions(newera.game.Game)
 	 */
 	@Override
-	public PreconditionResponse checkPreconditions(Game game, CommandRequest request) {
+	public PreconditionResponse checkPreconditions(Game game, Command command) {
 		PreconditionResponse response = new PreconditionResponse();
 				
-		int cost = calculateCost(planner, request.cursorTilePos);
+		int cost = calculateCost(planner, command.cursorTilePos);
 		if(cost < 0) {
 			response.addFailure("Invalid destination");
 		}
@@ -100,23 +99,23 @@ public class MovementCommand extends Command {
 	}
 
 	@Override
-	protected CommandAction doActionImpl(Game game, CommandRequest request) {
+	protected ExecutedAction doActionImpl(Game game, Command command) {
 		Entity entity = getEntity();				
-		return new CommandAction(request) {
+		return new ExecutedAction(command) {
 			boolean isCancelled;
 			boolean atDestination;
 			
 			Timer footsteps = new Timer(true, 400);
 			
 			@Override
-			public CommandAction start() {
+			public ExecutedAction start() {
 				entity.setCurrentState(State.WALKING);
 				Sounds.playGlobalSound(Sounds.ruffle);
 				return this;
 			}
 			
 			@Override
-			public CommandAction end() {
+			public ExecutedAction end() {
 				entity.setCurrentState(State.IDLE);
 				entity.setToDesiredDirection();
 				return super.end();

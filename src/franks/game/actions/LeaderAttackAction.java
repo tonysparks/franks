@@ -1,13 +1,13 @@
 /*
  * see license.txt 
  */
-package franks.game.commands;
+package franks.game.actions;
 
 import franks.game.Game;
 import franks.game.battle.Battle;
 import franks.game.battle.BattleGame;
-import franks.game.commands.CommandQueue.CommandRequest;
 import franks.game.entity.meta.LeaderEntity;
+import franks.game.events.BattleEvent;
 import franks.game.meta.MetaGame;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
@@ -18,14 +18,14 @@ import franks.util.TimeStep;
  * @author Tony
  *
  */
-public class LeaderAttackCommand extends AttackCommand {	
+public class LeaderAttackAction extends AttackAction {	
 	private LeaderEntity leaderAttacker;
 	
 	/**
 	 * @param name
 	 * @param movementCost
 	 */
-	public LeaderAttackCommand(Game game, LeaderEntity attacker, int cost, int attackDistance) {
+	public LeaderAttackAction(Game game, LeaderEntity attacker, int cost, int attackDistance) {
 		super(game, attacker, cost, attackDistance, 0);
 		
 		this.leaderAttacker = attacker;
@@ -33,23 +33,27 @@ public class LeaderAttackCommand extends AttackCommand {
 	}
 
 	@Override
-	protected CommandAction doActionImpl(Game game, CommandRequest request) {
-		LeaderEntity enemy = (LeaderEntity)request.targetEntity.get();
-		return new CommandAction(request) {
+	protected ExecutedAction doActionImpl(Game game, Command command) {
+		LeaderEntity enemy = (LeaderEntity)command.targetEntity.get();
+		return new ExecutedAction(command) {
 					
 			@Override
-			public CommandAction start() {
-				MetaGame meta = (MetaGame) game;
-				BattleGame battleGame = meta.getBattleGame();
-				battleGame.enterBattle(new Battle(leaderAttacker, enemy));
+			public ExecutedAction start() {
 				
-				game.getApp().pushScreen(new BattleScreen(game.getApp(), game.getState(), battleGame));
 				
 				return this;
 			}
 			
 			@Override
-			public CommandAction end() {
+			public ExecutedAction end() {
+				MetaGame meta = (MetaGame) game;
+				BattleGame battleGame = meta.getBattleGame();				
+				Battle battle = new Battle(leaderAttacker, enemy);
+				
+				game.dispatchEvent(new BattleEvent(this, battle));
+				
+				battleGame.enterBattle(battle);
+				game.getApp().pushScreen(new BattleScreen(game.getApp(), game.getState(), battleGame));
 				return super.end();
 			}
 			

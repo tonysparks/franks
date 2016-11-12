@@ -32,7 +32,7 @@ public class Inputs implements InputProcessor {
 	}
 	
 	/**
-	 * Clears the state of all keys
+	 * Clears the gameState of all keys
 	 */
 	public void clearKeys() {
 		for(int i = 0; i < keys.length; i++) {
@@ -41,7 +41,7 @@ public class Inputs implements InputProcessor {
 	}
 
 	/**
-	 * Clears the state of all buttons
+	 * Clears the gameState of all buttons
 	 */
 	public  void clearButtons() {
 		for(int i = 0; i < mouseButtons.length;i++) {

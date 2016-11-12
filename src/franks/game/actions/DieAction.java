@@ -1,11 +1,10 @@
 /*
  * see license.txt 
  */
-package franks.game.commands;
+package franks.game.actions;
 
 import franks.game.Game;
 import franks.game.PreconditionResponse;
-import franks.game.commands.CommandQueue.CommandRequest;
 import franks.game.entity.Entity;
 import franks.game.entity.Entity.State;
 import franks.gfx.Camera;
@@ -18,17 +17,17 @@ import franks.util.Timer;
  * @author Tony
  *
  */
-public class DieCommand extends Command {
+public class DieAction extends Action {
 
-	public DieCommand(Entity entity) {
-		super(CommandType.Die,  0, entity);		
+	public DieAction(Entity entity) {
+		super(ActionType.Die,  0, entity);		
 	}
 
 	/* (non-Javadoc)
 	 * @see franks.game.Command#checkPreconditions(franks.game.Game, franks.game.CommandQueue.CommandRequest)
 	 */
 	@Override
-	public PreconditionResponse checkPreconditions(Game game, CommandRequest request) {
+	public PreconditionResponse checkPreconditions(Game game, Command command) {
 		PreconditionResponse response = new PreconditionResponse();
 		
 		if(!getEntity().canDo(getType())) {
@@ -41,13 +40,13 @@ public class DieCommand extends Command {
 
 	
 	@Override
-	protected CommandAction doActionImpl(Game game, CommandRequest request) {			
-		return new CommandAction(request) {
+	protected ExecutedAction doActionImpl(Game game, Command command) {			
+		return new ExecutedAction(command) {
 			
 			Timer timer = new Timer(false, getEntity().getData().getAnimationTime(State.DEAD));
 			
 			@Override
-			public CommandAction start() {
+			public ExecutedAction start() {
 				timer.start();
 				getEntity().setCurrentState(State.DEAD);
 				Sounds.playGlobalSound(Sounds.die);
@@ -55,7 +54,7 @@ public class DieCommand extends Command {
 			}
 			
 			@Override
-			public CommandAction end() {
+			public ExecutedAction end() {
 				getEntity().delete();
 				// TODO: Once a 'map' is over, clean up the 
 				// dead bodies???

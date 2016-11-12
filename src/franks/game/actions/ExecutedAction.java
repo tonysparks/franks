@@ -1,16 +1,15 @@
 /*
  * see license.txt 
  */
-package franks.game.commands;
+package franks.game.actions;
 
-import franks.game.commands.CommandQueue.CommandRequest;
 import franks.gfx.Renderable;
 
 /**
  * @author Tony
  *
  */
-public abstract class CommandAction implements Renderable {
+public abstract class ExecutedAction implements Renderable {
 
 	public enum CompletionState {
 		Success,
@@ -24,28 +23,28 @@ public abstract class CommandAction implements Renderable {
 		}
 	}
 	
-	private CommandRequest request;
+	private Command command;
 	private boolean isEnded;
 	
-	public CommandAction(CommandRequest request) {
-		this.request = request;
+	public ExecutedAction(Command command) {
+		this.command = command;
 	}
 	
 	/**
-	 * @return the request
+	 * @return the command
 	 */
-	public CommandRequest getRequest() {
-		return request;
+	public Command getCommand() {
+		return command;
 	}
 	
-	public CommandAction start() { return this; }
-	public CommandAction end() {
+	public ExecutedAction start() { return this; }
+	public ExecutedAction end() {
 		this.isEnded = true;
 		return this; 
 	}
 	
 	/**
-	 * @return true if completed and the {@link CommandAction#end()}
+	 * @return true if completed and the {@link ExecutedAction#end()}
 	 * method has been completed.
 	 */
 	public boolean hasEnded() {

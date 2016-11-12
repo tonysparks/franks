@@ -40,7 +40,7 @@ import leola.frontend.listener.EventDispatcher;
 public class Widget {
 
 	/**
-	 * The global input listener
+	 * The global input gameState
 	 */
 	static WidgetInputListener globalInputListener = new WidgetInputListener();
 	
@@ -639,7 +639,7 @@ public class Widget {
 	}
 
 	/**
-	 * Global Widget listener.  This gets bound to the Myriad {@link InputSystem}
+	 * Global Widget gameState.  This gets bound to the Myriad {@link InputSystem}
 	 * @author Tony
 	 *
 	 */

@@ -11,12 +11,13 @@ import franks.game.Game;
 import franks.game.GameState;
 import franks.game.Turn;
 import franks.game.World;
-import franks.game.ai.MetaAISystem;
 import franks.game.battle.BattleGame;
 import franks.game.entity.Entity;
 import franks.game.entity.meta.LeaderEntity;
 import franks.game.meta.StageData.ArmyData;
 import franks.game.meta.StageData.GeneralInstanceData;
+import franks.game.net.NetEntity;
+import franks.game.net.NetLeaderEntity;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
 import franks.map.MapTile.Visibility;
@@ -30,9 +31,7 @@ public class MetaGame extends Game {
 
 	private MetaHud hud;
 	
-	private BattleGame battleGame;
-	private MetaAISystem aiSystem;
-	
+	private BattleGame battleGame;	
 	private FogOfWar fow;
 	
 	/**
@@ -45,8 +44,7 @@ public class MetaGame extends Game {
 		
 		this.currentTurn = new Turn(this, state.getLocalPlayer(), 1);
 		this.hud = new MetaHud(this);
-	
-		this.aiSystem = new MetaAISystem(this, state.getAIPlayer());
+			
 		this.fow = new FogOfWar(this); 
 		
 		
@@ -69,7 +67,16 @@ public class MetaGame extends Game {
 			}
 		}
 	}
-
+	
+	public LeaderEntity buildLeaderEntity(Army army, NetLeaderEntity net) {
+		LeaderEntity leader = (LeaderEntity)buildEntity(army, net);		
+		for(NetEntity netEntity : net.entities) {
+			Entity ent = this.battleGame.buildEntity(leader.getEntities(), army, netEntity);
+			leader.addEntity(ent);
+		}
+		return leader;
+	}
+	
 	/**
 	 * @return the battleGame
 	 */
@@ -85,12 +92,10 @@ public class MetaGame extends Game {
 	}
 	
 	@Override
-	public void update(TimeStep timeStep) {
-		this.aiSystem.update(timeStep);		
+	public void update(TimeStep timeStep) {		
 		super.update(timeStep);
 		
-		this.fow.update(timeStep);
-		
+		this.fow.update(timeStep);	
 		this.hud.update(timeStep);
 	}
 	
@@ -104,4 +109,5 @@ public class MetaGame extends Game {
 		this.world.renderOverEntities(canvas, camera, alpha);
 		this.hud.render(canvas, camera, alpha);
 	}
+	
 }

@@ -6,7 +6,6 @@ package franks.screens;
 import franks.FranksGame;
 import franks.game.Game;
 import franks.game.GameState;
-import franks.game.meta.MetaGame;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
 import franks.gfx.Cursor;
@@ -34,6 +33,7 @@ public class InGameScreen implements Screen {
 
 	private FranksGame app;
 	private Game game;
+	private GameState gameState;
 	private Camera camera;
 	private Cursor cursor;
 	private Button endTurnBtn;
@@ -61,7 +61,7 @@ public class InGameScreen implements Screen {
 				}			
 			}
 			if(button == 1) {
-				game.queueCommand();
+				game.dispatchCommand();
 			}
 			
 			return super.touchUp(x, y, pointer, button);
@@ -73,13 +73,13 @@ public class InGameScreen implements Screen {
 		this(app, true, false);
 	}
 	
-	public InGameScreen(FranksGame app, boolean startServer, boolean isSinglePlayer) {
+	public InGameScreen(FranksGame app, boolean isHost, boolean isSinglePlayer) {
 		this.app = app;
 				
-		GameState state = new GameState(app);
-		this.camera = state.getCamera();
+		this.gameState  = new GameState(app, isHost, isSinglePlayer);		
+		this.camera = this.gameState.getCamera();
 		
-		this.game = new MetaGame(app, state, this.camera);
+		this.game = this.gameState.getMetaGame();
 		this.cursor = app.getUiManager().getCursor();
 		
 		consoleCommands(app.getConsole());
@@ -116,7 +116,12 @@ public class InGameScreen implements Screen {
 			
 			@Override
 			public void execute(Console console, String... args) {
-				//game.connectToPeer(args[0]);
+				if(args==null||args.length==0) {
+					gameState.connectToPeer("ws://localhost:8121/socket");
+				}
+				else {
+					gameState.connectToPeer(args[0]);
+				}
 			}
 		});
 	}

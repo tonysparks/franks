@@ -4,9 +4,9 @@
 package franks.game.ai.evaluators;
 
 import franks.game.Game;
+import franks.game.actions.Command;
 import franks.game.ai.BattleEvaluator;
 import franks.game.battle.BattleGame;
-import franks.game.commands.CommandQueue.CommandRequest;
 import franks.game.entity.Entity;
 
 /**
@@ -21,7 +21,7 @@ public class DoNothingBattleEvaluator implements BattleEvaluator {
 	}
 
 	@Override
-	public CommandRequest getCommandRequest(Game game) {
+	public Command getCommand(Game game) {
 		return null;
 	}
 

@@ -135,7 +135,7 @@ public class Button extends Widget {
 	}
 	
 	/**
-	 * Adds a listener
+	 * Adds a gameState
 	 * @param l
 	 */
 	public void addOnButtonClickedListener(OnButtonClickedListener l) {
@@ -143,7 +143,7 @@ public class Button extends Widget {
 	}
 	
 	/**
-	 * Removes a listener
+	 * Removes a gameState
 	 * @param l
 	 */
 	public void removeOnButtonClickedListener(OnButtonClickedListener l) {

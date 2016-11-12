@@ -73,7 +73,7 @@ public class TestScreen implements Screen {
 	public TestScreen(FranksGame app) {
 		this.app = app;
 				
-		GameState state = new GameState(app);
+		GameState state = new GameState(app, false, false);
 		this.camera = state.getCamera();
 		
 		this.cursor = app.getUiManager().getCursor();

@@ -5,10 +5,10 @@ package franks.game.ai.evaluators;
 
 import franks.game.Game;
 import franks.game.Randomizer;
+import franks.game.actions.Action.ActionType;
+import franks.game.actions.Command;
 import franks.game.ai.BattleEvaluator;
 import franks.game.battle.BattleGame;
-import franks.game.commands.Command.CommandType;
-import franks.game.commands.CommandQueue.CommandRequest;
 import franks.game.entity.Entity;
 import franks.game.entity.EntityList;
 import franks.math.Vector2f;
@@ -80,7 +80,7 @@ public class AttackBattleEvaluator implements BattleEvaluator {
 	 * @see franks.game.ai.Evaluator#getCommandRequest(franks.game.Game)
 	 */
 	@Override
-	public CommandRequest getCommandRequest(Game game) {
-		return new CommandRequest(game, CommandType.Attack, this.selectedEntity, this.targetEntity, new Vector2f());
+	public Command getCommand(Game game) {
+		return new Command(game, ActionType.Attack, this.selectedEntity, this.targetEntity, new Vector2f());
 	}
 }

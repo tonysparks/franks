@@ -320,7 +320,7 @@ public class Sounds {
 	}
 	
 	/**
-	 * Plays the sound right next to the sound listener so it is
+	 * Plays the sound right next to the sound gameState so it is
 	 * always audible.
 	 * @param soundBank
 	 * @return the {@link Sound}

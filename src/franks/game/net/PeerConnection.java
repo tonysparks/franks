@@ -9,7 +9,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.websocket.Session;
 
-import franks.game.Game;
 import franks.util.Cons;
 import franks.util.TimeStep;
 import franks.util.Updatable;
@@ -21,11 +20,11 @@ import franks.util.Updatable;
 public class PeerConnection implements Updatable {
 
 	private Queue<NetMessage> receivedMessages;
-	private Game game;
+	private NetworkProtocol protocol;
 	private Session session;
 	
-	public PeerConnection(Game game, Session session) {
-		this.game = game;
+	public PeerConnection(NetworkProtocol protocol, Session session) {
+		this.protocol = protocol;
 		this.session = session;
 		
 		this.receivedMessages = new ConcurrentLinkedQueue<>();
@@ -36,7 +35,21 @@ public class PeerConnection implements Updatable {
 	public void update(TimeStep timeStep) {
 		while(!receivedMessages.isEmpty()) {
 			NetMessage msg = receivedMessages.poll();
-			game.handleNetMessage(msg);
+			switch(msg.type) {
+				case FullState:
+					this.protocol.onGameFullState(msg.asNetGameFullState());
+					break;
+				case Battle:
+					this.protocol.onBattle(msg.asNetBattle());
+					break;
+				case Turn:
+					this.protocol.onTurnEnd(msg.asNetTurn());
+					break;
+				default:
+					Cons.println("Unknown message type: " + msg.type);
+					break;
+			
+			}
 		}
 		
 	}
