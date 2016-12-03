@@ -881,6 +881,8 @@ public class Entity implements Renderable {
 		backgroundColor = isSelected ? backgroundColor : Colors.setAlpha(backgroundColor, 0x0f);
 		foregroundColor = isSelected ? foregroundColor : Colors.setAlpha(foregroundColor, 0x7f);
 		
+		max = Math.max(max, 1);
+		
 		canvas.fillRect( x, y, width, height, backgroundColor );
 		if (getHealth() > 0) {
 			canvas.fillRect( x, y, (width * metric/max), height, foregroundColor );
