@@ -7,6 +7,7 @@ import franks.game.Game;
 import franks.game.entity.Direction;
 import franks.game.entity.Entity;
 import franks.game.entity.Entity.State;
+import franks.game.entity.EntityData.MoveActionData;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
 import franks.math.Vector2f;
@@ -22,8 +23,8 @@ public class LeaderMovementAction extends MovementAction {
 	 * @param name
 	 * @param movementCost
 	 */
-	public LeaderMovementAction(Game game, Entity entity, int movementSpeed) {
-		super(game, entity, movementSpeed);
+	public LeaderMovementAction(Game game, Entity entity, MoveActionData data) {
+		super(game, entity, data);
 
 	}
 

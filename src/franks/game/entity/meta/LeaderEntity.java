@@ -45,8 +45,8 @@ public class LeaderEntity extends Entity {
 		//this.resources = new ResourceContainer();
 		
 		//this.availableCommands.clear();
-		addAvailableAction(new LeaderAttackAction(game, this, data.attackAction.cost, data.attackAction.attackRange));
-		addAvailableAction(new LeaderMovementAction(game, this, data.moveAction.movementSpeed));
+		addAvailableAction(new LeaderAttackAction(game, this, data.attackAction));
+		addAvailableAction(new LeaderMovementAction(game, this, data.moveAction));
 		
 	}
 	

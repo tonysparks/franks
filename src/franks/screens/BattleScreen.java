@@ -3,8 +3,11 @@
  */
 package franks.screens;
 
+import com.badlogic.gdx.Input.Keys;
+
 import franks.FranksGame;
 import franks.game.GameState;
+import franks.game.actions.Action.ActionType;
 import franks.game.battle.BattleGame;
 import franks.game.battle.BattleGame.BattleState;
 import franks.gfx.Camera;
@@ -63,8 +66,9 @@ public class BattleScreen implements Screen {
 					Sounds.playGlobalSound(Sounds.uiSelect);
 				}			
 			}
+			
 			if(button == 1) {
-				game.dispatchCommand();
+				game.dispatchCommand(ActionType.Move);
 			}
 			
 			return super.touchUp(x, y, pointer, button);

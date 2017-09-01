@@ -9,6 +9,7 @@ import java.util.List;
 import com.badlogic.gdx.graphics.Color;
 
 import franks.game.entity.Entity;
+import franks.game.entity.meta.WorkerEntity;
 import franks.game.entity.meta.LeaderEntity;
 import franks.game.net.NetArmy;
 
@@ -27,6 +28,8 @@ public class Army {
 	private String name;
 	private Player player;
 	private List<LeaderEntity> leaders;
+	private List<WorkerEntity> workers;
+	
 	private NetArmy net;
 	private Color color;
 	
@@ -38,6 +41,8 @@ public class Army {
 		this.color = color;
 		
 		this.leaders = new ArrayList<>();
+		this.workers = new ArrayList<>();
+		
 		this.net = new NetArmy();
 		this.net.name = name;
 	}
@@ -71,16 +76,29 @@ public class Army {
 		this.leaders.add(entity);
 	}
 	
+	public void addWorker(WorkerEntity entity) {
+	    this.workers.add(entity);
+	}
+	
 	public void addLeaders(List<LeaderEntity> entities) {
 		this.leaders.addAll(entities);
+	}
+	
+	public void addWorkers(List<WorkerEntity> entities) {
+	    this.workers.addAll(entities);
 	}
 	
 	public void removeAllLeaders() {
 		this.leaders.clear();
 	}
 	
+	public void removeAllWorkers() {
+	    this.workers.clear();
+	}
+	
 	public void removeMember(Entity entity) {
 		this.leaders.remove(entity);
+		this.workers.remove(entity);
 	}
 	
 	public boolean isMember(Entity entity) {
@@ -93,6 +111,13 @@ public class Army {
 	public List<LeaderEntity> getLeaders() {
 		return leaders;
 	}
+	
+	/**
+     * @return the workers
+     */
+    public List<WorkerEntity> getWorkers() {
+        return workers;
+    }
 	
 	/**
 	 * @return the name

@@ -10,6 +10,7 @@ import franks.game.PreconditionResponse;
 import franks.game.Randomizer;
 import franks.game.TerrainData.TerrainTileData;
 import franks.game.entity.Entity;
+import franks.game.entity.EntityData.AttackActionData;
 import franks.map.MapTile;
 
 /**
@@ -30,12 +31,12 @@ public abstract class AttackAction extends Action {
 	 * @param attackDistance
 	 * @param hitPercentage
 	 */
-	public AttackAction(Game game, Entity attacker, int cost, int attackDistance, int hitPercentage) {
-		super(ActionType.Attack,  cost, attacker);
+	public AttackAction(Game game, Entity attacker, AttackActionData data) {
+		super(ActionType.Attack,  data.cost, attacker);
 		
 		this.game = game;
-		this.attackDistance = attackDistance;
-		this.hitPercentage = hitPercentage;
+		this.attackDistance = data.attackRange;
+		this.hitPercentage = data.hitPercentage;
 		
 	}
 

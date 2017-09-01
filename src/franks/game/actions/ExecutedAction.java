@@ -44,6 +44,13 @@ public abstract class ExecutedAction implements Renderable {
 	}
 	
 	/**
+	 * @return true if this action takes multiple turns
+	 */
+	public boolean spansTurns() {
+	    return false;
+	}
+	
+	/**
 	 * @return true if completed and the {@link ExecutedAction#end()}
 	 * method has been completed.
 	 */

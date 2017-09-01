@@ -8,14 +8,16 @@ import java.util.Optional;
 import java.util.Queue;
 
 import franks.game.Game;
+import franks.gfx.Camera;
+import franks.gfx.Canvas;
+import franks.gfx.Renderable;
 import franks.util.TimeStep;
-import franks.util.Updatable;
 
 /**
  * @author Tony
  *
  */
-public class CommandQueue implements Updatable {
+public class CommandQueue implements Renderable {
 
 	private Queue<Command> queue;
 	private Optional<ExecutedAction> currentAction;
@@ -48,7 +50,7 @@ public class CommandQueue implements Updatable {
 		if(this.queue.isEmpty()) {
 			if(currentAction.isPresent()) {
 				ExecutedAction action = currentAction.get();
-				return action.hasEnded();
+				return action.hasEnded() || action.spansTurns();
 			}
 			return true;
 		}
@@ -84,4 +86,11 @@ public class CommandQueue implements Updatable {
 			}
 		}
 	}	
+	
+	@Override
+	public void render(Canvas canvas, Camera camera, float alpha) {
+	    if(currentAction.isPresent()) {
+	        currentAction.get().render(canvas, camera, alpha);
+	    }
+	}
 }

@@ -18,6 +18,8 @@ public abstract class Action {
 		Attack,
 		Die,
 		
+		Build,
+		
 		;		
 	}
 	
@@ -81,9 +83,9 @@ public abstract class Action {
 	public abstract PreconditionResponse checkPreconditions(Game game, Command request);
 	protected abstract ExecutedAction doActionImpl(Game game, Command request);
 	
-	public ExecutedAction doAction(Game game, Command request) {
+	public ExecutedAction doAction(Game game, Command command) {
 		getEntity().getMeter().decrementBy(getActionCost());
-		return doActionImpl(game, request);
+		return doActionImpl(game, command);
 	}
 
 	

@@ -20,6 +20,7 @@ import franks.gfx.RenderFont;
 import franks.gfx.Renderable;
 import franks.map.IsometricMap;
 import franks.map.MapTile;
+import franks.math.Rectangle;
 import franks.math.Vector2f;
 import franks.util.TimeStep;
 
@@ -70,9 +71,18 @@ public class MetaHud implements Renderable {
 			Vector2f tilePos = selectedEntity.getTilePos();
 			Vector2f cameraPos = camera.getRenderPosition(alpha);
 			
+			Rectangle tileBounds = selectedEntity.getTileBounds();
+			
 			MapTile tile = map.getTile(0, (int)tilePos.x, (int)tilePos.y);
 			if(tile!=null) {
-				map.renderIsoRect(canvas, tile.getIsoX()-cameraPos.x, tile.getIsoY()-cameraPos.y, tile.getWidth(), tile.getHeight(), 0xab34baff);
+				map.renderIsoRect(canvas, 
+				                  tile.getIsoX()-cameraPos.x, 
+				                  tile.getIsoY()-cameraPos.y,
+				                  /*tile.getWidth(), 
+				                  tile.getHeight(),*/
+				                  tileBounds.getWidth(),
+				                  tileBounds.getHeight(),
+				                  0xab34baff);
 			}		
 			
 			drawAttackRange(canvas, selectedEntity, cameraPos);

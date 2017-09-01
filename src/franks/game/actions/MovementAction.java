@@ -12,6 +12,7 @@ import franks.game.TerrainData.TerrainTileData;
 import franks.game.entity.Direction;
 import franks.game.entity.Entity;
 import franks.game.entity.Entity.State;
+import franks.game.entity.EntityData.MoveActionData;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
 import franks.graph.GraphNode;
@@ -34,11 +35,11 @@ public class MovementAction extends Action {
 	 * @param name
 	 * @param movementCost
 	 */
-	public MovementAction(Game game, Entity entity, int movementSpeed) {
+	public MovementAction(Game game, Entity entity, MoveActionData data) {
 		super(ActionType.Move, -1, entity);
 		this.game = game;
 		
-		this.movementSpeed = movementSpeed;
+		this.movementSpeed = data.movementSpeed;
 		this.planner = new PathPlanner<>(game, game.getWorld().getGraph(), entity);
 		this.costPlanner = new PathPlanner<>(game, game.getWorld().getGraph(), entity);
 	}

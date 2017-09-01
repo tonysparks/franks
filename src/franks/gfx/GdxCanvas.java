@@ -28,6 +28,8 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.Matrix4;
 
+import franks.FranksGame;
+
 /**
  * @author Tony
  *
@@ -518,7 +520,7 @@ public class GdxCanvas implements Canvas {
 	 */
 	@Override
 	public int getWidth() {
-		return Gdx.graphics.getWidth();
+		return FranksGame.DEFAULT_MINIMIZED_SCREEN_WIDTH;
 	}
 
 	/* (non-Javadoc)
@@ -526,7 +528,7 @@ public class GdxCanvas implements Canvas {
 	 */
 	@Override
 	public int getHeight() {
-		return Gdx.graphics.getHeight();
+		return FranksGame.DEFAULT_MINIMIZED_SCREEN_HEIGHT;
 	}
 
 	/* (non-Javadoc)

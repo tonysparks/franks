@@ -32,7 +32,7 @@ public class AnimationTool {
 	}
 
 	private String[] states = {
-		"tipping over",
+		/*"tipping over",
 		"been hit",
 		"walking",
 		//"stopped",
@@ -40,7 +40,15 @@ public class AnimationTool {
 		"paused",
 		"greeting",
 		"attack",
-		"shooting"
+		"shooting",
+		*/
+	        
+	    // worker
+		"harvest",
+		"walking",
+		"sowing",
+		"talking",
+		"stopped"
 	};
 	
 	// Knights Mask
@@ -50,7 +58,10 @@ public class AnimationTool {
 	//public static final int Mask = 0x694A2E;
 	
 	// DarkDwarf
-	public static final int Mask = 0x61442B;
+	//public static final int Mask = 0x61442B;
+	
+	// Worker
+    public static final int Mask = 0x6A4c30;
 	
 	
 	private String getGroupName(File f) {
@@ -158,7 +169,7 @@ public class AnimationTool {
 	int deltaHeight=0;
 	
 	private void run() {
-		File spritesDir = new File("C:\\Users\\Tony\\Desktop\\SpriteSheetPacker\\DarkDwarf\\All");
+		File spritesDir = new File("C:\\Users\\Tony\\Desktop\\SpriteSheetPacker\\Farmer\\All");
 		
 		final File outputDir = new File(spritesDir, "Output");
 		outputDir.mkdir();

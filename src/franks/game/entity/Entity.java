@@ -17,6 +17,7 @@ import franks.game.actions.Action;
 import franks.game.actions.Action.ActionType;
 import franks.game.actions.AttackAction;
 import franks.game.actions.BattleAttackAction;
+import franks.game.actions.BuildAction;
 import franks.game.actions.Command;
 import franks.game.actions.CommandQueue;
 import franks.game.actions.DieAction;
@@ -50,6 +51,7 @@ public class Entity implements Renderable {
 	public static enum Type {
 		GENERAL,
 		SCOUT,
+		WORKER,
 		FRANK,
 		TREE,
 		STONE,
@@ -77,6 +79,8 @@ public class Entity implements Renderable {
 		WALKING,
 		ATTACKING,
 		DEAD,
+		
+		BUILDING,
 	}
 	
 	private final int id;
@@ -134,10 +138,19 @@ public class Entity implements Renderable {
 		
 		this.tilePos = new Vector2f();
 		
-		this.tileBounds = new Rectangle(data.width/World.TileWidth, data.height/World.TileHeight);
+		int tileWidth  = game.getWorld().getMap().getTileWidth();
+		int tileHeight = game.getWorld().getMap().getTileHeight();
+		
+		int tw = data.width  / tileWidth  + ((data.width  % tileWidth  > 0) ? 1 : 0);
+		int th = data.height / tileHeight + ((data.height % tileHeight > 0) ? 1 : 0);
+		
+			
+		this.tileBounds = new Rectangle(tw * tileWidth, th * tileHeight);
 		this.tileBounds.setLocation(getTilePos());
+		
 		this.bounds = new Rectangle(data.width, data.height);
 		this.bounds.setLocation(pos);
+		
 		
 		this.availableActions = new HashMap<>();
 		this.isDeleted = false;
@@ -151,18 +164,19 @@ public class Entity implements Renderable {
 		
 		
 		if(data.attackAction!=null) {			
-			addAvailableAction(new BattleAttackAction(game, this, 
-									data.attackAction.cost,
-									data.attackAction.attackRange,
-									data.attackAction.hitPercentage));
+			addAvailableAction(new BattleAttackAction(game, this, data.attackAction));
 		}
 		
 		if(data.moveAction != null) {
-			addAvailableAction(new MovementAction(game, this, data.moveAction.movementSpeed));
+			addAvailableAction(new MovementAction(game, this, data.moveAction));
 		}
 		
 		if(data.dieAction != null) {
 			addAvailableAction(new DieAction(this));
+		}
+		
+		if(data.buildAction != null) {
+		    addAvailableAction(new BuildAction(data.buildAction, this));
 		}
 	}
 	
@@ -205,7 +219,7 @@ public class Entity implements Renderable {
 	}
 	
 	public int defenseBaseScore() {
-		return data.defense.defensePercentage;
+		return data.defense != null ? data.defense.defensePercentage : 0;
 	}
 	
 	/**
@@ -415,7 +429,7 @@ public class Entity implements Renderable {
 			if(tile!=null) {
 				Entity ent = game.getEntityOnTile(tile);
 				if(ent!=null && ent.isTeammate(this)) {
-					return data.defense.groupBonusPercentage;
+					return data.defense != null ? data.defense.groupBonusPercentage : 0;
 				}
 			}
 		}
@@ -849,15 +863,14 @@ public class Entity implements Renderable {
 		
 		model.render(canvas, camera, alpha);
 		
+		commandQueue.render(canvas, camera, alpha);
 		
 		Vector2f pos = getRenderPosition(camera, alpha);
 		int health = getHealth();
 		
 		drawMeter(canvas, pos.x + 42, pos.y + 68, health, getMaxHealth(), 0x9fFF0000, 0xffafFFaf);
 		drawMeter(canvas, pos.x + 42, pos.y + 74, meter.remaining(), startingActionPoints(), 0x8f4a5f8f, 0xff3a9aFF);
-		
-		
-		
+				
 		//canvas.resizeFont(12f);
 		//canvas.drawString("x" + this.meter.getMovementAmount(), pos.x, pos.y+72, 0xffffffff);
 		

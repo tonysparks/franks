@@ -491,14 +491,14 @@ public class FranksGame implements ApplicationListener {
 	 * @return the screenHeight
 	 */
 	public int getScreenHeight() {
-		return Gdx.graphics.getHeight();
+		return DEFAULT_MINIMIZED_SCREEN_HEIGHT;
 	}
 	
 	/**
 	 * @return the screenWidth
 	 */
 	public int getScreenWidth() {
-		return Gdx.graphics.getWidth();
+		return DEFAULT_MINIMIZED_SCREEN_WIDTH;
 	}
 	
 	/**

@@ -13,7 +13,9 @@ import franks.game.Turn;
 import franks.game.World;
 import franks.game.battle.BattleGame;
 import franks.game.entity.Entity;
+import franks.game.entity.EntityGroupData.EntityInstanceData;
 import franks.game.entity.meta.LeaderEntity;
+import franks.game.entity.meta.WorkerEntity;
 import franks.game.meta.StageData.ArmyData;
 import franks.game.meta.StageData.GeneralInstanceData;
 import franks.game.net.NetEntity;
@@ -55,16 +57,27 @@ public class MetaGame extends Game {
 	}
 	
 	private void buildArmy(ArmyData armyData, Army army) {
-		for(GeneralInstanceData general : armyData.generals) {
-			LeaderEntity leader = (LeaderEntity)buildEntity(army, general);
-			army.addLeader(leader);
-			
-			if(general.holding != null) {
-				List<Entity> entities = general.holding.buildEntities(leader.getEntities(), army, this.battleGame);
-				for(Entity ent : entities) {
-					leader.addEntity(ent);
-				}
-			}
+	    if(armyData.generals != null) {
+    		for(GeneralInstanceData general : armyData.generals) {
+    			LeaderEntity leader = (LeaderEntity)buildEntity(army, general);
+    			army.addLeader(leader);
+    			
+    			if(general.holding != null) {
+    				List<Entity> entities = general.holding.buildEntities(leader.getEntities(), army, this.battleGame);
+    				for(Entity ent : entities) {
+    					leader.addEntity(ent);
+    				}
+    			}
+    		}
+	    }
+		
+		// TODO: should this be generic Entity's or should we
+		// explicitly call out each type?
+		if(armyData.workers != null) {
+    		for(EntityInstanceData entity : armyData.workers) {
+    		    WorkerEntity worker = (WorkerEntity)buildEntity(army, entity);
+    		    army.addWorker(worker);
+    		}
 		}
 	}
 	

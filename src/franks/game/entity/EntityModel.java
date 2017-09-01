@@ -45,10 +45,10 @@ public class EntityModel implements Renderable {
 		graphics.sectionStates.forEach( (k,v) -> {
 			TextureRegion tex = game.getTextureCache().getTexture(v.filePath);			
 			tex = TextureUtil.subImage(tex, v.x, v.y, v.getWidth(tex), v.getHeight(tex));			
-			int numberOfDirections = Direction.values().length;
+			int numberOfDirections = v.directions.length;// Direction.values().length;
 			int rowHeight = tex.getRegionHeight() / numberOfDirections; 
 			
-			animations[k.ordinal()] = new Model[numberOfDirections];
+			animations[k.ordinal()] = new Model[Direction.values().length];
 			for(int dirIndex = 0; dirIndex < numberOfDirections; dirIndex++) {				
 				TextureRegion subTex = TextureUtil.subImageRegion(tex, 0, dirIndex * rowHeight, v.getWidth(tex), rowHeight);
 				TextureRegion[] frames = TextureUtil.splitImageRegion(subTex, 1, v.numberOfFrames);				

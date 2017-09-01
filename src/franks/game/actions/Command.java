@@ -20,7 +20,7 @@ import franks.util.Cons;
 public class Command {
 	public Entity selectedEntity;
 	public Optional<Entity> targetEntity;
-	public Vector2f cursorTilePos;
+	public Vector2f cursorTilePos, cursorPos;
 	public ActionType type;
 	
 	public Command(Game game, NetCommand request) {
@@ -28,18 +28,23 @@ public class Command {
 	}
 	
 	public Command(Game game, ActionType type, Entity selectedEntity) {
-		this(game, type, selectedEntity, game.getEntityOverMouse(), game.getCursorTilePos()!=null ? game.getCursorTilePos().createClone():new Vector2f());
+		this(game, type, selectedEntity, game.getEntityOverMouse(), game.getCursorTilePos() != null ? game.getCursorTilePos().createClone() : new Vector2f());
 	}
 	
 	public Command(Game game, ActionType type, Entity selectedEntity, Entity targetEntity) {
-		this(game, type, selectedEntity, targetEntity, new Vector2f());
+	    this(game, type, selectedEntity, targetEntity, game.getCursorTilePos() != null ? game.getCursorTilePos().createClone() : new Vector2f());
 	}
 	
-	public Command(Game game, ActionType type, Entity selectedEntity, Entity targetEntity, Vector2f cursorTilePos) {
+	public Command(Game game, ActionType type, Entity selectedEntity, Entity targetEntity, Vector2f cursorTilePos) {	
 		this.type = type;
 		this.selectedEntity = selectedEntity;
 		this.targetEntity = Optional.ofNullable(targetEntity);
-		this.cursorTilePos = cursorTilePos;
+		this.cursorTilePos = cursorTilePos;		
+		
+		this.cursorPos = new Vector2f();		
+		game.getWorld().getScreenPosByMapTileIndex(this.cursorTilePos, this.cursorPos);	
+		this.cursorPos.x -= game.getCamera().getPosition().x;
+		this.cursorPos.y -= game.getCamera().getPosition().y;
 	}
 	
 	/**

@@ -57,6 +57,8 @@ public class Sounds {
 	public static final int[] flagReturned = {47};
 	public static final int[] enemyFlagCaptured = {48};
 	public static final int[] enemyFlagStolen = {49};
+	
+	public static final int[] build = {50};
 		
 	private static final Random random = new Random();
 	private static Map<String, SoundBuffer> loadedSounds = new ConcurrentHashMap<>();
@@ -132,7 +134,9 @@ public class Sounds {
             loadSound("./assets/sfx/ctf/flag_stolen.wav") ,   // 46
             loadSound("./assets/sfx/ctf/flag_returned.wav") ,   // 47
             loadSound("./assets/sfx/ctf/enemy_flag_captured.wav") ,   // 48
-            loadSound("./assets/sfx/ctf/enemy_flag_stolen.wav") ,   // 49                     
+            loadSound("./assets/sfx/ctf/enemy_flag_stolen.wav") ,   // 49
+            
+            loadSound("./assets/sfx/player/build.wav") ,   // 50 
 		};
 	};
 

@@ -3,9 +3,12 @@
  */
 package franks.screens;
 
+import com.badlogic.gdx.Input.Keys;
+
 import franks.FranksGame;
 import franks.game.Game;
 import franks.game.GameState;
+import franks.game.actions.Action.ActionType;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
 import franks.gfx.Cursor;
@@ -60,9 +63,13 @@ public class InGameScreen implements Screen {
 					Sounds.playGlobalSound(Sounds.uiSelect);
 				}			
 			}
-			if(button == 1) {
-				game.dispatchCommand();
-			}
+						
+			// TODO: Pick action type thru menu
+            boolean doAction = isKeyDown(Keys.CONTROL_LEFT);
+            
+            if(button == 1) {
+                game.dispatchCommand(doAction ? ActionType.Build : ActionType.Move);
+            }
 			
 			return super.touchUp(x, y, pointer, button);
 		}

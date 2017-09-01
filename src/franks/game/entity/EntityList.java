@@ -12,6 +12,7 @@ import java.util.NoSuchElementException;
 import franks.game.Ids;
 import franks.game.Game;
 import franks.game.Army;
+import franks.game.entity.meta.WorkerEntity;
 import franks.game.entity.meta.LeaderEntity;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
@@ -77,6 +78,9 @@ public class EntityList implements Renderable, Iterable<Entity> {
 			case SCOUT:
 				ent = new LeaderEntity(id, game, army, data);
 				break;
+			case WORKER:
+			    ent = new WorkerEntity(id, game, army, data);
+			    break;
 			default:
 				ent = new Entity(id, game, army, data);
 		}		

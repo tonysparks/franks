@@ -20,6 +20,7 @@ public class StageData {
 	
 	public static class ArmyData {
 		List<GeneralInstanceData> generals;
+		List<EntityInstanceData>  workers;
 	}
 	
 	public ArmyData redArmy;

@@ -459,9 +459,10 @@ public abstract class Game implements Renderable, ResourceLoader {
 	 * Dispatches the most appropriate command based on the players
 	 * selection and mouse position
 	 * 
+	 * @
 	 * @return true if the command was dispatched, false otherwise
 	 */
-	public boolean dispatchCommand() {
+	public boolean dispatchCommand(ActionType actionType) {
 		if(!currentTurn.isPlayersTurn(getLocalPlayer())) {
 			return false;
 		}
@@ -487,7 +488,21 @@ public abstract class Game implements Renderable, ResourceLoader {
 			
 		}
 		else {
-			dispatchCommand(new Command(this, ActionType.Move, selectedEntity));
+		    switch(actionType) {
+		        case Move: 
+		            dispatchCommand(new Command(this, ActionType.Move, selectedEntity));
+		            break;
+		        case Build:
+		            dispatchCommand(new Command(this, ActionType.Build, selectedEntity));
+                    break;
+		        case Die:
+		            dispatchCommand(new Command(this, ActionType.Die, selectedEntity));
+                    break;
+		        default: {
+		              Cons.println("Unsupported action type: " + actionType);
+		            return false;
+		        }
+		    }
 		}
 		
 		return true;

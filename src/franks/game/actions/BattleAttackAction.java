@@ -6,6 +6,7 @@ package franks.game.actions;
 import franks.game.Game;
 import franks.game.entity.Entity;
 import franks.game.entity.Entity.State;
+import franks.game.entity.EntityData.AttackActionData;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
 import franks.map.MapTile;
@@ -23,8 +24,8 @@ public class BattleAttackAction extends AttackAction {
 	 * @param name
 	 * @param movementCost
 	 */
-	public BattleAttackAction(Game game, Entity attacker, int cost, int attackDistance, int hitPercentage) {
-		super(game, attacker, cost, attackDistance, hitPercentage);
+	public BattleAttackAction(Game game, Entity attacker, AttackActionData data) {
+		super(game, attacker, data);
 	}
 
 	@Override
@@ -41,7 +42,7 @@ public class BattleAttackAction extends AttackAction {
 				timer.start();
 				
 				if(tile != null) {
-					attacker.lookAt(tile);//tile.getX(), tile.getY());
+					attacker.lookAt(tile);
 				}
 				
 				attacker.setCurrentState(State.ATTACKING);

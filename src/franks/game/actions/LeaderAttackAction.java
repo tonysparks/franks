@@ -6,6 +6,7 @@ package franks.game.actions;
 import franks.game.Game;
 import franks.game.battle.Battle;
 import franks.game.battle.BattleGame;
+import franks.game.entity.EntityData.AttackActionData;
 import franks.game.entity.meta.LeaderEntity;
 import franks.game.events.BattleEvent;
 import franks.game.meta.MetaGame;
@@ -25,11 +26,11 @@ public class LeaderAttackAction extends AttackAction {
 	 * @param name
 	 * @param movementCost
 	 */
-	public LeaderAttackAction(Game game, LeaderEntity attacker, int cost, int attackDistance) {
-		super(game, attacker, cost, attackDistance, 0);
+	public LeaderAttackAction(Game game, LeaderEntity attacker, AttackActionData data) {
+		super(game, attacker, data);
 		
 		this.leaderAttacker = attacker;
-		this.attackDistance = attackDistance;		
+		this.attackDistance = data.attackRange;		
 	}
 
 	@Override

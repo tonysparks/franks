@@ -145,8 +145,9 @@ public class World implements Renderable {
 		return graph;
 	}
 	
-	public MapTile getMapTile(Vector2f tilePos) {		
-		MapTile tile = this.map.getWorldTile(0, tilePos.x, tilePos.y);
+	public MapTile getMapTile(Vector2f tilePos) {
+	    MapTile tile = this.map.getTileAtTilePos(0, tilePos.x, tilePos.y);
+		//MapTile tile = this.map.getWorldTile(0, tilePos.x, tilePos.y);
 		return tile;
 	}
 		

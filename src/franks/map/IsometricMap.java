@@ -216,7 +216,9 @@ public class IsometricMap extends OrthoMap {
 	}
 	
 	/**
-	 * This actually takes in screen coordinates relative to the current camera position.
+	 * This actually takes in screen coordinates relative to the current camera position 
+	 * (i.e., it expects the worldX/worldY to be screenPos + cameraPos)
+	 *  
 	 * This will convert those coordinates to the appropriate {@link MapTile} if there
 	 * exists one.
 	 */
@@ -234,6 +236,27 @@ public class IsometricMap extends OrthoMap {
 		
 		return getTile(layerIndex, x, y);
 	}
+	
+	
+	/**
+	 * Gets the tile at the Tile Position.  The Tile Position is the {@link MapTile#getX()} 
+	 * and {@link MapTile#getY()} position of the tile.
+	 * 
+	 * @param layerIndex
+	 * @param tilePosX
+	 * @param tilePosY
+	 * @return the {@link MapTile} located at the tile position. Null if out of bounds
+	 */
+	public MapTile getTileAtTilePos(int layerIndex, float tilePosX, float tilePosY) {
+	    int indexX = (int)tilePosX / getTileWidth();
+        int indexY = (int)tilePosY / getTileHeight();
+        
+        if(!checkTileBounds(indexX, indexY)) {
+            return getTile(0, indexX, indexY);
+        }
+        
+        return null;
+    }
 	
 	/**
 	 * @return the startX
@@ -296,26 +319,80 @@ public class IsometricMap extends OrthoMap {
 //		canvas.drawString(x + "," + y, x, y, color);
 //		canvas.drawCircle(2, x, y, color);
 		
+//		float hw = width;
+//		float hh = height/2f;
+//		
+//		posA.set(x,y+hh);//this.halfTileHeight);		
+//		posB.set(x+hw/*this.halfTileWidth*/, y);		
+//		canvas.drawLine(posA.x, posA.y, posB.x, posB.y, color);
+//		
+//		
+//		posA.set(x+hw/*this.halfTileWidth*/,y);		
+//		posB.set(x+width*2f/*this.tileWidth*/, y+hh/*this.halfTileHeight*/);		
+//		canvas.drawLine(posA.x, posA.y, posB.x, posB.y, color);
+//		
+//		
+//		posA.set(x+width*2f/*this.tileWidth*/, y+hh/*this.halfTileHeight*/);		
+//		posB.set(x+hw/*this.halfTileWidth*/, y+height/*this.getTileHeight()*/);		
+//		canvas.drawLine(posA.x, posA.y, posB.x, posB.y, color);
+//		
+//		posA.set(x+hw/*this.halfTileWidth*/, y+height/*this.getTileHeight()*/);				
+//		posB.set(x, y+hh/*this.halfTileHeight*/);		
+//		canvas.drawLine(posA.x, posA.y, posB.x, posB.y, color);
+		
+	    float cols = (width/getTileWidth()   + ((width%getTileWidth()  >0) ? 1 : 0));
+	    float rows = (height/getTileHeight() + ((height%getTileHeight()>0) ? 1 : 0));
+	    
+		//width  = (width/getTileWidth()   + ((width%getTileWidth()  >0) ? 1 : 0)) * getTileWidth();
+		//height = (height/getTileHeight() + ((height%getTileHeight()>0) ? 1 : 0)) * getTileHeight();
+	    
+	    float c60 = (float)Math.cos(Math.toRadians(30));
+	    float c30 = (float)Math.cos(Math.toRadians(60));
+	    float s30 = (float)Math.sin(Math.toRadians(60));
+	    float s60 = (float)Math.sin(Math.toRadians(30));
+	    
+	    float ow = width;
+	    float oh = height;
+	    
+	    width  = getTileWidth() * c30 * cols + getTileHeight() * c60 * rows;
+	    height = getTileWidth() * s30 * cols + getTileHeight() * s60 * rows;
+	    
+	    width  *= 1;
+	    height *= 1;
+	    
+	    width = (int)width;
+	    height = (int)height;
+	    
+	   // x -= ow / 3;
+	    //y -= oh / 10;
+	    
+		/////
 		float hw = width;
-		float hh = height/2f;
+        float hh = height/2f;
+        
+        canvas.fillCircle(5, x, y+hh, color);
+        
+        posA.set(x,y+hh);        
+        posB.set(x+hw, y);        
+        canvas.drawLine(posA.x, posA.y, posB.x, posB.y, color);
+        
+        
+        posA.set(x+hw,y);     
+        posB.set(x+width*2f, y+hh);        
+        canvas.drawLine(posA.x, posA.y, posB.x, posB.y, color);
+        
+        
+        posA.set(x+width*2f, y+hh);        
+        posB.set(x+hw, y+height);     
+        canvas.drawLine(posA.x, posA.y, posB.x, posB.y, color);
+        
+        posA.set(x+hw, y+height);             
+        posB.set(x, y+hh);       
+        canvas.drawLine(posA.x, posA.y, posB.x, posB.y, color);
+        
+		/////
 		
-		posA.set(x,y+hh);//this.halfTileHeight);		
-		posB.set(x+hw/*this.halfTileWidth*/, y);		
-		canvas.drawLine(posA.x, posA.y, posB.x, posB.y, color);
 		
-		
-		posA.set(x+hw/*this.halfTileWidth*/,y);		
-		posB.set(x+width*2f/*this.tileWidth*/, y+hh/*this.halfTileHeight*/);		
-		canvas.drawLine(posA.x, posA.y, posB.x, posB.y, color);
-		
-		
-		posA.set(x+width*2f/*this.tileWidth*/, y+hh/*this.halfTileHeight*/);		
-		posB.set(x+hw/*this.halfTileWidth*/, y+height/*this.getTileHeight()*/);		
-		canvas.drawLine(posA.x, posA.y, posB.x, posB.y, color);
-		
-		posA.set(x+hw/*this.halfTileWidth*/, y+height/*this.getTileHeight()*/);				
-		posB.set(x, y+hh/*this.halfTileHeight*/);		
-		canvas.drawLine(posA.x, posA.y, posB.x, posB.y, color);
 		
 //		a.set(x,y+hh);//this.halfTileHeight);		
 //		b.set(x+hw/*this.halfTileWidth*/, y);		

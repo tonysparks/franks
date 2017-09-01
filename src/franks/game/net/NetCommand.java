@@ -20,6 +20,7 @@ public class NetCommand {
 	public int selectedEntityId;
 	public int targetEntityId;
 	public Vector2f cursorTilePos;
+	public Vector2f cursorPos;
 	
 	
 	public Entity dispatchCommand(Game game) {

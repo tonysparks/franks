@@ -109,6 +109,11 @@ public class EntityData {
 		public int groupBonusPercentage;
 	}
 	
+	public static class BuildActionData {
+	    public int cost;
+	    public int numberOfTurns;
+	}
+	
 	public Entity.Type type;
 	public String name;	
 	public Map<String, EntityAttribute> attributes;
@@ -119,7 +124,8 @@ public class EntityData {
 	public AttackActionData attackAction;
 	public MoveActionData moveAction;
 	public DieActionData dieAction;
-
+	public BuildActionData buildAction;
+	
 	public String dataFile;
 	
 	public GraphicData graphics;
@@ -189,7 +195,7 @@ public class EntityData {
 		}
 		return attr;
 	}
-	
+		
 	public EntityAttribute getAttribute(String name) {
 		if(this.attributes == null) {
 			return null;
