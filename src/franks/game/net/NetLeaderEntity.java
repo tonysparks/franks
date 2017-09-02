@@ -12,10 +12,10 @@ import java.util.List;
  */
 public class NetLeaderEntity extends NetEntity {
 
-	public List<NetEntity> entities;
-	
-	public NetLeaderEntity() {
-		this.entities = new ArrayList<>();
-	}
+    public List<NetEntity> entities;
+    
+    public NetLeaderEntity() {
+        this.entities = new ArrayList<>();
+    }
 
 }

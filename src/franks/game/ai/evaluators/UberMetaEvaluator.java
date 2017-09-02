@@ -17,31 +17,31 @@ import franks.game.entity.meta.LeaderEntity;
  */
 public class UberMetaEvaluator implements MetaEvaluator {
 
-	private List<MetaEvaluator> evaluators;
-	private MetaEvaluator best;
-	
-	public UberMetaEvaluator() {
-		this.evaluators = Arrays.asList(new AttackMetaEvaluator(), new MovementMetaEvaluator(), new DoNothingMetaEvaluator());
-	}
+    private List<MetaEvaluator> evaluators;
+    private MetaEvaluator best;
+    
+    public UberMetaEvaluator() {
+        this.evaluators = Arrays.asList(new AttackMetaEvaluator(), new MovementMetaEvaluator(), new DoNothingMetaEvaluator());
+    }
 
-	@Override
-	public double calculateScore(LeaderEntity entity, Game game) {
-		best = evaluators.get(0);
-		double bestScore = 0;
-		for(MetaEvaluator eval : evaluators) {
-			double score = eval.calculateScore(entity, game);
-			if(score > bestScore) {
-				bestScore = score;
-				best = eval;
-			}
-		}
-		
-		return bestScore;				
-	}
+    @Override
+    public double calculateScore(LeaderEntity entity, Game game) {
+        best = evaluators.get(0);
+        double bestScore = 0;
+        for(MetaEvaluator eval : evaluators) {
+            double score = eval.calculateScore(entity, game);
+            if(score > bestScore) {
+                bestScore = score;
+                best = eval;
+            }
+        }
+        
+        return bestScore;                
+    }
 
-	@Override
-	public Command getCommand(Game game) {
-		return best.getCommand(game);
-	}
+    @Override
+    public Command getCommand(Game game) {
+        return best.getCommand(game);
+    }
 
 }

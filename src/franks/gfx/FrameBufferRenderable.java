@@ -10,17 +10,17 @@ package franks.gfx;
  *
  */
 public interface FrameBufferRenderable extends Renderable {
-	
-	/**
-	 * Renders to the frame buffer
-	 * 
-	 * @param canvas
-	 * @param camera
-	 */
-	public void frameBufferRender(Canvas canvas, Camera camera, float alpha);
-	
-	/**
-	 * @return true if expired
-	 */
-	public boolean isExpired();
+    
+    /**
+     * Renders to the frame buffer
+     * 
+     * @param canvas
+     * @param camera
+     */
+    public void frameBufferRender(Canvas canvas, Camera camera, float alpha);
+    
+    /**
+     * @return true if expired
+     */
+    public boolean isExpired();
 }

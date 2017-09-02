@@ -15,6 +15,6 @@ import franks.game.entity.meta.LeaderEntity;
  */
 public interface MetaEvaluator {
 
-	public double calculateScore(LeaderEntity entity, Game game);	
-	public Command getCommand(Game game);
+    public double calculateScore(LeaderEntity entity, Game game);    
+    public Command getCommand(Game game);
 }

@@ -13,21 +13,21 @@ import franks.util.Updatable;
  *
  */
 public abstract class OtherPlayer implements Updatable, TurnCompletedListener {
-	private Player player;
-	
-	protected OtherPlayer(Player player) {
-		this.player = player;
-	}
-	
-	/**
-	 * @return the player
-	 */
-	public Player getPlayer() {
-		return player;
-	}
-	
-	
-	public abstract void enterMetaGame(MetaGame game);		
-	public abstract void enterBattleGame(BattleGame game);
-	
+    private Player player;
+    
+    protected OtherPlayer(Player player) {
+        this.player = player;
+    }
+    
+    /**
+     * @return the player
+     */
+    public Player getPlayer() {
+        return player;
+    }
+    
+    
+    public abstract void enterMetaGame(MetaGame game);        
+    public abstract void enterBattleGame(BattleGame game);
+    
 }

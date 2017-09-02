@@ -36,57 +36,57 @@ import franks.util.TimeStep;
  */
 public class PanelView<T extends Renderable> implements Renderable {
 
-	/**
-	 * Elements
-	 */
-	private List<T> uiElements;
-	
-	/**
-	 * 
-	 */
-	public PanelView() {
-		this.uiElements = new ArrayList<T>();
-	}
-	
-	public void clear() {
-		this.uiElements.clear();
-	}
-	
-	/**
-	 * Adds an element
-	 * @param element
-	 */
-	public void addElement(T element) {
-		this.uiElements.add(element);
-	}
-	
-	/**
-	 * @return the uiElements
-	 */
-	public List<T> getUiElements() {
-		return uiElements;
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.myriad.render.Renderable#render(org.myriad.render.Renderer, org.myriad.render.Camera, org.myriad.core.TimeUnit)
-	 */
-	@Override
-	public void render(Canvas renderer, Camera camera, float alpha) {
-		int size = this.uiElements.size();
-		for(int i = 0; i < size; i++) {
-			this.uiElements.get(i).render(renderer, camera, alpha);
-		}
-	}
+    /**
+     * Elements
+     */
+    private List<T> uiElements;
+    
+    /**
+     * 
+     */
+    public PanelView() {
+        this.uiElements = new ArrayList<T>();
+    }
+    
+    public void clear() {
+        this.uiElements.clear();
+    }
+    
+    /**
+     * Adds an element
+     * @param element
+     */
+    public void addElement(T element) {
+        this.uiElements.add(element);
+    }
+    
+    /**
+     * @return the uiElements
+     */
+    public List<T> getUiElements() {
+        return uiElements;
+    }
+    
+    /* (non-Javadoc)
+     * @see org.myriad.render.Renderable#render(org.myriad.render.Renderer, org.myriad.render.Camera, org.myriad.core.TimeUnit)
+     */
+    @Override
+    public void render(Canvas renderer, Camera camera, float alpha) {
+        int size = this.uiElements.size();
+        for(int i = 0; i < size; i++) {
+            this.uiElements.get(i).render(renderer, camera, alpha);
+        }
+    }
 
-	/* (non-Javadoc)
-	 * @see org.myriad.render.Renderable#update(org.myriad.core.TimeStep)
-	 */
-	@Override
-	public void update(TimeStep timeStep) {
-		int size = this.uiElements.size();
-		for(int i = 0; i < size; i++) {
-			this.uiElements.get(i).update(timeStep);
-		}
-	}
+    /* (non-Javadoc)
+     * @see org.myriad.render.Renderable#update(org.myriad.core.TimeStep)
+     */
+    @Override
+    public void update(TimeStep timeStep) {
+        int size = this.uiElements.size();
+        for(int i = 0; i < size; i++) {
+            this.uiElements.get(i).update(timeStep);
+        }
+    }
 
 }

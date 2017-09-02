@@ -28,9 +28,9 @@ package franks.ui;
  */
 public class Panel extends Widget {
 
-	/**
-	 */
-	public Panel() {
-	}
+    /**
+     */
+    public Panel() {
+    }
 
 }

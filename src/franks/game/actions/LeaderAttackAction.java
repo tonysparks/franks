@@ -19,61 +19,61 @@ import franks.util.TimeStep;
  * @author Tony
  *
  */
-public class LeaderAttackAction extends AttackAction {	
-	private LeaderEntity leaderAttacker;
-	
-	/**
-	 * @param name
-	 * @param movementCost
-	 */
-	public LeaderAttackAction(Game game, LeaderEntity attacker, AttackActionData data) {
-		super(game, attacker, data);
-		
-		this.leaderAttacker = attacker;
-		this.attackDistance = data.attackRange;		
-	}
+public class LeaderAttackAction extends AttackAction {    
+    private LeaderEntity leaderAttacker;
+    
+    /**
+     * @param name
+     * @param movementCost
+     */
+    public LeaderAttackAction(Game game, LeaderEntity attacker, AttackActionData data) {
+        super(game, attacker, data);
+        
+        this.leaderAttacker = attacker;
+        this.attackDistance = data.attackRange;        
+    }
 
-	@Override
-	protected ExecutedAction doActionImpl(Game game, Command command) {
-		LeaderEntity enemy = (LeaderEntity)command.targetEntity.get();
-		return new ExecutedAction(command) {
-					
-			@Override
-			public ExecutedAction start() {
-				
-				
-				return this;
-			}
-			
-			@Override
-			public ExecutedAction end() {
-				MetaGame meta = (MetaGame) game;
-				BattleGame battleGame = meta.getBattleGame();				
-				Battle battle = new Battle(leaderAttacker, enemy);
-				
-				game.dispatchEvent(new BattleEvent(this, battle));
-				
-				battleGame.enterBattle(battle);
-				game.getApp().pushScreen(new BattleScreen(game.getApp(), game.getState(), battleGame));
-				return super.end();
-			}
-			
-			@Override
-			public void update(TimeStep timeStep) {						
-			}
-			
-			@Override
-			public void render(Canvas canvas, Camera camera, float alpha) {
-			}
-			
-			@Override
-			public CompletionState getCurrentState() {
-				return CompletionState.Success;
-			}
-			
-			@Override
-			public void cancel() {				
-			}
-		};
-	}
+    @Override
+    protected ExecutedAction doActionImpl(Game game, Command command) {
+        LeaderEntity enemy = (LeaderEntity)command.targetEntity.get();
+        return new ExecutedAction(command) {
+                    
+            @Override
+            public ExecutedAction start() {
+                
+                
+                return this;
+            }
+            
+            @Override
+            public ExecutedAction end() {
+                MetaGame meta = (MetaGame) game;
+                BattleGame battleGame = meta.getBattleGame();                
+                Battle battle = new Battle(leaderAttacker, enemy);
+                
+                game.dispatchEvent(new BattleEvent(this, battle));
+                
+                battleGame.enterBattle(battle);
+                game.getApp().pushScreen(new BattleScreen(game.getApp(), game.getState(), battleGame));
+                return super.end();
+            }
+            
+            @Override
+            public void update(TimeStep timeStep) {                        
+            }
+            
+            @Override
+            public void render(Canvas canvas, Camera camera, float alpha) {
+            }
+            
+            @Override
+            public CompletionState getCurrentState() {
+                return CompletionState.Success;
+            }
+            
+            @Override
+            public void cancel() {                
+            }
+        };
+    }
 }

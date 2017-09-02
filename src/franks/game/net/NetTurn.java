@@ -10,5 +10,5 @@ import java.util.List;
  *
  */
 public class NetTurn {
-	public List<NetCommand> commands;
+    public List<NetCommand> commands;
 }

@@ -14,14 +14,14 @@ import franks.game.entity.meta.LeaderEntity;
  */
 public class DoNothingMetaEvaluator implements MetaEvaluator {
 
-	@Override
-	public double calculateScore(LeaderEntity entity, Game game) {
-		return game.getRandomizer().getRandomRange(0.001, 0.05);
-	}
+    @Override
+    public double calculateScore(LeaderEntity entity, Game game) {
+        return game.getRandomizer().getRandomRange(0.001, 0.05);
+    }
 
-	@Override
-	public Command getCommand(Game game) {
-		return null;
-	}
+    @Override
+    public Command getCommand(Game game) {
+        return null;
+    }
 
 }

@@ -16,7 +16,7 @@ import franks.game.entity.Entity;
  */
 public interface BattleEvaluator {
 
-	public double calculateScore(Entity entity, BattleGame game);
-	
-	public Command getCommand(Game game);
+    public double calculateScore(Entity entity, BattleGame game);
+    
+    public Command getCommand(Game game);
 }

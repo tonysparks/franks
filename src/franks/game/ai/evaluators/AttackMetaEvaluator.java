@@ -22,78 +22,78 @@ import franks.math.Vector2f;
  */
 public class AttackMetaEvaluator implements MetaEvaluator {
 
-	private LeaderEntity selectedEntity;
-	private LeaderEntity targetEntity;
+    private LeaderEntity selectedEntity;
+    private LeaderEntity targetEntity;
 
-	@Override
-	public double calculateScore(LeaderEntity entity, Game game) {		
-		Randomizer rand = game.getRandomizer();
-		
-		double bestScore = 0;
-		
-		this.selectedEntity = entity;
-		this.targetEntity = null;
-		
-		int availablePoints = entity.getMeter().remaining();
-		int aiSquadScore = calculateSquadScore(entity);
-		
-		List<LeaderEntity> enemies = game.getOtherTeam(entity.getTeam()).getLeaders();
-		for(LeaderEntity enemyLeader : enemies) {						
-			double score = 0;
-			
-			if(enemyLeader.isAlive()) {
-				int attackCost = entity.calculateAttackCost(enemyLeader);
-				if(attackCost > 0) {
-					if(attackCost <= availablePoints) {
-						
-						int enemySquadScore = calculateSquadScore(enemyLeader);
-						
-						if(aiSquadScore >= enemySquadScore) {
-							score += rand.getRandomRange(0.7, 0.9);
-						}					
-						else {
-							score += rand.getRandomRange(0.4, 0.6);
-						}
-					}
-				}
-			}
-			
-			if(score > bestScore) {
-				bestScore = score;
-				this.targetEntity = enemyLeader;
-			}
-		}
-		
-		if(this.targetEntity==null) {
-			bestScore = 0;
-		}
-		
-		if(bestScore>0) {
-			bestScore += rand.getRandomRange(0.2, 0.35);
-		}
-		
-		System.out.println("Attack Score: " + bestScore);
-		
-		return bestScore;
-	}
-	
-	private int calculateSquadScore(LeaderEntity entity) {		
-		int totalScore = 0;
-		for(Entity ent : entity.getEntities()) {
-			int healthScore = (int) (((double)ent.getHealth() / (double)ent.getMaxHealth()) * 100);
-			int entityScore = ent.attackRange() + ent.attackBaseCost() + ent.startingActionPoints() + ent.defenseBaseScore();
-			
-			totalScore += (healthScore + entityScore);			
-		}
-		
-		return totalScore;
-	}
-	
-	/* (non-Javadoc)
-	 * @see franks.game.ai.Evaluator#getCommandRequest(franks.game.Game)
-	 */
-	@Override
-	public Command getCommand(Game game) {
-		return new Command(game, ActionType.Attack, this.selectedEntity, this.targetEntity, new Vector2f());
-	}
+    @Override
+    public double calculateScore(LeaderEntity entity, Game game) {        
+        Randomizer rand = game.getRandomizer();
+        
+        double bestScore = 0;
+        
+        this.selectedEntity = entity;
+        this.targetEntity = null;
+        
+        int availablePoints = entity.getMeter().remaining();
+        int aiSquadScore = calculateSquadScore(entity);
+        
+        List<LeaderEntity> enemies = game.getOtherTeam(entity.getTeam()).getLeaders();
+        for(LeaderEntity enemyLeader : enemies) {                        
+            double score = 0;
+            
+            if(enemyLeader.isAlive()) {
+                int attackCost = entity.calculateAttackCost(enemyLeader);
+                if(attackCost > 0) {
+                    if(attackCost <= availablePoints) {
+                        
+                        int enemySquadScore = calculateSquadScore(enemyLeader);
+                        
+                        if(aiSquadScore >= enemySquadScore) {
+                            score += rand.getRandomRange(0.7, 0.9);
+                        }                    
+                        else {
+                            score += rand.getRandomRange(0.4, 0.6);
+                        }
+                    }
+                }
+            }
+            
+            if(score > bestScore) {
+                bestScore = score;
+                this.targetEntity = enemyLeader;
+            }
+        }
+        
+        if(this.targetEntity==null) {
+            bestScore = 0;
+        }
+        
+        if(bestScore>0) {
+            bestScore += rand.getRandomRange(0.2, 0.35);
+        }
+        
+        System.out.println("Attack Score: " + bestScore);
+        
+        return bestScore;
+    }
+    
+    private int calculateSquadScore(LeaderEntity entity) {        
+        int totalScore = 0;
+        for(Entity ent : entity.getEntities()) {
+            int healthScore = (int) (((double)ent.getHealth() / (double)ent.getMaxHealth()) * 100);
+            int entityScore = ent.attackRange() + ent.attackBaseCost() + ent.startingActionPoints() + ent.defenseBaseScore();
+            
+            totalScore += (healthScore + entityScore);            
+        }
+        
+        return totalScore;
+    }
+    
+    /* (non-Javadoc)
+     * @see franks.game.ai.Evaluator#getCommandRequest(franks.game.Game)
+     */
+    @Override
+    public Command getCommand(Game game) {
+        return new Command(game, ActionType.Attack, this.selectedEntity, this.targetEntity, new Vector2f());
+    }
 }

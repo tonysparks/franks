@@ -15,34 +15,34 @@ import leola.frontend.listener.Event;
  */
 public class TurnCompletedEvent extends Event {
 
-	private Player playersTurn;
-	private List<Command> executeCommands;
-	
-	/**
-	 * 
-	 * @param source
-	 * @param playersTurn the players who's turn it is
-	 * @param executeCommands the commands executed in the turn.
-	 */
-	public TurnCompletedEvent(Object source, Player playersTurn, List<Command> executeCommands) {
-		super(source);
-		
-		this.playersTurn = playersTurn;
-		this.executeCommands = executeCommands;
-	}
-	
-	/**
-	 * @return the playersTurn
-	 */
-	public Player getPlayersTurn() {
-		return playersTurn;
-	}
-	
-	/**
-	 * @return the executeCommands
-	 */
-	public List<Command> getExecuteCommands() {
-		return executeCommands;
-	}
+    private Player playersTurn;
+    private List<Command> executeCommands;
+    
+    /**
+     * 
+     * @param source
+     * @param playersTurn the players who's turn it is
+     * @param executeCommands the commands executed in the turn.
+     */
+    public TurnCompletedEvent(Object source, Player playersTurn, List<Command> executeCommands) {
+        super(source);
+        
+        this.playersTurn = playersTurn;
+        this.executeCommands = executeCommands;
+    }
+    
+    /**
+     * @return the playersTurn
+     */
+    public Player getPlayersTurn() {
+        return playersTurn;
+    }
+    
+    /**
+     * @return the executeCommands
+     */
+    public List<Command> getExecuteCommands() {
+        return executeCommands;
+    }
 
 }

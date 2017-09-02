@@ -68,7 +68,7 @@ public class Randomizer {
     }
     
     public boolean nextBoolean() {
-    	return this.rand.nextBoolean();
+        return this.rand.nextBoolean();
     }
     
     /**
@@ -79,35 +79,35 @@ public class Randomizer {
      * @return a random number
      */
     public int nextInt(int max, double percentage) {
-    	double m = (double)max * percentage;
-    	int n = max - (int)m;
-    	return (int)m + nextInt(Math.max(n, 1));
+        double m = (double)max * percentage;
+        int n = max - (int)m;
+        return (int)m + nextInt(Math.max(n, 1));
     }
     
-	public double getRandomRange(double min, double max) {
-		return getRandomRange(rand, min, max);
-	}	
-	
-	public double getRandomRangeMin(double min) {
-		return getRandomRangeMin(rand, min);
-	}
-	
-	public double getRandomRangeMax(double max) {
-		return getRandomRangeMax(rand, max);
-	}
-	
-	
-	public static double getRandomRange(Random random, double min, double max) {
-		return min + (random.nextDouble() * (max - min));
-	}	
-	
-	public static double getRandomRangeMin(Random random, double min) {
-		return getRandomRange(random, min, 1.0);
-	}
-	
-	public static double getRandomRangeMax(Random random, double max) {
-		return getRandomRange(random, 0.0, max);
-	}
+    public double getRandomRange(double min, double max) {
+        return getRandomRange(rand, min, max);
+    }    
+    
+    public double getRandomRangeMin(double min) {
+        return getRandomRangeMin(rand, min);
+    }
+    
+    public double getRandomRangeMax(double max) {
+        return getRandomRangeMax(rand, max);
+    }
+    
+    
+    public static double getRandomRange(Random random, double min, double max) {
+        return min + (random.nextDouble() * (max - min));
+    }    
+    
+    public static double getRandomRangeMin(Random random, double min) {
+        return getRandomRange(random, min, 1.0);
+    }
+    
+    public static double getRandomRangeMax(Random random, double max) {
+        return getRandomRange(random, 0.0, max);
+    }
     
     
 
@@ -124,7 +124,7 @@ public class Randomizer {
 //        }
         
         for(int i = 0; i < 10; i++) {
-        	System.out.println(rand2.nextInt(100, 0));
+            System.out.println(rand2.nextInt(100, 0));
         }
     }
 }

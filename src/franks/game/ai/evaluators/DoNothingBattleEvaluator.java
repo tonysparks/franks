@@ -15,14 +15,14 @@ import franks.game.entity.Entity;
  */
 public class DoNothingBattleEvaluator implements BattleEvaluator {
 
-	@Override
-	public double calculateScore(Entity entity, BattleGame game) {
-		return game.getRandomizer().getRandomRange(0.001, 0.05);
-	}
+    @Override
+    public double calculateScore(Entity entity, BattleGame game) {
+        return game.getRandomizer().getRandomRange(0.001, 0.05);
+    }
 
-	@Override
-	public Command getCommand(Game game) {
-		return null;
-	}
+    @Override
+    public Command getCommand(Game game) {
+        return null;
+    }
 
 }

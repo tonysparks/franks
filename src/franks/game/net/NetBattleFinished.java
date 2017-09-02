@@ -9,10 +9,10 @@ package franks.game.net;
  */
 public class NetBattleFinished {
 
-	public int victoryLeaderEntityId;
-	public int defeatedLeaderEntityId;
-	
-	public NetBattleFinished() {	
-	}
+    public int victoryLeaderEntityId;
+    public int defeatedLeaderEntityId;
+    
+    public NetBattleFinished() {    
+    }
 
 }

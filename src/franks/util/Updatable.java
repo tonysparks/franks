@@ -1,5 +1,5 @@
 /*
- *	leola-live 
+ *    leola-live 
  *  see license.txt
  */
 package franks.util;
@@ -10,9 +10,9 @@ package franks.util;
  */
 public interface Updatable {
 
-	/**
-	 * @param timeStep
-	 */
-	public void update(TimeStep timeStep);
+    /**
+     * @param timeStep
+     */
+    public void update(TimeStep timeStep);
 }
 

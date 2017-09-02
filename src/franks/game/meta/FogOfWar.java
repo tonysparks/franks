@@ -18,33 +18,33 @@ import franks.util.Updatable;
  */
 public class FogOfWar implements Updatable {
 
-	private Timer visibilityCheckTimer;
-	private Game game;
-	
-	/**
-	 * 
-	 */
-	public FogOfWar(Game game) {
-		this.game = game;
-		this.visibilityCheckTimer = new Timer(true, 200);
-	}
-	
-	@Override
-	public void update(TimeStep timeStep) {
-		visibilityCheckTimer.update(timeStep);
-		
-		if(this.visibilityCheckTimer.isOnFirstTime()) {
-			game.getWorld().updateVisibility();
-			Player localPlayer = game.getLocalPlayer();
-			
-			for(Entity ent : game.getEntities()) {
-				if(localPlayer.owns(ent)) {
-					ent.visitTiles(game.getMap());
-				}
-			}
-		}
-		
-		
-	}
+    private Timer visibilityCheckTimer;
+    private Game game;
+    
+    /**
+     * 
+     */
+    public FogOfWar(Game game) {
+        this.game = game;
+        this.visibilityCheckTimer = new Timer(true, 200);
+    }
+    
+    @Override
+    public void update(TimeStep timeStep) {
+        visibilityCheckTimer.update(timeStep);
+        
+        if(this.visibilityCheckTimer.isOnFirstTime()) {
+            game.getWorld().updateVisibility();
+            Player localPlayer = game.getLocalPlayer();
+            
+            for(Entity ent : game.getEntities()) {
+                if(localPlayer.owns(ent)) {
+                    ent.visitTiles(game.getMap());
+                }
+            }
+        }
+        
+        
+    }
 
 }

@@ -8,5 +8,5 @@ package franks.game.net;
  *
  */
 public class NetEntity extends NetEntityPartial {
-	public String dataFile;	
+    public String dataFile;    
 }

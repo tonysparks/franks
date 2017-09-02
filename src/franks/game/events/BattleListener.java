@@ -14,6 +14,6 @@ import leola.frontend.listener.EventMethod;
  */
 public interface BattleListener extends EventListener {
 
-	@EventMethod
-	public void onBattle(BattleEvent event);
+    @EventMethod
+    public void onBattle(BattleEvent event);
 }

@@ -14,20 +14,20 @@ import franks.util.State;
 public interface Screen extends State {
 
 
-	/**
-	 * Clean up resources associated with this screen
-	 */
-	public void destroy();
-	
-	/**
-	 * Render this object.
-	 * 
-	 * @param renderer
-	 */
-	public void render(Canvas canvas, float alpha);
-	
-	/**
-	 * @return the {@link Inputs} handler
-	 */
-	public Inputs getInputs();
+    /**
+     * Clean up resources associated with this screen
+     */
+    public void destroy();
+    
+    /**
+     * Render this object.
+     * 
+     * @param renderer
+     */
+    public void render(Canvas canvas, float alpha);
+    
+    /**
+     * @return the {@link Inputs} handler
+     */
+    public Inputs getInputs();
 }

@@ -8,5 +8,5 @@ package franks.game.net;
  *
  */
 public class NetArmy {
-	public String name;
+    public String name;
 }

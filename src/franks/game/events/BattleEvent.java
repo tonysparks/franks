@@ -12,22 +12,22 @@ import leola.frontend.listener.Event;
  */
 public class BattleEvent extends Event {
 
-	private Battle battle;
-	
-	/**
-	 * 
-	 * @param source
-	 * @param battle
-	 */
-	public BattleEvent(Object source, Battle battle) {
-		super(source);
-		this.battle = battle;
-	}
-	
-	/**
-	 * @return the battle
-	 */
-	public Battle getBattle() {
-		return battle;
-	}
+    private Battle battle;
+    
+    /**
+     * 
+     * @param source
+     * @param battle
+     */
+    public BattleEvent(Object source, Battle battle) {
+        super(source);
+        this.battle = battle;
+    }
+    
+    /**
+     * @return the battle
+     */
+    public Battle getBattle() {
+        return battle;
+    }
 }

@@ -12,7 +12,7 @@ import franks.util.TimeStep;
  *
  */
 public class KeyboardGameController extends Inputs implements GameController {
-	
+    
     /*
      * (non-Javadoc)
      * @see seventh.client.GameController#pollInputs(seventh.shared.TimeStep, seventh.client.KeyMap, seventh.client.gfx.Cursor, int)

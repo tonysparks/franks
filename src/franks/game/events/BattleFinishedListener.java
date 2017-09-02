@@ -14,6 +14,6 @@ import leola.frontend.listener.EventMethod;
  */
 public interface BattleFinishedListener extends EventListener {
 
-	@EventMethod
-	public void onTurnCompleted(TurnCompletedEvent event);
+    @EventMethod
+    public void onTurnCompleted(TurnCompletedEvent event);
 }

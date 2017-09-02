@@ -16,46 +16,46 @@ import franks.gfx.Art;
  */
 public class TextureCache {
 
-	private Map<String, TextureRegion> textures;
-	
-	/**
-	 * 
-	 */
-	public TextureCache() {
-		this.textures = new HashMap<>();
-	}
-	
-	public TextureRegion getTexture(String name) {
-		if(!textures.containsKey(name)) {
-			TextureRegion tex = Art.loadImage(name);
-			textures.put(name, tex);
-		}
-		
-		return textures.get(name);
-	}
-	
-	public TextureRegion getTexture(String name, int mask) {
-		if(!textures.containsKey(name)) {
-			TextureRegion tex = Art.loadImage(name, mask);
-			textures.put(name, tex);
-		}
-		
-		return textures.get(name);
-	}
+    private Map<String, TextureRegion> textures;
+    
+    /**
+     * 
+     */
+    public TextureCache() {
+        this.textures = new HashMap<>();
+    }
+    
+    public TextureRegion getTexture(String name) {
+        if(!textures.containsKey(name)) {
+            TextureRegion tex = Art.loadImage(name);
+            textures.put(name, tex);
+        }
+        
+        return textures.get(name);
+    }
+    
+    public TextureRegion getTexture(String name, int mask) {
+        if(!textures.containsKey(name)) {
+            TextureRegion tex = Art.loadImage(name, mask);
+            textures.put(name, tex);
+        }
+        
+        return textures.get(name);
+    }
 
-	public void removeTexture(String name) {
-		textures.remove(name);
-	}
-	
-	public void disposeTexture(String name) {
-		TextureRegion tex = textures.remove(name);
-		if(tex!=null) {
-			tex.getTexture().dispose();
-		}
-	}
-	
-	public void dispose() {
-		textures.forEach( (k,v) -> v.getTexture().dispose());
-		textures.clear();
-	}
+    public void removeTexture(String name) {
+        textures.remove(name);
+    }
+    
+    public void disposeTexture(String name) {
+        TextureRegion tex = textures.remove(name);
+        if(tex!=null) {
+            tex.getTexture().dispose();
+        }
+    }
+    
+    public void dispose() {
+        textures.forEach( (k,v) -> v.getTexture().dispose());
+        textures.clear();
+    }
 }

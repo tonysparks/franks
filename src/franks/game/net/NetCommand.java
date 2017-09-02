@@ -16,19 +16,19 @@ import franks.math.Vector2f;
  */
 public class NetCommand {
 
-	public ActionType type;
-	public int selectedEntityId;
-	public int targetEntityId;
-	public Vector2f cursorTilePos;
-	public Vector2f cursorPos;
-	
-	
-	public Entity dispatchCommand(Game game) {
-		EntityList entities = game.getEntities();
-		Entity ent = entities.getEntity(selectedEntityId);
-		if(ent!=null) {
-			ent.queueAction(new Command(game, this));
-		}
-		return ent;
-	}
+    public ActionType type;
+    public int selectedEntityId;
+    public int targetEntityId;
+    public Vector2f cursorTilePos;
+    public Vector2f cursorPos;
+    
+    
+    public Entity dispatchCommand(Game game) {
+        EntityList entities = game.getEntities();
+        Entity ent = entities.getEntity(selectedEntityId);
+        if(ent!=null) {
+            ent.queueAction(new Command(game, this));
+        }
+        return ent;
+    }
 }

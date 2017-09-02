@@ -9,7 +9,7 @@ package franks.game;
  */
 public interface ResourceLoader {
 
-	public TextureCache getTextureCache();
-	
-	public <T> T loadData(String file, Class<T> type);
+    public TextureCache getTextureCache();
+    
+    public <T> T loadData(String file, Class<T> type);
 }
