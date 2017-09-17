@@ -79,6 +79,10 @@ public class EntityList implements Renderable, Iterable<Entity> {
         this.entities[entity.getId()] = entity;
     }
     
+    public void removeEntity(Entity entity) {
+        this.entities[entity.getId()] = null;
+    }
+    
     public Entity getEntity(int id) {
         if(ids.validId(id)) {            
             return this.entities[id];

@@ -87,6 +87,7 @@ public class Entity implements Renderable {
     
     protected Resources resources;
     protected EntityList heldEntities;
+    protected Entity holder;
     
                 
     public Entity(int id, Game game, Army army, EntityData data) {
@@ -190,9 +191,9 @@ public class Entity implements Renderable {
      */
     public String getEntityDataFileName(String entityType) {
         if(entityType.toLowerCase().endsWith(".json")) {
-            return getTeam().getName().toLowerCase() + "_" + entityType.toLowerCase();    
+            return /*getTeam().getName().toLowerCase() + "_" +*/ entityType.toLowerCase();    
         }
-        return getTeam().getName().toLowerCase() + "_" + entityType.toLowerCase() + ".json";
+        return /*getTeam().getName().toLowerCase() + "_" +*/ entityType.toLowerCase() + ".json";
     }
     
     /**
@@ -236,10 +237,26 @@ public class Entity implements Renderable {
     
     public void addHeldEntity(Entity entity) {
         heldEntities.addEntity(entity);
+        entity.holder = this;
     }
     
     public void removeHeldDeadEntities() {
         heldEntities.removeDead();
+    }
+    
+    public void detachEntity() {
+        if(this.holder!=null) {
+            this.holder.heldEntities.removeEntity(this);
+        }
+        
+        this.holder = null;
+    }
+    
+    /**
+     * @return the holder
+     */
+    public Entity getHolder() {
+        return holder;
     }
     
     /**
@@ -1051,6 +1068,11 @@ public class Entity implements Renderable {
         canvas.drawLine( x, y-3, x+width, y-3, 0x2f000000 );
         canvas.drawLine( x, y-2, x+width, y-2, 0x5f000000 );
         canvas.drawLine( x, y-1, x+width, y-1, 0x8f000000 );                
+    }
+    
+    @Override
+    public String toString() {     
+        return this.entityType.name();
     }
 }
 

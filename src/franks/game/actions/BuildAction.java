@@ -90,7 +90,7 @@ public class BuildAction extends Action {
             public ExecutedAction end() {
                 // TODO: Create the building
                 EntityInstanceData buildingData = new EntityInstanceData();
-                buildingData.dataFile = getEntity().getEntityDataFileName("town_center");
+                buildingData.dataFile = getEntity().getEntityDataFileName(data.entityType);
                 buildingData.direction = Direction.SOUTH;
                 buildingData.x = tile.getXIndex();
                 buildingData.y = tile.getYIndex();

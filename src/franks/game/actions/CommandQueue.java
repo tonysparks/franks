@@ -51,10 +51,10 @@ public class CommandQueue implements Renderable {
             if(currentAction.isPresent()) {
                 ExecutedAction action = currentAction.get();
                 return action.hasEnded() || action.spansTurns();
-            }
-            return true;
+            }            
         }
-        return false;
+        
+        return true;
     }
     
     public CommandQueue cancel() {

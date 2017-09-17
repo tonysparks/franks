@@ -79,7 +79,9 @@ public class CreateUnitAction extends Action {
             @Override
             public ExecutedAction start() {
                 Sounds.playGlobalSound(Sounds.build);
-                getEntity().setCurrentState(EntityState.BUILDING);               
+                getEntity().setCurrentState(EntityState.BUILDING); 
+                getEntity().getResources().sub(new Resources(data.resources));
+                
                 return this;
             }
             
@@ -92,6 +94,7 @@ public class CreateUnitAction extends Action {
                 entityData.direction = Direction.SOUTH;
                                 
                 Entity newEntity = game.buildEntity(getEntity().getTeam(), entityData);
+                newEntity.moveTo(-200, -200); // move off the board
                 
                 getEntity().addHeldEntity(newEntity);
                 getEntity().setCurrentState(EntityState.IDLE);

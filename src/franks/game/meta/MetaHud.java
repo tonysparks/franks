@@ -14,11 +14,13 @@ import franks.FranksGame;
 import franks.game.AttackCostAnalyzer;
 import franks.game.Game;
 import franks.game.MovementCostAnalyzer;
+import franks.game.Resources;
 import franks.game.World;
 import franks.game.actions.Action;
 import franks.game.actions.ActionType;
 import franks.game.entity.Direction;
 import franks.game.entity.Entity;
+import franks.game.entity.EntityList;
 import franks.game.entity.EntityModel;
 import franks.game.events.EntitySelectedEvent;
 import franks.game.events.EntitySelectedListener;
@@ -158,7 +160,10 @@ public class MetaHud implements Renderable {
             
             @Override
             public void onButtonClicked(ButtonEvent event) {
-                game.setActionContext(action.getType());  
+                game.setActionContext(action.getType());
+                if(action.getType().isCreateAction()) {
+                    game.dispatchCommand(game.getActionContext());
+                }
             }
         });
         
@@ -240,13 +245,14 @@ public class MetaHud implements Renderable {
             float sy = 20;
             RenderFont.drawShadedString(canvas, "Selected: " + selectedEntity.getName(), sx, sy, textColor);
             renderEntityAttributes(canvas, selectedEntity, sx, sy + 15, textColor);
+            renderSelectedEntity(canvas, selectedEntity, textColor);
         }
                 
         Entity hoveredOverEntity = game.getEntityOverMouse();
         if(hoveredOverEntity != null) {
             Vector2f pos = cursor.getCursorPos();
             RenderFont.drawShadedString(canvas, "" + hoveredOverEntity.getName(), pos.x + 30, pos.y, textColor);
-            renderEntityAttributes(canvas, hoveredOverEntity, pos.x + 30, pos.y + 15, textColor);
+            renderEntityAttributes(canvas, hoveredOverEntity, pos.x + 30, pos.y + 15, textColor);            
         }
                 
         Vector2f pos = cursor.getCenterPos();
@@ -279,26 +285,40 @@ public class MetaHud implements Renderable {
     }
     
     private void renderEntityAttributes(Canvas canvas, Entity entity, float x, float y, int textColor) {
-//        LeoMap attributes = entity.getAttributes();
-//        if(!attributes.isEmpty()) {
-//            //RenderFont.drawShadedString(canvas, "Attributes: ", x, y, textColor);
-//            
-//            for(int i = 0; i < attributes.bucketLength(); i++) {
-//                LeoObject key = attributes.getKey(i);
-//                if(key!=null) {
-//                    LeoObject value = attributes.getValue(i);
-//                    RenderFont.drawShadedString(canvas, key + ": " + value, x, y, textColor);
-//                    y+=15;
-//                }
-//            }
-//        }
-                
         float healthPer = ((float)entity.getHealth() / (float)entity.getMaxHealth()) * 100f;
         RenderFont.drawShadedString(canvas, "Health: " + (int) healthPer + "%" , x, y, textColor);
         RenderFont.drawShadedString(canvas, "Defense: " + entity.calculateDefenseScore(), x, y+15, textColor);
         RenderFont.drawShadedString(canvas, "Attack Base Cost: " + entity.attackBaseCost(), x, y+30, textColor);
         RenderFont.drawShadedString(canvas, "Movement Base Cost: " + entity.movementBaseCost(), x, y+45, textColor);
         RenderFont.drawShadedString(canvas, "ActionPoints: " + entity.getMeter().remaining(), x, y+60, textColor);
+        
+    }
+    
+    
+    private void renderSelectedEntity(Canvas canvas, Entity entity, int textColor) {
+
+        Resources resources = entity.getResources();
+        if(resources != null) {
+            RenderFont.drawShadedString(canvas, "Gold: " + resources.getGold(), 120, 570, textColor);
+            RenderFont.drawShadedString(canvas, "Food: " + resources.getFood(), 270, 570, textColor);
+            RenderFont.drawShadedString(canvas, "Material: " + resources.getMaterial(), 420, 570, textColor);
+        }
+        
+        EntityList entities = entity.getHeldEntities();
+        if(entities!=null) {
+            int x = 110;
+            int y = 650;
+            for(Entity ent : entities) {
+                TextureRegion tex = ent.getModel().getHudDisplay();
+                canvas.fillRect(x, y, 32, 32, 0xff000000);
+                canvas.drawRect(x, y, 32, 32, 0xffffffff);
+                
+                if(tex != null) {
+                    canvas.drawScaledImage(tex, x+1, y+1, 30, 30, null);
+                }
+                x += 40;
+            }
+        }
     }
     
     private void drawMouseHover(Canvas canvas, Camera camera, float alpha) {
