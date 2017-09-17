@@ -1,5 +1,5 @@
 /*
- *	leola-live 
+ *    leola-live 
  *  see license.txt
  */
 package franks.map;
@@ -14,12 +14,12 @@ import franks.graph.GraphNode;
  *
  */
 public interface GraphNodeFactory<T> {
-	
-	/**
-	 * @param map
-	 * @param left
-	 * @param right
-	 * @return a new edge data
-	 */
-	public T createEdgeData(Map map, GraphNode<MapTile, T> left, GraphNode<MapTile, T> right);
+    
+    /**
+     * @param map
+     * @param left
+     * @param right
+     * @return a new edge data
+     */
+    public T createEdgeData(Map map, GraphNode<MapTile, T> left, GraphNode<MapTile, T> right);
 }

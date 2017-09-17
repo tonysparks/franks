@@ -32,10 +32,10 @@ import leola.frontend.listener.EventMethod;
  */
 public interface OnSliderMovedListener extends EventListener {
 
-	/**
-	 * The slider was moved
-	 * @param event
-	 */
-	@EventMethod
-	public void onSliderMoved(SliderMovedEvent event);
+    /**
+     * The slider was moved
+     * @param event
+     */
+    @EventMethod
+    public void onSliderMoved(SliderMovedEvent event);
 }

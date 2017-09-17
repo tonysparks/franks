@@ -10,7 +10,7 @@ package franks.gfx;
 public class Draw {
 
 
-	public static void drawIsoRect(Canvas canvas, int x, int y, int width, int height, Integer color) {
-		
-	}
+    public static void drawIsoRect(Canvas canvas, int x, int y, int width, int height, Integer color) {
+        
+    }
 }

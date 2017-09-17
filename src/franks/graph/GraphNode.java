@@ -85,9 +85,9 @@ public class GraphNode<E, T> {
         for(int i = 0; i < edges.size(); i++) {
             Edge<E,T> edge = edges.get(i);
             if(edge == null) {
-            	continue;
+                continue;
             }
-        	
+            
             /* Notice we check if the REFERENCE equals the right node */
             if (edge.getRight() == rightNode) {
                 result = edge;

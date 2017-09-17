@@ -4,7 +4,7 @@
 package franks.graph;
 
 /**
- * An {@link Edge} denotes the 'link' between two {@link GraphNode}s.  An {@link Edge} can have an associated cost and data.
+ * An {@link Edge} denotes the 'link' between two {@link GraphNode}s.  An {@link Edge} can have an associated actionPoints and data.
  * 
  * @author Tony
  *
@@ -37,7 +37,7 @@ public class Edge<E, T> {
      * @param left - the left {@link GraphNode}
      * @param right - the right {@link GraphNode}
      * @param value - the data stored in this edge.
-     * @param weight - the cost of this edge (used for searching).
+     * @param weight - the actionPoints of this edge (used for searching).
      */
     public Edge(GraphNode<E, T> left, GraphNode<E, T> right, T value, int weight) {
         this.left = left;

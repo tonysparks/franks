@@ -11,12 +11,12 @@ import java.util.List;
  */
 public class NetGamePartialState {
 
-	public List<NetEntity> redEntities;
-	public List<NetEntity> greenEntities;
-	
-	public int turnNumber;
-	
-	public NetGamePartialState() {
-	}
+    public List<NetEntity> redEntities;
+    public List<NetEntity> greenEntities;
+    
+    public int turnNumber;
+    
+    public NetGamePartialState() {
+    }
 
 }

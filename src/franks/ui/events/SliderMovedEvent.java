@@ -31,24 +31,24 @@ import leola.frontend.listener.Event;
  */
 public class SliderMovedEvent extends Event {
 
-	/**
-	 * Slider
-	 */
-	private Slider slider;
+    /**
+     * Slider
+     */
+    private Slider slider;
 
-	/**
-	 * @param source
-	 * @param slider
-	 */
-	public SliderMovedEvent(Object source, Slider slider) {
-		super(source);
-		this.slider = slider;
-	}
+    /**
+     * @param source
+     * @param slider
+     */
+    public SliderMovedEvent(Object source, Slider slider) {
+        super(source);
+        this.slider = slider;
+    }
 
-	/**
-	 * @return the slider
-	 */
-	public Slider getSlider() {
-		return slider;
-	}
+    /**
+     * @return the slider
+     */
+    public Slider getSlider() {
+        return slider;
+    }
 }

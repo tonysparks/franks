@@ -3,634 +3,594 @@
  */
 package franks.game;
 
-import java.io.IOException;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.websocket.ContainerProvider;
-import javax.websocket.Session;
-import javax.websocket.WebSocketContainer;
-
-import org.hjson.JsonValue;
-
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Color;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
 import franks.FranksGame;
-import franks.game.Team.TeamName;
-import franks.game.ai.AISystem;
-import franks.game.commands.Command.CommandType;
-import franks.game.commands.CommandQueue.CommandRequest;
+import franks.game.actions.ActionType;
+import franks.game.actions.Command;
 import franks.game.entity.Entity;
 import franks.game.entity.EntityData;
 import franks.game.entity.EntityGroupData;
 import franks.game.entity.EntityGroupData.EntityInstanceData;
 import franks.game.entity.EntityList;
+import franks.game.events.EntitySelectedEvent;
+import franks.game.events.EntityUnselectedEvent;
 import franks.game.net.NetEntity;
-import franks.game.net.NetGameFullState;
-import franks.game.net.NetGamePartialState;
-import franks.game.net.NetMessage;
+import franks.game.net.NetLeaderEntity;
 import franks.game.net.PeerConnection;
-import franks.game.net.websocket.WebSocketClient;
 import franks.gfx.Camera;
-import franks.gfx.Canvas;
 import franks.gfx.Cursor;
+import franks.gfx.GameController;
 import franks.gfx.Renderable;
 import franks.gfx.Terminal;
 import franks.map.IsometricMap;
+import franks.map.Map;
 import franks.map.MapTile;
 import franks.math.Vector2f;
-import franks.util.Command;
 import franks.util.Cons;
-import franks.util.Console;
 import franks.util.TimeStep;
+import leola.frontend.listener.Event;
+import leola.frontend.listener.EventListener;
 
 /**
  * @author Tony
  *
  */
-public class Game implements Renderable {
+public abstract class Game implements Renderable, ResourceLoader { 
+    
+    private FranksGame app;
+    protected GameState gameState;
+    protected World world;
+    
+    protected EntityList entities;
+    
+    protected Entity selectedEntity;
+    protected Entity hoveredOverEntity;
+        
+    private Vector2f cursorPos;
+    private Cursor cursor;
+    
+    private Terminal terminal;
+    
+    protected Turn currentTurn;
+        
+    protected Camera camera;
+    private CameraController cameraController;
+    private int inputKeys;
+        
+    protected Army redTeam, greenTeam;
+    protected Player redPlayer;
+    protected Player greenPlayer;
+        
+    protected OtherPlayer otherPlayer;
+    
+    protected Ids entitityIds;
+    
 
-	public static final int MAX_ENTITIES = 256;
-	
-	private FranksGame app;
-	private World world;
-	
-	private EntityList entities;
-	
-	private Entity selectedEntity;
-	private Entity hoveredOverEntity;
-		
-	private Vector2f cursorPos;
-	private Cursor cursor;
-	
-	private Terminal terminal;
-	
-	private Randomizer randomizer;
-	private Turn currentTurn;
-	
-	private Hud hud;
-	
-	private Camera camera;
-	private CameraController cameraController;
-	
-	private TextureCache textureCache;
-	private Gson gson;
-	
-	private Team redTeam, greenTeam;
-	private Player redPlayer;
-	private Player greenPlayer;
-	
-	private Player localPlayer;
-	private boolean isSinglePlayer;
-	
-	private PeerConnection connection;
-	
-	private AISystem ai;
-	
-	/**
-	 * 
-	 */
-	public Game(FranksGame app, Camera camera, boolean isSinglePlayer) {
-		this.camera = camera;
-		this.isSinglePlayer = isSinglePlayer;
-		this.gson = new GsonBuilder().create();
-		this.textureCache = new TextureCache();
-		this.entities = new EntityList(this);
-		this.cursorPos = new Vector2f();
-		
-		this.terminal = app.getTerminal();
-		this.randomizer = new Randomizer();
+    /**
+     * The current action 
+     */
+    private ActionType actionContext;
+    
+    /**
+     * 
+     */
+    public Game(FranksGame app, GameState state, Camera camera) {
+        this.app = app;
+        this.camera = camera;
+        this.gameState = state;                
+        
+        this.entitityIds = app.getEntityIds();
+                
+        this.greenPlayer = state.getGreenPlayer();
+        this.greenTeam = this.greenPlayer.getTeam();
+        
+        this.redPlayer = state.getRedPlayer();
+        this.redTeam = this.redPlayer.getTeam();
+                
+        this.otherPlayer = state.getOtherPlayer();
+        
+        this.entities = new EntityList(getEntitityIds());
+        this.cursorPos = new Vector2f();
+        
+        this.terminal = app.getTerminal();
+        this.cursor = app.getUiManager().getCursor();
+        
+        this.world = createWorld(state);        
+        this.cameraController = new CameraController(this.entities, world.getMap(), camera);
+        
+        setDefaultActionContext();
+    }
+    
+    /**
+     * @param actionContext the actionContext to set
+     */
+    public void setActionContext(ActionType actionContext) {
+        this.actionContext = actionContext;        
+    }
+    
+    
+    /**
+     * Sets the action context to the default
+     */
+    public void setDefaultActionContext() {
+        setActionContext(ActionType.Move);        
+    }
+       
+    
+    /**
+     * @return the actionContext
+     */
+    public ActionType getActionContext() {
+        return actionContext;
+    }
+        
+    public void setTurn(Player active, int turnNumber) {
+        this.currentTurn = new Turn(this, active, turnNumber);
+    }
+    
+    public void enter() {
+        this.gameState.setActiveGame(this);
+        
+        Map map = getWorld().getMap();
+        this.camera.setWorldBounds(new Vector2f(map.getMapWidth(), map.getMapHeight()));
+        Army localTeam = getLocalPlayer().getTeam();
+        if(localTeam.armySize() > 0) {
+            centerCameraAround(localTeam.getLeaders().get(0).getScreenPosition());
+        }
+        else {
+            centerCameraAround(new Vector2f(map.getMapWidth()/2f, map.getMapHeight()/2f));
+        }                
+    }
+    
+    public void exit() {}
+    
+    
+    public boolean isConnected() {
+        return this.gameState.isConnected();
+    }
+    
+    public PeerConnection getConnection() {
+        return this.gameState.getConnection();
+    }
 
-		this.cursor = app.getUiManager().getCursor();
-		this.world = new World(this); 
-		
-		this.cameraController = new CameraController(world.getMap(), camera);
-	
-		this.redTeam = new Team("Red", new Color(0.98f, 0.67f, 0.67f, 0.78f));
-		this.greenTeam = new Team("Green", new Color(0.67f, 0.98f, 0.67f, 0.78f));
-		
-		this.hud = new Hud(this);
-		
-		this.redPlayer = new Player("Red Player", redTeam);
-		this.greenPlayer = new Player("Green Player", greenTeam);
-		this.localPlayer = this.greenPlayer;
-		
-		this.currentTurn = new Turn(this, this.localPlayer, 0);
+    
+    /**
+     * Centers the camera around the supplied screen position
+     * @param screenPos
+     */
+    public void centerCameraAround(Vector2f screenPos) {
+        this.camera.centerAroundNow(screenPos);
+        this.cameraController.resetToCameraPos();
+    }
+    
+    /**
+     * Creates the {@link World} for this {@link Game} instance
+     * 
+     * @param gameState
+     * @return the {@link World}
+     */
+    protected abstract World createWorld(GameState state);
+    
+    
+    public EntityData loadEntity(String file) {
+        EntityData data = loadData(file, EntityData.class);
+        data.dataFile = file;
+        return data;
+    }
+    
+    public EntityGroupData loadGroupData(String file) {
+        return loadData(file, EntityGroupData.class);
+    }
+    
+    @Override
+    public <T> T loadData(String file, Class<T> type) {
+        return gameState.loadData(file, type);
+    }
+    
+    /**
+     * Dispatches an event
+     * @param event
+     */
+    public void dispatchEvent(Event event) {
+        this.gameState.getDispatcher().queueEvent(event);
+    }
+    
+    /**
+     * Registers to an event entityType
+     * 
+     * @param eventType
+     * @param listener
+     */
+    public void registerEventListener(Class<?> eventType, EventListener listener) {
+        this.gameState.getDispatcher().addEventListener(eventType, listener);
+    }
+    
+    /**
+     * @return the gameState
+     */
+    public GameState getState() {
+        return gameState;
+    }
+    
+    /**
+     * @return the app
+     */
+    public FranksGame getApp() {
+        return app;
+    }
+    
+    /**
+     * @return the entitityIds
+     */
+    public Ids getEntitityIds() {
+        return entitityIds;
+    }
+    
+    /**
+     * @return the camera
+     */
+    public Camera getCamera() {
+        return camera;
+    }
+    
+    
+    /**
+     * @return the localPlayer
+     */
+    public Player getLocalPlayer() {
+        return gameState.getLocalPlayer();
+    }
+    
+    public Player getAIPlayer() {
+        return gameState.getAIPlayer();
+    }
+    
+    /**
+     * @return the greenPlayer
+     */
+    public Player getGreenPlayer() {
+        return greenPlayer;
+    }
+    
+    /**
+     * @return the redPlayer
+     */
+    public Player getRedPlayer() {
+        return redPlayer;
+    }
+    
+    /**
+     * @param player
+     * @return the opposite player of the supplied one
+     */
+    public Player getOtherPlayer(Player player) {
+        if(player==greenPlayer) {
+            return redPlayer;
+        }
+        return greenPlayer;
+    }
+    
+    /**
+     * @param army
+     * @return the opposite team of the supplied one
+     */
+    public Army getOtherTeam(Army army) {
+        if(army == greenTeam) {
+            return redTeam;
+        }
+        return greenTeam;
+    }
+    
+    public boolean isSinglePlayer() {
+        return gameState.isSinglePlayer();
+    }
+    
+    /**
+     * @return the cursor
+     */
+    public Cursor getCursor() {
+        return cursor;
+    }
+    
+    
+    @Override
+    public TextureCache getTextureCache() {
+        return this.gameState.getTextureCache();
+    }
+        
+    /**
+     * Builds the {@link Entity} from the {@link EntityInstanceData}
+     * 
+     * @param army
+     * @param ref
+     * @return the {@link Entity}
+     */
+    public Entity buildEntity(Army army, EntityInstanceData ref) {
+        return buildEntity(getEntities(), army, ref);
+    }
+    
+    /**
+     * Builds the {@link Entity} from the {@link EntityInstanceData}
+     * 
+     * @param army
+     * @param ref
+     * @return the {@link Entity}
+     */
+    public Entity buildEntity(EntityList entities, Army army, EntityInstanceData ref) {
+        EntityData data = loadEntity("assets/entities/" + ref.dataFile);
+        Entity dataEnt = entities.buildEntity(this, army, data);
+        dataEnt.moveToRegion(ref.x, ref.y);
+        if(ref.direction!=null) {
+            dataEnt.setCurrentDirection(ref.direction);
+            dataEnt.setDesiredDirection(ref.direction);
+        }
+                
+        return dataEnt;
+    }
+    
+    public Entity buildLeaderEntity(Army army, NetLeaderEntity net, Game battle) {
+        Entity leader = (Entity)buildEntity(army, net);        
+        for(NetEntity netEntity : net.entities) {
+            Entity ent = buildEntity(leader.getHeldEntities(), army, netEntity);
+            leader.addHeldEntity(ent);
+        }
+        return leader;
+    }
+    
+    public Entity buildEntity(Army army, NetEntity net) {
+        return buildEntity(getEntities(), army, net);
+    }
+    
+    public Entity buildEntity(EntityList entities, Army army, NetEntity net) {
+        EntityData data = loadEntity(net.dataFile);
+        Entity dataEnt = entities.buildEntity(net.id, this, army, data);
+        dataEnt.syncFrom(net);
+        return dataEnt;
+    }
+        
+    public Entity getEntityOnTile(MapTile tile) {
+        return entities.getEntityOnTile(tile);
+    }
+    
+    /**
+     * @return the currentTurn
+     */
+    public Turn getCurrentTurn() {
+        return currentTurn;
+    }
+    
+    public void endCurrentTurn() {
+        if(this.currentTurn.isPlayersTurn(getLocalPlayer())) {
+            if(entities.commandsCompleted()) {
+                this.currentTurn.requestForTurnCompletion();
+            }
+        }
+    }
+    
+    public void endCurrentTurnAI() {
+        if(isSinglePlayer()) {
+            if(!this.currentTurn.isPlayersTurn(getLocalPlayer())) {
+                if(entities.commandsCompleted()) {
+                    this.currentTurn.requestForTurnCompletion();
+                }
+            }
+        }
+    }
+    
+    
+    /**
+     * @return true if there is a selected entity
+     */
+    public boolean hasSelectedEntity() {
+        return this.selectedEntity != null;
+    }
+    
+    public boolean hasHoveredOverEntity() {
+        return getEntityOverMouse() != null;
+    }
+    
+    /**
+     * @return the selectedEntity
+     */
+    public Entity getSelectedEntity() {
+        return selectedEntity;
+    }
+        
+    public boolean selectEntity() {
+        setDefaultActionContext();
+        
+        if(this.selectedEntity != null) {
+            this.selectedEntity.isSelected(false);
+            dispatchEvent(new EntityUnselectedEvent(this, this.selectedEntity));
+            
+            this.selectedEntity = null;
+        }
+        
+        Entity newSelectedEntity = getEntityOverMouse();
+        if(newSelectedEntity != null) {
+            newSelectedEntity.isSelected(true);
+            dispatchEvent(new EntitySelectedEvent(this, newSelectedEntity));
+            
+            this.selectedEntity = newSelectedEntity;
+            return true;
+        }
+        return false;
+    }
+        
+    public boolean hoveringOverEntity() {
+        hoveredOverEntity = getEntityOverMouse();        
+        return hoveredOverEntity!=null;
+    }
+    
+    public Entity getEntityOverMouse() {                
+        Vector2f screenPos = getCursorPos();
+        return getEntityOverPos(screenPos);
+    }
+    
+    public Entity getEntityOverPos(Vector2f screenPos) {                        
+        MapTile tile = world.getMapTileByScreenPos(screenPos);
+        if(tile!=null) {
+            return entities.getEntityByBounds(tile.getBounds());
+        }
+        
+        return null;
+    }
+    
+    public MapTile getTileOverMouse() {
+        Vector2f screenPos = getCursorPos();
+        return getTileOverPos(screenPos);
+    }
+    
+    public MapTile getTileOverPos(Vector2f screenPos) {        
+        MapTile tile = world.getMapTileByScreenPos(screenPos);
+        return tile;
+    }
+    
+    public MapTile getTile(Vector2f tilePos) {
+        MapTile tile = world.getMapTile(tilePos);
+        return tile;
+    }
+    
+    /**
+     * @return the entities
+     */
+    public EntityList getEntities() {
+        return entities;
+    }
+    
+    public Entity getEntityById(int id) {
+        return entities.getEntity(id);
+    }
+    
+    /**
+     * @return the randomizer
+     */
+    public Randomizer getRandomizer() {
+        return this.gameState.getRandom();
+    }
+    
+    /**
+     * Get the position of the cursor in screen coordinates
+     * @return the current screen coordinates of the mouse cursor
+     */
+    public Vector2f getCursorPos() {
+        this.cursorPos.set(cursor.getCursorPos());
+        return this.cursorPos;
+    }
+    
+    /**
+     * Get the cursor position relative to tile position
+     * @return the cursor position relative to tile position
+     */
+    public Vector2f getCursorTilePos() {
+        return world.getMapTilePosByScreenPos(getCursorPos());
+    }
+        
+    
+    /**
+     * Dispatches the supplied {@link Command}
+     * 
+     * @param command
+     * @return true if the command was dispatched, false otherwise
+     */
+    public boolean dispatchCommand(Command command) {
+        if(command.selectedEntity==null) {
+            return false;
+        }
+        
+        command.selectedEntity.queueAction(command);
+        return true;
+    }
+    
+    /**
+     * Dispatches the most appropriate command based on the players
+     * selection and mouse position
+     * 
+     * @
+     * @return true if the command was dispatched, false otherwise
+     */
+    public boolean dispatchCommand(ActionType actionType) {
+        if(!currentTurn.isPlayersTurn(getLocalPlayer())) {
+            return false;
+        }
+        
+        if(this.selectedEntity==null) {
+            return false;
+        }
+        
+        if(!getLocalPlayer().owns(selectedEntity)) {
+            return false;
+        }
+        
+        Entity target = getEntityOverMouse();
+        if(actionType == ActionType.Attack) {
+            if(target == null || this.selectedEntity == target) {
+                Cons.println("No valid target");
+                return false;
+            }
+                                    
+            if(!target.isAttackable()) {
+                Cons.println("Unsupported entityType: " + target.getType());
+                return false;
+            }
+                
+            dispatchCommand(new Command(this, ActionType.Attack, selectedEntity));                                   
+        }
+        else {
+            dispatchCommand(new Command(this, actionType, selectedEntity));
+        }
+        
+        return true;
+        
+    }
+    
+    
+    /**
+     * Records the fact that the supplied {@link Command} was executed
+     * this turn.
+     * 
+     * @param request
+     */
+    public void recordCommand(Command command) {        
+        this.currentTurn.recordCommand(command);        
+    }
+    
+    /**
+     * @return the world
+     */
+    public World getWorld() {
+        return world;
+    }
+    
+    public IsometricMap getMap() {
+        return world.getMap();
+    }
 
-		this.ai = new AISystem(this, redPlayer);
-		
-		// temp
-		app.getConsole().addCommand(new Command("reload") {
-			
-			@Override
-			public void execute(Console console, String... args) {
-				entities.clear();
-				world = new World(Game.this);
-				
-				EntityGroupData redGroupData = loadGroupData("assets/red.json");
-				redPlayer.setEntities(redGroupData.buildEntities(redTeam, Game.this));
-				redPlayer.getTeam().shufflePosition(Game.this.randomizer);
-				
-				EntityGroupData greenGroupData = loadGroupData("assets/green.json");
-				greenPlayer.setEntities(greenGroupData.buildEntities(greenTeam, Game.this));
-				greenPlayer.getTeam().shufflePosition(Game.this.randomizer);
-			}
-		});
-		app.getConsole().execute("reload");
-	}
-	
-	public PeerConnection peerConnection(Session session) {
-		if(this.connection!=null) {
-			this.connection.close();
-		}
-		
-		this.connection = new PeerConnection(this, session);
-		return this.connection;
-	}
-	
-	public boolean connectToPeer(String uri) {
-		try {
-			WebSocketContainer container = ContainerProvider.getWebSocketContainer();
-			Session session = container.connectToServer(WebSocketClient.class, URI.create(uri));
-			if(session!=null && session.isOpen()) {
-				return true;
-			}
-		}
-		catch(Exception e) {
-			Cons.println("*** Unable to connect to remote peer: " + e);
-		}
-		
-		return false;
-	}
-	
-	
-	public EntityData loadEntity(String file) {
-		EntityData data = loadData(file, EntityData.class);
-		data.dataFile = file;
-		return data;
-	}
-	
-	public EntityGroupData loadGroupData(String file) {
-		return loadData(file, EntityGroupData.class);
-	}
-	
-	public <T> T loadData(String file, Class<T> type) {
-		try {
-			String data = JsonValue.readHjson(Gdx.files.internal(file).reader(1024)).toString();
-			return gson.fromJson(data, type);
-		}
-		catch(IOException e) {
-			Cons.println("*** Unable to load '" + file + "' : " + e);
-		}
-		
-		return null;
-	}
-	
-	/**
-	 * @return the app
-	 */
-	public FranksGame getApp() {
-		return app;
-	}
-	
-	/**
-	 * @return the camera
-	 */
-	public Camera getCamera() {
-		return camera;
-	}
-	
-	public boolean isPeerConnected() {
-		return this.connection != null && this.connection.isConnected();
-	}
-	
-	/**
-	 * @return the isSinglePlayer
-	 */
-	public boolean isSinglePlayer() {
-		return isSinglePlayer;
-	}
-	
-	/**
-	 * @return the connection
-	 */
-	public PeerConnection getConnection() {
-		return connection;
-	}
-	
-	/**
-	 * @return the localPlayer
-	 */
-	public Player getLocalPlayer() {
-		return localPlayer;
-	}
-	
-	/**
-	 * @return the greenPlayer
-	 */
-	public Player getGreenPlayer() {
-		return greenPlayer;
-	}
-	
-	/**
-	 * @return the redPlayer
-	 */
-	public Player getRedPlayer() {
-		return redPlayer;
-	}
-	
-	/**
-	 * @param player
-	 * @return the opposite player of the supplied one
-	 */
-	public Player getOtherPlayer(Player player) {
-		if(player==greenPlayer) {
-			return redPlayer;
-		}
-		return greenPlayer;
-	}
-	
-	/**
-	 * @param team
-	 * @return the opposite team of the supplied one
-	 */
-	public Team getOtherTeam(Team team) {
-		if(team == greenTeam) {
-			return redTeam;
-		}
-		return greenTeam;
-	}
-	
-	/**
-	 * @return the cursor
-	 */
-	public Cursor getCursor() {
-		return cursor;
-	}
-	
-	/**
-	 * @return the textureCache
-	 */
-	public TextureCache getTextureCache() {
-		return textureCache;
-	}
-	
-	
-	/**
-	 * Handles a remote message
-	 * 
-	 * @param msg
-	 */
-	public void handleNetMessage(NetMessage msg) {
-		switch(msg.type) {
-			case FullState:
-				this.entities.clear();
-				
-				NetGameFullState state = msg.asNetGameFullState();
-				this.randomizer = new Randomizer(state.seed, state.generation);
-				this.greenPlayer.syncFrom(state.greenPlayer);
-				for(NetEntity ent : state.greenPlayer.entities) {
-					greenPlayer.addEntity(buildEntity(greenTeam, ent));
-				}
-				
-				this.redPlayer.syncFrom(state.redPlayer);
-				for(NetEntity ent : state.redPlayer.entities) {
-					redPlayer.addEntity(buildEntity(redTeam, ent));
-				}
-				
-				Player activePlayer = greenPlayer;
-				if(state.currentPlayersTurn==TeamName.Red) {
-					activePlayer = redPlayer;
-				}
-				
-				this.currentTurn = new Turn(this, activePlayer, state.turnNumber);
-				this.localPlayer = redPlayer;
-				
-				break;
-			case PartialState:
-				break;
-			case Turn: {
-				this.currentTurn.handleNetTurnMessage(msg.asNetTurn());
-				break;
-			}
-		}
-	}
-	
-	
-	/**
-	 * Builds the {@link Entity} from the {@link EntityInstanceData}
-	 * 
-	 * @param team
-	 * @param ref
-	 * @return the {@link Entity}
-	 */
-	public Entity buildEntity(Team team, EntityInstanceData ref) {
-		EntityData data = loadEntity("assets/entities/" + ref.dataFile);
-		Entity dataEnt = entities.buildEntity(team, data);
-		dataEnt.moveToRegion(ref.x, ref.y);
-		dataEnt.setCurrentDirection(ref.direction);
-		dataEnt.setDesiredDirection(ref.direction);
-				
-		return dataEnt;
-	}
-	
-	public Entity buildEntity(Team team, NetEntity net) {
-		EntityData data = loadEntity(net.dataFile);
-		Entity dataEnt = entities.buildEntity(net.id, team, data);
-		dataEnt.syncFrom(net);
-		return dataEnt;
-	}
-		
-	public Entity getEntityOnTile(MapTile tile) {
-		return entities.getEntityOnTile(tile);
-	}
-	
-	/**
-	 * @return the currentTurn
-	 */
-	public Turn getCurrentTurn() {
-		return currentTurn;
-	}
-	
-	public void endCurrentTurn() {
-		if(this.currentTurn.isPlayersTurn(this.localPlayer)) {
-			if(entities.commandsCompleted()) {
-				this.currentTurn.markTurnCompleted();
-			}
-		}
-	}
-	
-	public void endCurrentTurnAI() {
-		if(this.isSinglePlayer) {
-			if(!this.currentTurn.isPlayersTurn(this.localPlayer)) {
-				if(entities.commandsCompleted()) {
-					this.currentTurn.markTurnCompleted();
-				}
-			}
-		}
-	}
-	
-	
-	/**
-	 * @return true if there is a selected entity
-	 */
-	public boolean hasSelectedEntity() {
-		return this.selectedEntity != null;
-	}
-	
-	public boolean hasHoveredOverEntity() {
-		return getEntityOverMouse() != null;
-	}
-	
-	/**
-	 * @return the selectedEntity
-	 */
-	public Entity getSelectedEntity() {
-		return selectedEntity;
-	}
-		
-	public boolean selectEntity() {
-		if(this.selectedEntity != null) {
-			this.selectedEntity.isSelected(false);
-			this.selectedEntity = null;
-		}
-		
-		Entity newSelectedEntity = getEntityOverMouse();
-		if(newSelectedEntity != null) {
-			newSelectedEntity.isSelected(true);
-			this.selectedEntity = newSelectedEntity;
-			return true;
-		}
-		return false;
-	}
-		
-	public boolean hoveringOverEntity() {
-		hoveredOverEntity = getEntityOverMouse();		
-		return hoveredOverEntity!=null;
-	}
-	
-	public Entity getEntityOverMouse() {				
-		Vector2f screenPos = getCursorPos();
-		return getEntityOverPos(screenPos);
-	}
-	
-	public Entity getEntityOverPos(Vector2f screenPos) {						
-		MapTile tile = world.getMapTileByScreenPos(screenPos);
-		if(tile!=null) {
-			return entities.getEntityByBounds(tile.getBounds());
-		}
-		
-		return null;
-	}
-	
-	public MapTile getTileOverMouse() {
-		Vector2f screenPos = getCursorPos();
-		return getTileOverPos(screenPos);
-	}
-	
-	public MapTile getTileOverPos(Vector2f screenPos) {		
-		MapTile tile = world.getMapTileByScreenPos(screenPos);
-		return tile;
-	}
-	
-	public MapTile getTile(Vector2f tilePos) {
-		MapTile tile = world.getMapTile(tilePos);
-		return tile;
-	}
-	
-	/**
-	 * @return the entities
-	 */
-	public EntityList getEntities() {
-		return entities;
-	}
-	
-	public Entity getEntityById(int id) {
-		return entities.getEntity(id);
-	}
-	
-	/**
-	 * @return the randomizer
-	 */
-	public Randomizer getRandomizer() {
-		return randomizer;
-	}
-	
-	/**
-	 * Get the position of the cursor in screen coordinates
-	 * @return the current screen coordinates of the mouse cursor
-	 */
-	public Vector2f getCursorPos() {
-		this.cursorPos.set(cursor.getCursorPos());
-		return this.cursorPos;
-	}
-	
-	/**
-	 * Get the cursor position relative to tile position
-	 * @return the cursor position relative to tile position
-	 */
-	public Vector2f getCursorTilePos() {
-		return world.getMapTilePosByScreenPos(getCursorPos());
-	}
-	
-	
-	private void dispatchCommand(Entity entity, CommandType type) {				
-		entity.queueAction(new CommandRequest(this, type, entity));		
-	}
-	
-	public void queueCommand() {
-		if(!currentTurn.isPlayersTurn(localPlayer)) {
-			return;
-		}
-		
-		if(this.selectedEntity==null) {
-			return;
-		}
-		
-		if(!localPlayer.owns(selectedEntity)) {
-			return;
-		}
-		
-		Entity target = getEntityOverMouse();
-		if(target!=null && this.selectedEntity!=target) {
-			switch(target.getType()) {				
-				case HUMAN:					
-					dispatchCommand(selectedEntity, CommandType.Attack);
-					break;
-				default: 
-					Cons.println("Unsupported type: " + target.getType());
-			}
-		}
-		else {
-			dispatchCommand(selectedEntity, CommandType.Move);
-		}
-		
-	}
-	
-	
-	/**
-	 * Adds the completed command's {@link CommandRequest} to this turns
-	 * history buffer
-	 * 
-	 * @param request
-	 */
-	public void addCommandRequestToHistory(CommandRequest request) {
-		if(!isSinglePlayer()) {
-			this.currentTurn.addCommandRequest(request);
-		}
-	}
-	
-	/**
-	 * @return the world
-	 */
-	public World getWorld() {
-		return world;
-	}
-	
-	public IsometricMap getMap() {
-		return world.getMap();
-	}
-
-	
-	@Override
-	public void update(TimeStep timeStep) {				
-		Vector2f mousePos = cursor.getCursorPos();
-		if(!terminal.isActive()) {
-			this.cameraController.applyPlayerMouseInput(mousePos.x, mousePos.y);
-			this.cameraController.update(timeStep);
-		}
-		this.world.update(timeStep);
-		
-		this.entities.update(timeStep);
-		this.ai.update(timeStep);
-		
-		this.camera.update(timeStep);
-		this.hud.update(timeStep);
-		
-		if(isPeerConnected()) {
-			this.connection.update(timeStep);
-		}
-				
-		this.currentTurn = this.currentTurn.checkTurnState();
-		
-//		if(this.isSinglePlayer) {
-//			this.localPlayer = this.currentTurn.getActivePlayer();
-//		}
-		
-	}
-
-	@Override
-	public void render(Canvas canvas, Camera camera, float alpha) {
-		this.world.render(canvas, camera, alpha);
-		
-		this.hud.renderUnderEntities(canvas, camera, alpha);
-		this.entities.render(canvas, camera, alpha);
-		this.world.renderOverEntities(canvas, camera, alpha);
-		
-		this.hud.render(canvas, camera, alpha);
-	}
-	
-	
-	public NetGameFullState getNetGameFullState() {
-		NetGameFullState net = new NetGameFullState();
-		net.greenPlayer = greenPlayer.getNetPlayer();
-		net.redPlayer = redPlayer.getNetPlayer();
-		net.turnNumber = currentTurn.getNumber();
-		
-		net.seed = this.randomizer.getStartingSeed();
-		net.generation = this.randomizer.getIteration();
-		
-		net.currentPlayersTurn = currentTurn.getActivePlayer()==greenPlayer 
-				? TeamName.Green : TeamName.Red;
-		
-		return net;
-	}
-	
-	public NetGamePartialState getNetGamePartialState() {
-		NetGamePartialState net = new NetGamePartialState();
-		net.greenEntities = greenPlayer.getNetPlayer().entities;
-		net.redEntities = redPlayer.getNetPlayer().entities;
-		net.turnNumber = currentTurn.getNumber();
-		return net;
-	}
-	
-	public void syncFrom(NetGameFullState net) {
-		this.greenPlayer.syncFrom(net.greenPlayer);
-		
-		List<Entity> greens = new ArrayList<>();
-		for(NetEntity ent : net.greenPlayer.entities) {
-			greens.add(buildEntity(greenTeam, ent));
-		}
-		
-		
-		this.redPlayer.syncFrom(net.redPlayer);
-		
-		List<Entity> reds = new ArrayList<>();
-		for(NetEntity ent : net.redPlayer.entities) {
-			reds.add(buildEntity(redTeam, ent));
-		}				
-	}
-	
-	public void synFrom(NetGamePartialState net) {
-		syncFrom(greenTeam, net.greenEntities);
-		syncFrom(redTeam, net.redEntities);		
-	}
-	
-	
-	private void syncFrom(Team team, List<NetEntity> netEntities) {
-		for(int i = 0; i < netEntities.size();i++) {
-			NetEntity netEnt = netEntities.get(i);
-			Entity ent = entities.getEntity(netEnt.id);
-			if(ent==null) {
-				buildEntity(greenTeam, netEnt);
-			}
-			else {
-				ent.syncFrom(netEnt);
-			}
-		}
-	}
+    
+    @Override
+    public void update(TimeStep timeStep) {                
+        Vector2f mousePos = cursor.getCursorPos();
+        if(!terminal.isActive()) {
+            GameController controller = (GameController)this.app.getActiveInputs();
+            inputKeys = controller.pollInputs(timeStep, app.getKeyMap(), cursor, inputKeys);
+//            if(inputKeys!=0) {
+//                System.out.println(inputKeys);
+//            }
+            
+            this.cameraController.applyPlayerInput(mousePos.x, mousePos.y, inputKeys);
+            this.cameraController.update(timeStep);
+            inputKeys = 0;
+        }
+        
+        this.gameState.update(timeStep);        
+        this.otherPlayer.update(timeStep);        
+        this.world.update(timeStep);
+        
+        this.entities.update(timeStep);
+        this.camera.update(timeStep);
+                
+        this.currentTurn = this.currentTurn.checkTurnState();        
+    }            
+    
+    
+    
 }
