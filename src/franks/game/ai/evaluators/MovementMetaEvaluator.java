@@ -8,11 +8,10 @@ import java.util.List;
 
 import franks.game.Game;
 import franks.game.Randomizer;
-import franks.game.actions.Action.ActionType;
+import franks.game.actions.ActionType;
 import franks.game.actions.Command;
 import franks.game.ai.MetaEvaluator;
 import franks.game.entity.Entity;
-import franks.game.entity.meta.LeaderEntity;
 import franks.map.IsometricMap;
 import franks.map.MapTile;
 import franks.math.Rectangle;
@@ -31,12 +30,12 @@ public class MovementMetaEvaluator implements MetaEvaluator {
     private List<MapTile> tiles = new ArrayList<>();
         
     @Override
-    public double calculateScore(LeaderEntity entity, Game game) {
+    public double calculateScore(Entity entity, Game game) {
         double bestScore = 0;
         this.selectedEntity = entity;
         this.destination = null;
                 
-        List<LeaderEntity> enemies = game.getOtherTeam(entity.getTeam()).getLeaders();
+        List<Entity> enemies = game.getOtherTeam(entity.getTeam()).getLeaders();
         
         List<MapTile> walkableTiles = getWalkableTiles(entity, game);        
         for(MapTile tile : walkableTiles) {
@@ -86,7 +85,7 @@ public class MovementMetaEvaluator implements MetaEvaluator {
         return walkableTiles;
     }
     
-    private double scoreTile(MapTile tile, Game game, List<LeaderEntity> enemies) {
+    private double scoreTile(MapTile tile, Game game, List<Entity> enemies) {
         Randomizer rand = game.getRandomizer();
         IsometricMap map = game.getMap();
         

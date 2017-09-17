@@ -4,7 +4,7 @@
 package franks.game.net;
 
 import franks.game.Game;
-import franks.game.actions.Action.ActionType;
+import franks.game.actions.ActionType;
 import franks.game.actions.Command;
 import franks.game.entity.Entity;
 import franks.game.entity.EntityList;

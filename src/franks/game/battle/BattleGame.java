@@ -10,11 +10,10 @@ import franks.game.Hud;
 import franks.game.Player;
 import franks.game.Turn;
 import franks.game.World;
-import franks.game.actions.Action.ActionType;
+import franks.game.actions.ActionType;
 import franks.game.actions.Command;
 import franks.game.entity.Entity;
 import franks.game.entity.EntityList;
-import franks.game.entity.meta.LeaderEntity;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
 import franks.map.IsometricMap;
@@ -38,11 +37,11 @@ public class BattleGame extends Game {
     
     private Hud hud;            
     
-    private LeaderEntity attacker;
-    private LeaderEntity defender;
+    private Entity attacker;
+    private Entity defender;
     
     private BattleState battleState;
-    private LeaderEntity victor;
+    private Entity victor;
     
     
     /**
@@ -91,8 +90,8 @@ public class BattleGame extends Game {
     
     private void prepareEntities() {    
         this.entities.clear();
-        this.entities.addAll(this.attacker.getEntities());
-        this.entities.addAll(this.defender.getEntities());
+        this.entities.addAll(this.attacker.getHeldEntities());
+        this.entities.addAll(this.defender.getHeldEntities());
         
         boolean topPosition = getRandomizer().nextBoolean();
         this.attacker.enterBattle(world, topPosition);
@@ -128,14 +127,14 @@ public class BattleGame extends Game {
     }
     
 
-    public LeaderEntity getOtherLeader(Player player) {
+    public Entity getOtherLeader(Player player) {
         if(this.attacker.getPlayer() == player) {
             return this.defender;
         }
         return this.attacker;
     }
     
-    public LeaderEntity getLeader(Player player) {
+    public Entity getLeader(Player player) {
         if(this.attacker.getPlayer() == player) {
             return this.attacker;
         }
@@ -158,10 +157,10 @@ public class BattleGame extends Game {
     }
     
     private void retreatPenalty(Player retreater) {
-        LeaderEntity victors = getOtherLeader(retreater);
-        LeaderEntity losers = getLeader(retreater);
-        for(Entity ent : victors.getEntities()) {
-            for(Entity loser : losers.getEntities()) {
+        Entity victors = getOtherLeader(retreater);
+        Entity losers = getLeader(retreater);
+        for(Entity ent : victors.getHeldEntities()) {
+            for(Entity loser : losers.getHeldEntities()) {
                 if(ent.inAttackRange(loser)) {
                     ent.queueAction(new Command(this, ActionType.Attack, ent, loser));
                 }
@@ -174,13 +173,13 @@ public class BattleGame extends Game {
     
     private void checkVictoryConditions() {
         if(this.battleState == BattleState.InProgress) {
-            EntityList attackerArmy = this.attacker.getEntities();
+            EntityList attackerArmy = this.attacker.getHeldEntities();
             if(attackerArmy.size() <= 0) {
                 this.battleState = BattleState.Decided;
                 this.victor = this.defender;
             }
             
-            EntityList defendingArmy = this.defender.getEntities();
+            EntityList defendingArmy = this.defender.getHeldEntities();
             if(defendingArmy.size() <= 0) {
                 this.battleState = BattleState.Decided;
                 this.victor = this.attacker;
@@ -190,8 +189,8 @@ public class BattleGame extends Game {
         
         
         if(this.battleState == BattleState.Decided) {
-            boolean isCompleted = this.attacker.getEntities().commandsCompleted() &&
-                                  this.defender.getEntities().commandsCompleted();
+            boolean isCompleted = this.attacker.getHeldEntities().commandsCompleted() &&
+                                  this.defender.getHeldEntities().commandsCompleted();
             
             if(isCompleted) {
                 this.battleState = BattleState.Completed;
@@ -205,7 +204,7 @@ public class BattleGame extends Game {
     /**
      * @return the victor
      */
-    public LeaderEntity getVictor() {
+    public Entity getVictor() {
         return victor;
     }
     
@@ -219,14 +218,14 @@ public class BattleGame extends Game {
     /**
      * @return the attacker
      */
-    public LeaderEntity getAttacker() {
+    public Entity getAttacker() {
         return attacker;
     }
     
     /**
      * @return the defender
      */
-    public LeaderEntity getDefender() {
+    public Entity getDefender() {
         return defender;
     }
     

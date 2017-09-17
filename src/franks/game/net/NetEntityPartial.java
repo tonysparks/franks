@@ -4,8 +4,8 @@
 package franks.game.net;
 
 import franks.game.entity.Direction;
-import franks.game.entity.Entity.State;
-import franks.game.entity.Entity.Type;
+import franks.game.entity.EntityType;
+import franks.game.entity.EntityState;
 import franks.math.Vector2f;
 
 /**
@@ -15,11 +15,11 @@ import franks.math.Vector2f;
 public class NetEntityPartial {
 
     public int id;
-    public Type type;
+    public EntityType entityType;
     public String name;
     public Vector2f pos;
     public int health;
-    public State currentState;
+    public EntityState currentState;
     public Direction currentDirection;
     public int actionPointsAmount;
 }

@@ -25,7 +25,7 @@ public interface MapTile {
     }
     
     /**
-     * The type of surface the world {@link ImageTile} has.
+     * The entityType of surface the world {@link ImageTile} has.
      * 
      * @author Tony
      *

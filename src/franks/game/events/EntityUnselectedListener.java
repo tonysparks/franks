@@ -3,18 +3,19 @@
  */
 package franks.game.events;
 
+import franks.game.entity.Entity;
 import leola.frontend.listener.EventListener;
 import leola.frontend.listener.EventMethod;
 
 /**
- * A Turn has completed
+ * An {@link Entity} was unselected
  * 
  * @author Tony
  *
  */
 @FunctionalInterface
-public interface BattleFinishedListener extends EventListener {
+public interface EntityUnselectedListener extends EventListener {
 
     @EventMethod
-    public void onTurnCompleted(TurnCompletedEvent event);
+    public void onUnselected(EntityUnselectedEvent event);
 }

@@ -5,7 +5,7 @@ package franks.game.ai.evaluators;
 
 import franks.game.Game;
 import franks.game.Randomizer;
-import franks.game.actions.Action.ActionType;
+import franks.game.actions.ActionType;
 import franks.game.actions.Command;
 import franks.game.ai.BattleEvaluator;
 import franks.game.battle.BattleGame;
@@ -39,7 +39,7 @@ public class AttackBattleEvaluator implements BattleEvaluator {
         
         int availablePoints = entity.getMeter().remaining();
         
-        EntityList others = game.getOtherLeader(entity.getPlayer()).getEntities();
+        EntityList others = game.getOtherLeader(entity.getPlayer()).getHeldEntities();
         for(Entity enemy : others) {            
             double score = 0;
             

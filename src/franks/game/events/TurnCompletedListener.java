@@ -12,6 +12,7 @@ import leola.frontend.listener.EventMethod;
  * @author Tony
  *
  */
+@FunctionalInterface
 public interface TurnCompletedListener extends EventListener {
 
     @EventMethod

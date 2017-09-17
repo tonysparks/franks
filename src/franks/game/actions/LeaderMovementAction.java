@@ -6,8 +6,8 @@ package franks.game.actions;
 import franks.game.Game;
 import franks.game.entity.Direction;
 import franks.game.entity.Entity;
-import franks.game.entity.Entity.State;
 import franks.game.entity.EntityData.MoveActionData;
+import franks.game.entity.EntityState;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
 import franks.math.Vector2f;
@@ -37,13 +37,13 @@ public class LeaderMovementAction extends MovementAction {
             
             @Override
             public ExecutedAction start() {
-                entity.setCurrentState(State.WALKING);
+                entity.setCurrentState(EntityState.WALKING);
                 return this;
             }
             
             @Override
             public ExecutedAction end() {
-                entity.setCurrentState(State.IDLE);                
+                entity.setCurrentState(EntityState.IDLE);                
                 return super.end();
             }
              

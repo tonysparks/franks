@@ -7,11 +7,10 @@ import java.util.List;
 
 import franks.game.Game;
 import franks.game.Randomizer;
-import franks.game.actions.Action.ActionType;
+import franks.game.actions.ActionType;
 import franks.game.actions.Command;
 import franks.game.ai.MetaEvaluator;
 import franks.game.entity.Entity;
-import franks.game.entity.meta.LeaderEntity;
 import franks.math.Vector2f;
 
 /**
@@ -22,11 +21,11 @@ import franks.math.Vector2f;
  */
 public class AttackMetaEvaluator implements MetaEvaluator {
 
-    private LeaderEntity selectedEntity;
-    private LeaderEntity targetEntity;
+    private Entity selectedEntity;
+    private Entity targetEntity;
 
     @Override
-    public double calculateScore(LeaderEntity entity, Game game) {        
+    public double calculateScore(Entity entity, Game game) {        
         Randomizer rand = game.getRandomizer();
         
         double bestScore = 0;
@@ -37,8 +36,8 @@ public class AttackMetaEvaluator implements MetaEvaluator {
         int availablePoints = entity.getMeter().remaining();
         int aiSquadScore = calculateSquadScore(entity);
         
-        List<LeaderEntity> enemies = game.getOtherTeam(entity.getTeam()).getLeaders();
-        for(LeaderEntity enemyLeader : enemies) {                        
+        List<Entity> enemies = game.getOtherTeam(entity.getTeam()).getLeaders();
+        for(Entity enemyLeader : enemies) {                        
             double score = 0;
             
             if(enemyLeader.isAlive()) {
@@ -77,9 +76,9 @@ public class AttackMetaEvaluator implements MetaEvaluator {
         return bestScore;
     }
     
-    private int calculateSquadScore(LeaderEntity entity) {        
+    private int calculateSquadScore(Entity entity) {        
         int totalScore = 0;
-        for(Entity ent : entity.getEntities()) {
+        for(Entity ent : entity.getHeldEntities()) {
             int healthScore = (int) (((double)ent.getHealth() / (double)ent.getMaxHealth()) * 100);
             int entityScore = ent.attackRange() + ent.attackBaseCost() + ent.startingActionPoints() + ent.defenseBaseScore();
             

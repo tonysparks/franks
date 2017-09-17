@@ -1019,7 +1019,7 @@ public class Base64
      * @param srcOffset the index where conversion begins
      * @param destination the array to hold the conversion
      * @param destOffset the index where output will be put
-     * @param options alphabet type is pulled from this (standard, url-safe, ordered)
+     * @param options alphabet entityType is pulled from this (standard, url-safe, ordered)
      * @return the number of decoded bytes converted
      * @throws NullPointerException if source or destination arrays are null
      * @throws IllegalArgumentException if srcOffset or destOffset are invalid
@@ -1139,7 +1139,7 @@ public class Base64
      * @param source The Base64 encoded data
      * @param off    The offset of where to begin decoding
      * @param len    The length of characters to decode
-     * @param options Can specify options such as alphabet type to use
+     * @param options Can specify options such as alphabet entityType to use
      * @return decoded data
      * @throws java.io.IOException If bogus characters exist in source data
      * @since 1.3

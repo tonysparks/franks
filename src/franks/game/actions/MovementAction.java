@@ -11,8 +11,8 @@ import franks.game.PreconditionResponse;
 import franks.game.TerrainData.TerrainTileData;
 import franks.game.entity.Direction;
 import franks.game.entity.Entity;
-import franks.game.entity.Entity.State;
 import franks.game.entity.EntityData.MoveActionData;
+import franks.game.entity.EntityState;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
 import franks.graph.GraphNode;
@@ -110,14 +110,14 @@ public class MovementAction extends Action {
             
             @Override
             public ExecutedAction start() {
-                entity.setCurrentState(State.WALKING);
+                entity.setCurrentState(EntityState.WALKING);
                 Sounds.playGlobalSound(Sounds.ruffle);
                 return this;
             }
             
             @Override
             public ExecutedAction end() {
-                entity.setCurrentState(State.IDLE);
+                entity.setCurrentState(EntityState.IDLE);
                 entity.setToDesiredDirection();
                 return super.end();
             }

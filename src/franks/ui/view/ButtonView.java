@@ -25,6 +25,7 @@ import franks.gfx.Canvas;
 import franks.gfx.Colors;
 import franks.gfx.Renderable;
 import franks.math.Rectangle;
+import franks.math.Vector2f;
 import franks.ui.Button;
 import franks.ui.Widget;
 import franks.util.TimeStep;
@@ -65,8 +66,19 @@ public class ButtonView implements Renderable {
             if ( this.button.gradiantEnabled() ) {
                 renderGradiantBackground(this.button, renderer, camera, alpha);
             }
-            
             this.labelView.render(renderer, camera, alpha);
+            
+            Vector2f position = button.getScreenPosition();
+            Rectangle bounds = button.getBounds();
+            if(button.hasBorder()) {
+                if(button.isHovering()) {
+                    renderer.drawRect((int)position.x, (int)position.y, bounds.width, bounds.height, button.getHoverBorderColor());
+                }
+                else {
+                    renderer.drawRect((int)position.x, (int)position.y, bounds.width, bounds.height, button.getBorderColor());
+                }
+            }
+            
         }
     }
 

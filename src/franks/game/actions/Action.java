@@ -13,17 +13,6 @@ import franks.game.entity.Entity;
  */
 public abstract class Action {
 
-    public static enum ActionType {
-        Move,
-        Attack,
-        Die,
-        
-        Create, // create a unit
-        Build,  // build an entity
-        
-        ;        
-    }
-    
     private Entity entity;
     private ActionType type;
     private int actionCost;
@@ -48,7 +37,7 @@ public abstract class Action {
     
     
     /**
-     * @return the type
+     * @return the entityType
      */
     public ActionType getType() {
         return type;
@@ -67,6 +56,15 @@ public abstract class Action {
      */
     public Entity getEntity() {
         return entity;
+    }
+    
+    /**
+     * The display name of this {@link Action}
+     * 
+     * @return The display name of this {@link Action}
+     */
+    public String getDisplayName() {
+        return this.type.name();
     }
     
     protected PreconditionResponse newResponse(Game game) {

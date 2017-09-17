@@ -14,7 +14,6 @@ import franks.game.ai.evaluators.UberBattleEvaluator;
 import franks.game.battle.BattleGame;
 import franks.game.entity.Entity;
 import franks.game.entity.EntityList;
-import franks.game.entity.meta.LeaderEntity;
 import franks.util.TimeStep;
 import franks.util.Updatable;
 
@@ -26,7 +25,7 @@ public class BattleAISystem implements Updatable {
 
     private GameState gameState;    
     private Player aiPlayer;
-    private LeaderEntity aiEntityLeader;
+    private Entity aiEntityLeader;
     
     private CommandDispatcherQueue requestQueue;
     
@@ -70,7 +69,7 @@ public class BattleAISystem implements Updatable {
             else {
                 if(this.requestQueue.isCompleted()) {
                     
-                     if(this.numberOfThoughtCycles > this.aiEntityLeader.getEntities().size()*2) {                    
+                     if(this.numberOfThoughtCycles > this.aiEntityLeader.getHeldEntities().size()*2) {                    
                          game.endCurrentTurnAI();
                          this.numberOfThoughtCycles = 0;
                      }
@@ -88,7 +87,7 @@ public class BattleAISystem implements Updatable {
     private void strategize() {
         BattleGame game = (BattleGame)this.gameState.getActiveGame();
         
-        EntityList team = aiEntityLeader.getEntities();
+        EntityList team = aiEntityLeader.getHeldEntities();
         
         double bestScore = 0;
         BattleEvaluator bestEval = null;

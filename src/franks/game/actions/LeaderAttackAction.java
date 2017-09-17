@@ -6,8 +6,8 @@ package franks.game.actions;
 import franks.game.Game;
 import franks.game.battle.Battle;
 import franks.game.battle.BattleGame;
+import franks.game.entity.Entity;
 import franks.game.entity.EntityData.AttackActionData;
-import franks.game.entity.meta.LeaderEntity;
 import franks.game.events.BattleEvent;
 import franks.game.meta.MetaGame;
 import franks.gfx.Camera;
@@ -20,13 +20,13 @@ import franks.util.TimeStep;
  *
  */
 public class LeaderAttackAction extends AttackAction {    
-    private LeaderEntity leaderAttacker;
+    private Entity leaderAttacker;
     
     /**
      * @param name
      * @param movementCost
      */
-    public LeaderAttackAction(Game game, LeaderEntity attacker, AttackActionData data) {
+    public LeaderAttackAction(Game game, Entity attacker, AttackActionData data) {
         super(game, attacker, data);
         
         this.leaderAttacker = attacker;
@@ -35,7 +35,7 @@ public class LeaderAttackAction extends AttackAction {
 
     @Override
     protected ExecutedAction doActionImpl(Game game, Command command) {
-        LeaderEntity enemy = (LeaderEntity)command.targetEntity.get();
+        Entity enemy = command.targetEntity.get();
         return new ExecutedAction(command) {
                     
             @Override

@@ -55,6 +55,8 @@ public class Button extends Widget {
     private float normalTextSize;
     
     private boolean border;
+    private int borderColor;
+    private int hoverBorderColor;
     
     /**
      * Button event to reuse for
@@ -76,6 +78,8 @@ public class Button extends Widget {
         this.label.setTextSize(28);
         
         this.border = true;
+        this.hoverBorderColor = 0xffffffff;
+        this.borderColor = 0xff000000;
         
         this.buttonEvent = new ButtonEvent(this, this);
         addInputListener(new Inputs() {
@@ -162,6 +166,34 @@ public class Button extends Widget {
      */
     public boolean hasBorder() {
         return this.border;
+    }
+    
+    /**
+     * @return the borderColor
+     */
+    public int getBorderColor() {
+        return borderColor;
+    }
+    
+    /**
+     * @return the hoverBorderColor
+     */
+    public int getHoverBorderColor() {
+        return hoverBorderColor;
+    }
+    
+    /**
+     * @param borderColor the borderColor to set
+     */
+    public void setBorderColor(int borderColor) {
+        this.borderColor = borderColor;
+    }
+    
+    /**
+     * @param hoverBorderColor the hoverBorderColor to set
+     */
+    public void setHoverBorderColor(int hoverBorderColor) {
+        this.hoverBorderColor = hoverBorderColor;
     }
     
     /*

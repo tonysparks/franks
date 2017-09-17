@@ -12,6 +12,6 @@ import java.util.List;
 public class NetPlayer {
 
     public String name;
-    public List<NetLeaderEntity> entities;
+    public List<NetEntity> entities;
     
 }

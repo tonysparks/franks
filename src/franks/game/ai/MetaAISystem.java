@@ -15,7 +15,6 @@ import franks.game.actions.CommandDispatcherQueue.CommandDispatcher;
 import franks.game.ai.evaluators.UberMetaEvaluator;
 import franks.game.entity.Entity;
 import franks.game.entity.EntityList;
-import franks.game.entity.meta.LeaderEntity;
 import franks.util.TimeStep;
 import franks.util.Updatable;
 
@@ -78,7 +77,7 @@ public class MetaAISystem implements Updatable {
     private void strategize() {
         Game game = gameState.getActiveGame();
         
-        List<LeaderEntity> team = aiPlayer.getTeam().getLeaders();
+        List<Entity> team = aiPlayer.getTeam().getLeaders();
         if(team.isEmpty()) {
             game.endCurrentTurnAI();
             return;
@@ -88,7 +87,7 @@ public class MetaAISystem implements Updatable {
         double bestScore = 0;
         MetaEvaluator bestEval = null;
         
-        for(LeaderEntity ent : team) {
+        for(Entity ent : team) {
             double score = 0;
             if(this.evaluators[ent.getId()] == null) {
                 this.evaluators[ent.getId()] = new UberMetaEvaluator();

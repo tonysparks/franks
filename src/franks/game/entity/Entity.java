@@ -12,16 +12,23 @@ import franks.game.ActionMeter;
 import franks.game.Army;
 import franks.game.Game;
 import franks.game.Player;
+import franks.game.Randomizer;
+import franks.game.Resources;
 import franks.game.World;
 import franks.game.actions.Action;
-import franks.game.actions.Action.ActionType;
+import franks.game.actions.ActionType;
 import franks.game.actions.AttackAction;
 import franks.game.actions.BattleAttackAction;
 import franks.game.actions.BuildAction;
 import franks.game.actions.Command;
 import franks.game.actions.CommandQueue;
+import franks.game.actions.CreateUnitAction;
 import franks.game.actions.DieAction;
+import franks.game.actions.LeaderAttackAction;
+import franks.game.actions.LeaderMovementAction;
 import franks.game.actions.MovementAction;
+import franks.game.entity.EntityData.BuildData;
+import franks.game.entity.EntityData.ResourceData;
 import franks.game.net.NetEntity;
 import franks.game.net.NetEntityPartial;
 import franks.gfx.Camera;
@@ -40,51 +47,11 @@ import franks.util.TimeStep;
  *
  */
 public class Entity implements Renderable {
-    private static float MaxNeighborDistance = (float)Math.sqrt(World.TileWidth*World.TileWidth + World.TileHeight*World.TileHeight);
-    
-    /**
-     * Type of entity this is
-     * 
-     * @author Tony
-     *
-     */
-    public static enum Type {
-        GENERAL,
-        SCOUT,
-        WORKER,
-        FRANK,
-        TREE,
-        STONE,
-        BERRY_BUSH,
-        
-        BUILDING,
-        ;
-        
-        public boolean isAttackable() {
-            return this == GENERAL ||
-                   this == SCOUT ||
-                   this == FRANK;
-        }
-    }
-    
-        
-    /**
-     * The gameState the Entity can be in
-     * 
-     * @author Tony
-     *
-     */
-    public static enum State {
-        IDLE,
-        WALKING,
-        ATTACKING,
-        DEAD,
-        
-        BUILDING,
-    }
+    private static float MaxNeighborDistance = (float)Math.sqrt(World.TileWidth*World.TileWidth + 
+                                                                World.TileHeight*World.TileHeight);
     
     private final int id;
-    private Type type;
+    private EntityType entityType;
     private String name;
     protected Vector2f pos;
     protected Vector2f renderPos;
@@ -104,7 +71,7 @@ public class Entity implements Renderable {
         
     private boolean isDeleted;
         
-    private State currentState;
+    private EntityState currentState;
     private Direction currentDirection;
     private Direction desiredDirection;
      
@@ -117,6 +84,10 @@ public class Entity implements Renderable {
     private Army army;
     
     private EntityData data;
+    
+    protected Resources resources;
+    protected EntityList heldEntities;
+    
                 
     public Entity(int id, Game game, Army army, EntityData data) {
         this.id = id;
@@ -125,11 +96,23 @@ public class Entity implements Renderable {
         this.data = data;
         
         this.name = data.name;
-        this.type = data.type;    
+        this.entityType = data.entityType;    
                 
         EntityAttribute actionPoints = data.getActionPoints();
         this.meter = new ActionMeter(actionPoints.getMaxValue());
         this.commandQueue = new CommandQueue(game);
+        
+        ResourceData startingResources = data.startingResources;
+        if(startingResources != null) {
+            this.resources = new Resources(startingResources.gold, 
+                                           startingResources.food, 
+                                           startingResources.material);
+        }
+        else {
+            this.resources = new Resources(0,0,0);
+        }
+        
+        this.heldEntities = new EntityList(game.getEntitityIds());
         
         this.pos = new Vector2f();
         this.centerPos = new Vector2f();
@@ -155,7 +138,7 @@ public class Entity implements Renderable {
         this.availableActions = new HashMap<>();
         this.isDeleted = false;
         
-        this.currentState = State.IDLE;
+        this.currentState = EntityState.IDLE;
         this.currentDirection = Direction.SOUTH;
         this.desiredDirection = Direction.SOUTH;
         
@@ -163,12 +146,22 @@ public class Entity implements Renderable {
         this.model = new EntityModel(game, this, data.graphics);
         
         
-        if(data.attackAction!=null) {            
-            addAvailableAction(new BattleAttackAction(game, this, data.attackAction));
+        if(data.attackAction!=null) {       
+            if(getType()==EntityType.GENERAL) {
+                addAvailableAction(new LeaderAttackAction(game, this, data.attackAction));        
+            }
+            else {
+                addAvailableAction(new BattleAttackAction(game, this, data.attackAction));
+            }
         }
         
         if(data.moveAction != null) {
-            addAvailableAction(new MovementAction(game, this, data.moveAction));
+            if(getType()==EntityType.GENERAL) {
+                addAvailableAction(new LeaderMovementAction(game, this, data.moveAction));        
+            }
+            else {
+                addAvailableAction(new MovementAction(game, this, data.moveAction));
+            }
         }
         
         if(data.dieAction != null) {
@@ -176,8 +169,30 @@ public class Entity implements Renderable {
         }
         
         if(data.buildAction != null) {
-            addAvailableAction(new BuildAction(data.buildAction, this));
+            for(BuildData createData : data.buildAction.availableBuildings) {
+                addAvailableAction(new BuildAction(createData, this));
+            }
         }
+        
+        if(data.createUnitAction != null) {
+            for(BuildData createData : data.createUnitAction.availableUnits) {
+                addAvailableAction(new CreateUnitAction(createData, this));
+            }
+        }
+        
+    }
+    
+    /**
+     * Returns the file name of the supplied entity entityType
+     * 
+     * @param entityType
+     * @return the file name for loading the asset
+     */
+    public String getEntityDataFileName(String entityType) {
+        if(entityType.toLowerCase().endsWith(".json")) {
+            return getTeam().getName().toLowerCase() + "_" + entityType.toLowerCase();    
+        }
+        return getTeam().getName().toLowerCase() + "_" + entityType.toLowerCase() + ".json";
     }
     
     /**
@@ -194,6 +209,7 @@ public class Entity implements Renderable {
     public String getName() {
         return name;
     }
+    
     
     /**
      * @return true if there are no pending commands or any commands
@@ -218,6 +234,105 @@ public class Entity implements Renderable {
         return data;
     }
     
+    public void addHeldEntity(Entity entity) {
+        heldEntities.addEntity(entity);
+    }
+    
+    public void removeHeldDeadEntities() {
+        heldEntities.removeDead();
+    }
+    
+    /**
+     * @return the entities
+     */
+    public EntityList getHeldEntities() {
+        return heldEntities;
+    }
+    
+    
+    public void enterBattle(World world, boolean topPosition) {
+        IsometricMap map = world.getMap();
+        int maxX = map.getTileWorldWidth();
+        int maxY = map.getTileWorldHeight();
+        
+        int x = 0;
+        int y = 0;
+        
+        int xInc = 1;
+        
+        if(!topPosition) {
+            x = maxX - 1;
+            y = 0;
+            xInc = -1;
+        }
+        
+        for(Entity ent : this.heldEntities) {
+            if(y >= maxY) {
+                x += xInc;
+                y = 0;
+            }
+            
+            ent.moveToRegion(x, y);
+            ent.setDesiredDirection(topPosition ? Direction.SOUTH_EAST : Direction.NORTH_WEST);
+            ent.setToDesiredDirection();
+            
+            y++;
+        }
+        
+        shufflePossePositions(game.getRandomizer());
+    }
+    
+    public void leaveBattle(boolean isVictor) {        
+        if(getHeldEntities().size()<=0) {
+            kill();
+        }
+        else {
+            calculateBattleXP(isVictor);
+            getHeldEntities().forEach(ent -> ent.calculateBattleXP(isVictor));
+            
+            // don't allow this leader to do anything after a battle
+            getMeter().decrementBy(getMeter().remaining());
+        }
+    }
+
+    private void shufflePossePositions(Randomizer rand) {
+        int minX = 0;
+        int maxX = 0;
+        int minY = 0;
+        int maxY = 0;
+        
+        for(Entity ent : this.heldEntities) {
+            Rectangle bounds = ent.getTileBounds();
+            if(bounds.x < minX) {
+                minX = bounds.x;
+            }
+            if(bounds.x > maxX) {
+                maxX = bounds.x;
+            }
+            if(bounds.y < minY) {
+                minY = bounds.y;
+            }
+            if(bounds.y > maxY) {
+                maxY = bounds.y;
+            }
+        }
+        
+        int size = this.heldEntities.size();
+        for(int i = 0; i < size; i++) {
+            int left = rand.nextInt(size);
+            int right = rand.nextInt(size);
+            if(left!=right) {
+                Entity leftEnt = this.heldEntities.get(left);
+                Entity rightEnt = this.heldEntities.get(right);
+                Vector2f t = leftEnt.getPos().createClone();
+                leftEnt.moveTo(rightEnt.getPos());
+                rightEnt.moveTo(t);
+            }
+        }
+    }
+
+    
+    
     public int defenseBaseScore() {
         return data.defense != null ? data.defense.defensePercentage : 0;
     }
@@ -232,10 +347,10 @@ public class Entity implements Renderable {
     }
     
     /**
-     * Calculates the movement cost for this Unit to move to the desired screen position
+     * Calculates the movement actionPoints for this Unit to move to the desired screen position
      * 
      * @param tilePos
-     * @return the movement cost of moving, or -1 if invalid
+     * @return the movement actionPoints of moving, or -1 if invalid
      */
     public int calculateMovementCost(Vector2f tilePos) {
         Action cmd = this.availableActions.get(ActionType.Move);
@@ -243,15 +358,16 @@ public class Entity implements Renderable {
             MovementAction moveCmd = (MovementAction)cmd;
             return moveCmd.calculateCost(tilePos);
         }
+        
         return -1;
     }
     
     
     /**
-     * Calculates the total cost of attacking the supplied enemy
+     * Calculates the total actionPoints of attacking the supplied enemy
      * 
      * @param enemy
-     * @return the total cost of attacking the supplied entity, or -1 if invalid
+     * @return the total actionPoints of attacking the supplied entity, or -1 if invalid
      */
     public int calculateAttackCost(Entity enemy) {
         AttackAction attackCmd = getAttackAction();
@@ -287,11 +403,17 @@ public class Entity implements Renderable {
     
     public AttackAction getAttackAction() {
         Action cmd = this.availableActions.get(ActionType.Attack);
+    
         if(cmd instanceof AttackAction) {
             AttackAction attackCmd = (AttackAction) cmd;
             return attackCmd;
         }
+        
         return null;
+    }
+    
+    public boolean isAttackable() {
+        return this.entityType.isAttackable();
     }
     
     public boolean canAttack() {
@@ -304,7 +426,7 @@ public class Entity implements Renderable {
         
     public int attackBaseCost() {
         if(data.attackAction!=null) {
-            return data.attackAction.cost;
+            return data.attackAction.actionPoints;
         }
         
         return Integer.MAX_VALUE;
@@ -319,7 +441,7 @@ public class Entity implements Renderable {
     
     public int movementBaseCost() {
         if(data.moveAction!=null) {
-            return data.moveAction.cost;
+            return data.moveAction.actionPoints;
         }
         return Integer.MAX_VALUE;
     }
@@ -353,6 +475,13 @@ public class Entity implements Renderable {
         return this.data.getActionPoints().getMaxValue();
     }
     
+    /**
+     * @return the resources
+     */
+    public Resources getResources() {
+        return resources;
+    }
+    
     
     /**
      * @return the currentDirection
@@ -364,7 +493,7 @@ public class Entity implements Renderable {
     /**
      * @return the currentState
      */
-    public State getCurrentState() {
+    public EntityState getCurrentState() {
         return currentState;
     }
     
@@ -400,7 +529,7 @@ public class Entity implements Renderable {
     /**
      * @param currentState the currentState to set
      */
-    public void setCurrentState(State currentState) {
+    public void setCurrentState(EntityState currentState) {
         this.currentState = currentState;
         this.model.resetAnimation();
     }
@@ -459,7 +588,7 @@ public class Entity implements Renderable {
      * @return the isAlive
      */
     public boolean isAlive() {
-        return !this.currentState.equals(State.DEAD);
+        return !this.currentState.equals(EntityState.DEAD);
     }
     
     
@@ -639,7 +768,7 @@ public class Entity implements Renderable {
     }
     
     public boolean isDead() {
-        return getCurrentState().equals(State.DEAD);
+        return getCurrentState().equals(EntityState.DEAD);
     }
     
     /**
@@ -661,10 +790,10 @@ public class Entity implements Renderable {
     }
     
     /**
-     * @return the type
+     * @return the entityType
      */
-    public Type getType() {
-        return type;
+    public EntityType getType() {
+        return entityType;
     }
     
     /**
@@ -814,7 +943,7 @@ public class Entity implements Renderable {
     
     protected NetEntity getNetEntity(NetEntity net) {
         net.id = id;
-        net.type = type;
+        net.entityType = entityType;
         net.name = name;
         net.pos = pos.createClone();
         net.currentDirection = currentDirection;
@@ -829,8 +958,15 @@ public class Entity implements Renderable {
         return getNetEntity(new NetEntity());
     }
     
+    /**
+     * @return the model
+     */
+    public EntityModel getModel() {
+        return model;
+    }
+    
     public void syncFrom(NetEntityPartial net) {
-        type=net.type;
+        entityType=net.entityType;
         name=net.name;
         pos.set(net.pos);
         setCurrentDirection(net.currentDirection);

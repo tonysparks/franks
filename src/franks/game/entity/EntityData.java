@@ -7,97 +7,28 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
-
-import franks.game.entity.Entity.State;
+import franks.game.actions.ActionType;
+import franks.game.entity.GraphicData.FrameData;
+import franks.game.entity.GraphicData.SectionData;
+import franks.game.entity.GraphicData.StateData;
 
 /**
+ * Defines {@link Entity} properties
+ * 
  * @author Tony
  *
  */
 public class EntityData {
 
-    public static class FrameData {
-        public String filePath;
-        public int x;
-        public int y;
-        
-        public int width;
-        public int height;
-        public int frameTime;
-        
-        public boolean flipX;
-        public boolean flipY;
-        
-        public int getWidth(TextureRegion tex) {
-            if(width <= 0) {
-                return tex.getRegionWidth();
-            }
-            return width;
-        }
-        
-        public int getHeight(TextureRegion tex) {
-            if(height <= 0) {
-                return tex.getRegionHeight();
-            }
-            return height;
-        }
-    }
-    
-    public static class SectionData {
-        public String filePath;
-        public int x;
-        public int y;
-        
-        public int width;
-        public int height;
-        
-        public int numberOfFrames;
-        public int frameTime;
-        
-        public boolean flipX;
-        public boolean flipY;
-        
-        public float offsetX;
-        public float offsetY;
-        
-        public boolean loop=true;
-        
-        public Direction[] directions;
-        
-        public int getWidth(TextureRegion tex) {
-            if(width <= 0) {
-                return tex.getRegionWidth();
-            }
-            return width;
-        }
-        
-        public int getHeight(TextureRegion tex) {
-            if(height <= 0) {
-                return tex.getRegionHeight();
-            }
-            return height;
-        }
-    }
-    
-    public static class StateData {
-        public Entity.State state;
-        public Map<Direction, List<FrameData>> animation;
-    }
-    
-    public static class GraphicData {
-        public Map<Entity.State, StateData> states;
-        public Map<Entity.State, SectionData> sectionStates;
-    }
-    
+
     public static class AttackActionData {
-        public int cost;
+        public int actionPoints;
         public int hitPercentage;
         public int attackRange;
     }
     
     public static class MoveActionData {
-        public int cost;
+        public int actionPoints;
         public int movementSpeed;        
     }
     
@@ -109,24 +40,33 @@ public class EntityData {
         public int groupBonusPercentage;
     }
     
-    public static class BuildActionData {
-        public int cost;
-        public int numberOfTurns;
-    }
-    
-    public static class CreateEntityEntryData {
+    public static class BuildData {
+        
+        public ActionType actionType;
         public String entityType;
-        public int cost; // action points
-        public int goldCost;
-        public int materialCost;
-        public int foodCost;
+        public String displayName;
+        
+        public int actionPoints;
+        public int numberOfTurns;
+        
+        public ResourceData resources;        
     }
     
-    public static class CreateEntityActionData {
-        public List<CreateEntityEntryData> availableEntities;        
+    public static class BuildActionData {
+        public List<BuildData> availableBuildings;
     }
     
-    public Entity.Type type;
+    public static class CreateUnitActionData {
+        public List<BuildData> availableUnits;
+    }
+    
+    public static class ResourceData {
+        public int gold;
+        public int food;
+        public int material;
+    }
+    
+    public EntityType entityType;
     public String name;    
     public Map<String, EntityAttribute> attributes;
     public int width, height;
@@ -137,30 +77,32 @@ public class EntityData {
     public MoveActionData moveAction;
     public DieActionData dieAction;
     public BuildActionData buildAction;
-    public CreateEntityActionData createEntityAction;
-    
+    public CreateUnitActionData createUnitAction;
+        
     public String dataFile;
     
     public GraphicData graphics;
     
+    public ResourceData startingResources;
     
     public EntityData() {
     }
     
     public EntityData clone() {
         EntityData clone = new EntityData();
-        clone.type = this.type;
+        clone.entityType = this.entityType;
         clone.name = this.name;
         clone.attributes = attributes();
         clone.width = this.width;
         clone.height = this.height;
         clone.defense = this.defense;
+        clone.startingResources = this.startingResources;
         
         clone.attackAction = this.attackAction;
         clone.moveAction = this.moveAction;
         clone.dieAction = this.dieAction;
         clone.buildAction = this.buildAction;
-        clone.createEntityAction = this.createEntityAction;
+        clone.createUnitAction = this.createUnitAction;
         
         clone.dataFile = this.dataFile;
         clone.graphics = this.graphics;
@@ -225,16 +167,16 @@ public class EntityData {
         return att;
     }
     
-    public long getAnimationTime(State state) {
+    public long getAnimationTime(EntityState entityState) {
         if( graphics.sectionStates != null) {
-            SectionData states = graphics.sectionStates.get(state);
+            SectionData states = graphics.sectionStates.get(entityState);
             if(states!=null) {
                 return states.frameTime * states.numberOfFrames;
             }
         }
         
-        if(graphics.states != null) {
-            StateData stateData = graphics.states.get(state);
+        if(graphics.entityStates != null) {
+            StateData stateData = graphics.entityStates.get(entityState);
             if (stateData!=null) {
                 List<FrameData> frames = stateData.animation.get(Direction.SOUTH);
                 if(frames != null) {

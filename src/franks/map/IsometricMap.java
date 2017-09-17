@@ -370,7 +370,7 @@ public class IsometricMap extends OrthoMap {
         float hw = width;
         float hh = height/2f;
         
-        canvas.fillCircle(5, x, y+hh, color);
+        //canvas.fillCircle(5, x, y+hh, color);
         
         posA.set(x,y+hh);        
         posB.set(x+hw, y);        

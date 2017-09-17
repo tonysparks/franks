@@ -3,18 +3,14 @@
  */
 package franks.screens;
 
-import com.badlogic.gdx.Input.Keys;
-
 import franks.FranksGame;
 import franks.game.Game;
 import franks.game.GameState;
-import franks.game.actions.Action.ActionType;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
 import franks.gfx.Cursor;
 import franks.gfx.Inputs;
 import franks.gfx.KeyboardGameController;
-import franks.gfx.Renderable;
 import franks.gfx.Screen;
 import franks.math.Rectangle;
 import franks.sfx.Sounds;
@@ -41,7 +37,7 @@ public class InGameScreen implements Screen {
     private Cursor cursor;
     private Button endTurnBtn;
         
-    private PanelView<Renderable> panel;
+    private PanelView panel;
     
     private KeyboardGameController inputs = new KeyboardGameController() {
         
@@ -63,12 +59,9 @@ public class InGameScreen implements Screen {
                     Sounds.playGlobalSound(Sounds.uiSelect);
                 }            
             }
-                        
-            // TODO: Pick action type thru menu
-            boolean doAction = isKeyDown(Keys.CONTROL_LEFT);
             
-            if(button == 1) {
-                game.dispatchCommand(doAction ? ActionType.Build : ActionType.Move);
+            if(button == 1) {                
+                game.dispatchCommand(game.getActionContext());
             }
             
             return super.touchUp(x, y, pointer, button);
@@ -96,7 +89,7 @@ public class InGameScreen implements Screen {
     }
 
     private void createUI() {
-        this.panel = new PanelView<>();
+        this.panel = new PanelView();
         this.endTurnBtn = new Button();
         this.endTurnBtn.setBounds(new Rectangle(840, 700, 120, 40));
         //this.endTurnBtn.getBounds().centerAround(600, 500);

@@ -46,7 +46,7 @@ public class PeerConnection implements Updatable {
                     this.protocol.onTurnEnd(msg.asNetTurn());
                     break;
                 default:
-                    Cons.println("Unknown message type: " + msg.type);
+                    Cons.println("Unknown message entityType: " + msg.type);
                     break;
             
             }

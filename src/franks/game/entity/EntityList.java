@@ -9,11 +9,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import franks.game.Ids;
-import franks.game.Game;
 import franks.game.Army;
-import franks.game.entity.meta.WorkerEntity;
-import franks.game.entity.meta.LeaderEntity;
+import franks.game.Game;
+import franks.game.Ids;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
 import franks.gfx.Renderable;
@@ -72,18 +70,7 @@ public class EntityList implements Renderable, Iterable<Entity> {
     }
     
     public Entity buildEntity(int id, Game game, Army army, EntityData data) {
-        Entity ent = null;
-        switch(data.type) {
-            case GENERAL:
-            case SCOUT:
-                ent = new LeaderEntity(id, game, army, data);
-                break;
-            case WORKER:
-                ent = new WorkerEntity(id, game, army, data);
-                break;
-            default:
-                ent = new Entity(id, game, army, data);
-        }        
+        Entity  ent = new Entity(id, game, army, data);
         addEntity(ent);
         return ent;
     }

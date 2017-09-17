@@ -27,12 +27,12 @@ public abstract class AttackAction extends Action {
     /**
      * @param game
      * @param attacker
-     * @param cost
+     * @param actionPoints
      * @param attackDistance
      * @param hitPercentage
      */
     public AttackAction(Game game, Entity attacker, AttackActionData data) {
-        super(ActionType.Attack,  data.cost, attacker);
+        super(ActionType.Attack,  data.actionPoints, attacker);
         
         this.game = game;
         this.attackDistance = data.attackRange;

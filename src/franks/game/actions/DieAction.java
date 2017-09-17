@@ -6,7 +6,7 @@ package franks.game.actions;
 import franks.game.Game;
 import franks.game.PreconditionResponse;
 import franks.game.entity.Entity;
-import franks.game.entity.Entity.State;
+import franks.game.entity.EntityState;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
 import franks.sfx.Sounds;
@@ -43,12 +43,12 @@ public class DieAction extends Action {
     protected ExecutedAction doActionImpl(Game game, Command command) {            
         return new ExecutedAction(command) {
             
-            Timer timer = new Timer(false, getEntity().getData().getAnimationTime(State.DEAD));
+            Timer timer = new Timer(false, getEntity().getData().getAnimationTime(EntityState.DEAD));
             
             @Override
             public ExecutedAction start() {
                 timer.start();
-                getEntity().setCurrentState(State.DEAD);
+                getEntity().setCurrentState(EntityState.DEAD);
                 Sounds.playGlobalSound(Sounds.die);
                 return this;
             }

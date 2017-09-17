@@ -108,11 +108,11 @@ public class PathPlanner<E> {
     }
     
     /**
-     * Calculate the estimated cost of the path from the start to destination
+     * Calculate the estimated actionPoints of the path from the start to destination
      * 
      * @param start
      * @param destination
-     * @return the estimated cost of moving from start to destination
+     * @return the estimated actionPoints of moving from start to destination
      */
     public int pathCost(Vector2f start, Vector2f destination) {
         List<GraphNode<MapTile, E>> newPath = this.graph.findPath(this.searchPath, start, destination);

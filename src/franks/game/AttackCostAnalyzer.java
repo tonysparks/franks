@@ -52,7 +52,7 @@ public class AttackCostAnalyzer implements Updatable {
     }
     
     /**
-     * @return the cost
+     * @return the actionPoints
      */
     public int getCost() {
         return cost;

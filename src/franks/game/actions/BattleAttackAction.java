@@ -5,8 +5,8 @@ package franks.game.actions;
 
 import franks.game.Game;
 import franks.game.entity.Entity;
-import franks.game.entity.Entity.State;
 import franks.game.entity.EntityData.AttackActionData;
+import franks.game.entity.EntityState;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
 import franks.map.MapTile;
@@ -35,7 +35,7 @@ public class BattleAttackAction extends AttackAction {
         Entity enemy = command.targetEntity.get();
         return new ExecutedAction(command) {
             
-            Timer timer = new Timer(false, attacker.getData().getAnimationTime(State.ATTACKING));
+            Timer timer = new Timer(false, attacker.getData().getAnimationTime(EntityState.ATTACKING));
                         
             @Override
             public ExecutedAction start() {
@@ -45,7 +45,7 @@ public class BattleAttackAction extends AttackAction {
                     attacker.lookAt(tile);
                 }
                 
-                attacker.setCurrentState(State.ATTACKING);
+                attacker.setCurrentState(EntityState.ATTACKING);
                 return this;
             }
             
@@ -60,7 +60,7 @@ public class BattleAttackAction extends AttackAction {
                 }
                 
                 
-                attacker.setCurrentState(State.IDLE);
+                attacker.setCurrentState(EntityState.IDLE);
                 return super.end();
             }
             

@@ -34,18 +34,18 @@ import franks.util.TimeStep;
  * @author Tony
  *
  */
-public class PanelView<T extends Renderable> implements Renderable {
+public class PanelView implements Renderable {
 
     /**
      * Elements
      */
-    private List<T> uiElements;
+    private List<Renderable> uiElements;
     
     /**
      * 
      */
     public PanelView() {
-        this.uiElements = new ArrayList<T>();
+        this.uiElements = new ArrayList<Renderable>();
     }
     
     public void clear() {
@@ -56,14 +56,14 @@ public class PanelView<T extends Renderable> implements Renderable {
      * Adds an element
      * @param element
      */
-    public void addElement(T element) {
+    public void addElement(Renderable element) {
         this.uiElements.add(element);
     }
     
     /**
      * @return the uiElements
      */
-    public List<T> getUiElements() {
+    public List<Renderable> getUiElements() {
         return uiElements;
     }
     

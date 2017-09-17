@@ -14,12 +14,9 @@ import franks.game.World;
 import franks.game.battle.BattleGame;
 import franks.game.entity.Entity;
 import franks.game.entity.EntityGroupData.EntityInstanceData;
-import franks.game.entity.meta.LeaderEntity;
-import franks.game.entity.meta.WorkerEntity;
 import franks.game.meta.StageData.ArmyData;
 import franks.game.meta.StageData.GeneralInstanceData;
 import franks.game.net.NetEntity;
-import franks.game.net.NetLeaderEntity;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
 import franks.map.MapTile.Visibility;
@@ -31,10 +28,12 @@ import franks.util.TimeStep;
  */
 public class MetaGame extends Game {
 
+    
     private MetaHud hud;
     
     private BattleGame battleGame;    
     private FogOfWar fow;
+   
     
     /**
      * 
@@ -59,33 +58,33 @@ public class MetaGame extends Game {
     private void buildArmy(ArmyData armyData, Army army) {
         if(armyData.generals != null) {
             for(GeneralInstanceData general : armyData.generals) {
-                LeaderEntity leader = (LeaderEntity)buildEntity(army, general);
+                Entity leader = buildEntity(army, general);
                 army.addLeader(leader);
                 
                 if(general.holding != null) {
-                    List<Entity> entities = general.holding.buildEntities(leader.getEntities(), army, this.battleGame);
+                    List<Entity> entities = general.holding.buildEntities(leader.getHeldEntities(), army, this.battleGame);
                     for(Entity ent : entities) {
-                        leader.addEntity(ent);
+                        leader.addHeldEntity(ent);
                     }
                 }
             }
         }
         
         // TODO: should this be generic Entity's or should we
-        // explicitly call out each type?
+        // explicitly call out each entityType?
         if(armyData.workers != null) {
             for(EntityInstanceData entity : armyData.workers) {
-                WorkerEntity worker = (WorkerEntity)buildEntity(army, entity);
+                Entity worker = buildEntity(army, entity);
                 army.addWorker(worker);
             }
         }
     }
     
-    public LeaderEntity buildLeaderEntity(Army army, NetLeaderEntity net) {
-        LeaderEntity leader = (LeaderEntity)buildEntity(army, net);        
+    public Entity buildLeaderEntity(Army army, NetEntity net) {
+        Entity leader = buildEntity(army, net);        
         for(NetEntity netEntity : net.entities) {
-            Entity ent = this.battleGame.buildEntity(leader.getEntities(), army, netEntity);
-            leader.addEntity(ent);
+            Entity ent = this.battleGame.buildEntity(leader.getHeldEntities(), army, netEntity);
+            leader.addHeldEntity(ent);
         }
         return leader;
     }

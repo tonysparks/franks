@@ -4,15 +4,15 @@
 package franks.game;
 
 import franks.FranksGame;
-import franks.game.actions.Action.ActionType;
+import franks.game.actions.ActionType;
 import franks.game.actions.Command;
 import franks.game.entity.Entity;
-import franks.game.entity.Entity.Type;
 import franks.game.entity.EntityData;
 import franks.game.entity.EntityGroupData;
 import franks.game.entity.EntityGroupData.EntityInstanceData;
 import franks.game.entity.EntityList;
-import franks.game.entity.meta.LeaderEntity;
+import franks.game.events.EntitySelectedEvent;
+import franks.game.events.EntityUnselectedEvent;
 import franks.game.net.NetEntity;
 import franks.game.net.NetLeaderEntity;
 import franks.game.net.PeerConnection;
@@ -28,6 +28,7 @@ import franks.math.Vector2f;
 import franks.util.Cons;
 import franks.util.TimeStep;
 import leola.frontend.listener.Event;
+import leola.frontend.listener.EventListener;
 
 /**
  * @author Tony
@@ -63,6 +64,11 @@ public abstract class Game implements Renderable, ResourceLoader {
     
     protected Ids entitityIds;
     
+
+    /**
+     * The current action 
+     */
+    private ActionType actionContext;
     
     /**
      * 
@@ -91,8 +97,32 @@ public abstract class Game implements Renderable, ResourceLoader {
         this.world = createWorld(state);        
         this.cameraController = new CameraController(this.entities, world.getMap(), camera);
         
+        setDefaultActionContext();
     }
     
+    /**
+     * @param actionContext the actionContext to set
+     */
+    public void setActionContext(ActionType actionContext) {
+        this.actionContext = actionContext;        
+    }
+    
+    
+    /**
+     * Sets the action context to the default
+     */
+    public void setDefaultActionContext() {
+        setActionContext(ActionType.Move);        
+    }
+       
+    
+    /**
+     * @return the actionContext
+     */
+    public ActionType getActionContext() {
+        return actionContext;
+    }
+        
     public void setTurn(Player active, int turnNumber) {
         this.currentTurn = new Turn(this, active, turnNumber);
     }
@@ -162,6 +192,16 @@ public abstract class Game implements Renderable, ResourceLoader {
      */
     public void dispatchEvent(Event event) {
         this.gameState.getDispatcher().queueEvent(event);
+    }
+    
+    /**
+     * Registers to an event entityType
+     * 
+     * @param eventType
+     * @param listener
+     */
+    public void registerEventListener(Class<?> eventType, EventListener listener) {
+        this.gameState.getDispatcher().addEventListener(eventType, listener);
     }
     
     /**
@@ -287,11 +327,11 @@ public abstract class Game implements Renderable, ResourceLoader {
         return dataEnt;
     }
     
-    public LeaderEntity buildLeaderEntity(Army army, NetLeaderEntity net, Game battle) {
-        LeaderEntity leader = (LeaderEntity)buildEntity(army, net);        
+    public Entity buildLeaderEntity(Army army, NetLeaderEntity net, Game battle) {
+        Entity leader = (Entity)buildEntity(army, net);        
         for(NetEntity netEntity : net.entities) {
-            Entity ent = buildEntity(leader.getEntities(), army, netEntity);
-            leader.addEntity(ent);
+            Entity ent = buildEntity(leader.getHeldEntities(), army, netEntity);
+            leader.addHeldEntity(ent);
         }
         return leader;
     }
@@ -356,14 +396,20 @@ public abstract class Game implements Renderable, ResourceLoader {
     }
         
     public boolean selectEntity() {
+        setDefaultActionContext();
+        
         if(this.selectedEntity != null) {
             this.selectedEntity.isSelected(false);
+            dispatchEvent(new EntityUnselectedEvent(this, this.selectedEntity));
+            
             this.selectedEntity = null;
         }
         
         Entity newSelectedEntity = getEntityOverMouse();
         if(newSelectedEntity != null) {
             newSelectedEntity.isSelected(true);
+            dispatchEvent(new EntitySelectedEvent(this, newSelectedEntity));
+            
             this.selectedEntity = newSelectedEntity;
             return true;
         }
@@ -476,33 +522,21 @@ public abstract class Game implements Renderable, ResourceLoader {
         }
         
         Entity target = getEntityOverMouse();
-        if(target!=null && this.selectedEntity!=target) {
-            Type type = target.getType();
-            if(!type.isAttackable()) {
-                Cons.println("Unsupported type: " + target.getType());
+        if(actionType == ActionType.Attack) {
+            if(target == null || this.selectedEntity == target) {
+                Cons.println("No valid target");
                 return false;
             }
-            else {
-                dispatchCommand(new Command(this, ActionType.Attack, selectedEntity));                    
-            }    
-            
+                                    
+            if(!target.isAttackable()) {
+                Cons.println("Unsupported entityType: " + target.getType());
+                return false;
+            }
+                
+            dispatchCommand(new Command(this, ActionType.Attack, selectedEntity));                                   
         }
         else {
-            switch(actionType) {
-                case Move: 
-                    dispatchCommand(new Command(this, ActionType.Move, selectedEntity));
-                    break;
-                case Build:
-                    dispatchCommand(new Command(this, ActionType.Build, selectedEntity));
-                    break;
-                case Die:
-                    dispatchCommand(new Command(this, ActionType.Die, selectedEntity));
-                    break;
-                default: {
-                      Cons.println("Unsupported action type: " + actionType);
-                    return false;
-                }
-            }
+            dispatchCommand(new Command(this, actionType, selectedEntity));
         }
         
         return true;

@@ -158,7 +158,7 @@ public class FranksGame implements ApplicationListener {
                 console.println("\n");
                 console.println("The console is a means for executing commands.  The set of available commands ");
                 console.println("differ given the current game context (i.e., in-game, main-menu, etc.).  To ");
-                console.println("get a list of available commands type: 'cmdlist'.  The console supports TAB completion. ");
+                console.println("get a list of available commands entityType: 'cmdlist'.  The console supports TAB completion. ");
             }
         });
 

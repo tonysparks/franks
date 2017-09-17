@@ -4,6 +4,7 @@
 package franks.game;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.net.URI;
 
 import javax.websocket.ContainerProvider;
@@ -17,20 +18,26 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
 
 import franks.FranksGame;
 import franks.game.Army.ArmyName;
+import franks.game.actions.ActionType;
 import franks.game.ai.AIPlayer;
 import franks.game.battle.BattleGame;
-import franks.game.entity.meta.LeaderEntity;
+import franks.game.entity.Entity;
 import franks.game.events.BattleEvent;
 import franks.game.events.TurnCompletedEvent;
 import franks.game.meta.MetaGame;
 import franks.game.net.GameNetworkProtocol;
 import franks.game.net.NetBattle;
 import franks.game.net.NetBattleFinished;
+import franks.game.net.NetEntity;
 import franks.game.net.NetGameFullState;
-import franks.game.net.NetLeaderEntity;
 import franks.game.net.NetTurn;
 import franks.game.net.NetworkProtocol;
 import franks.game.net.PeerConnection;
@@ -136,9 +143,16 @@ public class GameState implements ResourceLoader, NetworkProtocol, Updatable {
         this.dispatcher = new EventDispatcher();
         this.random = new Randomizer();    
         this.textureCache = new TextureCache();
-        this.gson = new Gson();
         this.camera = newCamera();
-        
+        this.gson = new Gson();
+//        this.gson = new GsonBuilder().registerTypeAdapter(ActionType.class, new JsonDeserializer<ActionType>() {
+//            
+//            @Override
+//            public ActionType deserialize(JsonElement e, Type type, JsonDeserializationContext context) throws JsonParseException {
+//                return ActionType.valueOf(e.getAsString());
+//            }
+//        }).create();
+//        
         int screenWidth = camera.getViewPort().width;
         int screenHeight = camera.getViewPort().height;
         this.mapCamera = new OrthographicCamera(screenWidth, screenHeight);
@@ -371,14 +385,14 @@ public class GameState implements ResourceLoader, NetworkProtocol, Updatable {
         MetaGame game = getMetaGame();
         
         this.greenPlayer.syncFrom(state.greenPlayer);
-        for(NetLeaderEntity ent : state.greenPlayer.entities) {
-            LeaderEntity leader = game.buildLeaderEntity(this.greenPlayer.getTeam(), ent);
+        for(NetEntity ent : state.greenPlayer.entities) {
+            Entity leader = game.buildLeaderEntity(this.greenPlayer.getTeam(), ent);
             greenPlayer.addEntity(leader);
         }
         
         this.redPlayer.syncFrom(state.redPlayer);
-        for(NetLeaderEntity ent : state.redPlayer.entities) {
-            LeaderEntity leader = game.buildLeaderEntity(this.redPlayer.getTeam(), ent);
+        for(NetEntity ent : state.redPlayer.entities) {
+            Entity leader = game.buildLeaderEntity(this.redPlayer.getTeam(), ent);
             redPlayer.addEntity(leader);
         }
         

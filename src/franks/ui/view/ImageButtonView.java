@@ -145,10 +145,10 @@ public class ImageButtonView extends ButtonView {
             Rectangle bounds = button.getBounds();
             if(button.hasBorder()) {
                 if(button.isHovering()) {
-                    renderer.drawRect((int)position.x, (int)position.y, bounds.width, bounds.height, 0xffffffff);
+                    renderer.drawRect((int)position.x, (int)position.y, bounds.width, bounds.height, button.getHoverBorderColor());
                 }
                 else {
-                    renderer.drawRect((int)position.x, (int)position.y, bounds.width, bounds.height, 0xff000000);
+                    renderer.drawRect((int)position.x, (int)position.y, bounds.width, bounds.height, button.getBorderColor());
                 }
             }
             else {

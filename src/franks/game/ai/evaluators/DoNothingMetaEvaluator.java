@@ -6,7 +6,7 @@ package franks.game.ai.evaluators;
 import franks.game.Game;
 import franks.game.actions.Command;
 import franks.game.ai.MetaEvaluator;
-import franks.game.entity.meta.LeaderEntity;
+import franks.game.entity.Entity;
 
 /**
  * @author Tony
@@ -15,7 +15,7 @@ import franks.game.entity.meta.LeaderEntity;
 public class DoNothingMetaEvaluator implements MetaEvaluator {
 
     @Override
-    public double calculateScore(LeaderEntity entity, Game game) {
+    public double calculateScore(Entity entity, Game game) {
         return game.getRandomizer().getRandomRange(0.001, 0.05);
     }
 

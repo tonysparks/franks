@@ -8,7 +8,6 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
 import franks.game.Game;
-import franks.game.entity.EntityData.GraphicData;
 import franks.gfx.AnimatedImage;
 import franks.gfx.AnimationFrame;
 import franks.gfx.Camera;
@@ -29,6 +28,8 @@ public class EntityModel implements Renderable {
     private Entity entity;
     private Model[][] animations;
     private Sprite sprite;
+    
+    private TextureRegion hudDisplay;
         
     /**
      * @param game
@@ -38,7 +39,7 @@ public class EntityModel implements Renderable {
     public EntityModel(Game game, Entity entity, GraphicData graphics) {
         this.entity = entity;
         
-        this.animations = new Model[Entity.State.values().length][];
+        this.animations = new Model[EntityState.values().length][];
         this.sprite = new Sprite();
         
         
@@ -62,6 +63,13 @@ public class EntityModel implements Renderable {
                 animations[k.ordinal()][v.directions[dirIndex].ordinal()] = new Model(image, v.offsetX, v.offsetY);
             }
         });
+        
+        if(graphics.hudDisplay != null) {
+            TextureRegion tex = game.getTextureCache().getTexture(graphics.hudDisplay.filePath);
+            this.hudDisplay = TextureUtil.subImage(tex, graphics.hudDisplay.x, graphics.hudDisplay.y, 
+                    graphics.hudDisplay.width, graphics.hudDisplay.height); 
+            this.hudDisplay.flip(graphics.hudDisplay.flipX, graphics.hudDisplay.flipY);
+        }
     }
 
     
@@ -74,6 +82,13 @@ public class EntityModel implements Renderable {
      */
     public void resetAnimation() {
         getCurrentModel().animations.getAnimation().reset();
+    }
+    
+    /**
+     * @return the hudDisplay
+     */
+    public TextureRegion getHudDisplay() {
+        return hudDisplay;
     }
     
     @Override

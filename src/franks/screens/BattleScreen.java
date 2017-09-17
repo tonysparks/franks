@@ -3,11 +3,9 @@
  */
 package franks.screens;
 
-import com.badlogic.gdx.Input.Keys;
-
 import franks.FranksGame;
 import franks.game.GameState;
-import franks.game.actions.Action.ActionType;
+import franks.game.actions.ActionType;
 import franks.game.battle.BattleGame;
 import franks.game.battle.BattleGame.BattleState;
 import franks.gfx.Camera;
@@ -15,7 +13,6 @@ import franks.gfx.Canvas;
 import franks.gfx.Cursor;
 import franks.gfx.Inputs;
 import franks.gfx.KeyboardGameController;
-import franks.gfx.Renderable;
 import franks.gfx.Screen;
 import franks.math.Rectangle;
 import franks.sfx.Sounds;
@@ -44,7 +41,7 @@ public class BattleScreen implements Screen {
     private Button retreatBtn;
     private Dialog dialog;
     
-    private PanelView<Renderable> panel;
+    private PanelView panel;
     
     private KeyboardGameController inputs = new KeyboardGameController() {
         
@@ -90,7 +87,7 @@ public class BattleScreen implements Screen {
     }
 
     private void createUI() {
-        this.panel = new PanelView<>();
+        this.panel = new PanelView();
         this.endTurnBtn = new Button();
         this.endTurnBtn.setBounds(new Rectangle(840, 700, 120, 40));
         //this.endTurnBtn.getBounds().centerAround(600, 500);

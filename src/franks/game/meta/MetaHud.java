@@ -3,15 +3,27 @@
  */
 package franks.game.meta;
 
+import java.util.List;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
+import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
+import franks.FranksGame;
 import franks.game.AttackCostAnalyzer;
 import franks.game.Game;
 import franks.game.MovementCostAnalyzer;
 import franks.game.World;
+import franks.game.actions.Action;
+import franks.game.actions.ActionType;
 import franks.game.entity.Direction;
 import franks.game.entity.Entity;
+import franks.game.entity.EntityModel;
+import franks.game.events.EntitySelectedEvent;
+import franks.game.events.EntitySelectedListener;
+import franks.game.events.EntityUnselectedEvent;
+import franks.game.events.EntityUnselectedListener;
 import franks.gfx.Art;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
@@ -22,6 +34,13 @@ import franks.map.IsometricMap;
 import franks.map.MapTile;
 import franks.math.Rectangle;
 import franks.math.Vector2f;
+import franks.ui.Button;
+import franks.ui.Panel;
+import franks.ui.events.ButtonEvent;
+import franks.ui.events.OnButtonClickedListener;
+import franks.ui.view.ButtonView;
+import franks.ui.view.ImageView;
+import franks.ui.view.PanelView;
 import franks.util.TimeStep;
 
 /**
@@ -41,6 +60,10 @@ public class MetaHud implements Renderable {
     private MovementCostAnalyzer movementAnalyzer;
     private AttackCostAnalyzer attackAnalyzer;
     
+    private Panel entityPanel;
+    private Panel uiPanel;
+    private PanelView uiPanelView;
+    
     /**
      * 
      */
@@ -55,12 +78,124 @@ public class MetaHud implements Renderable {
         this.cursor = game.getCursor();
         this.world = game.getWorld();
         this.map = game.getMap();
+        
+        game.registerEventListener(EntityUnselectedEvent.class, new EntityUnselectedListener() {
+            
+            @Override
+            public void onUnselected(EntityUnselectedEvent event) {
+                destroyEntityPanel();
+            }
+        });
+        
+        game.registerEventListener(EntitySelectedEvent.class, new EntitySelectedListener() {
+            
+            @Override
+            public void onSelected(EntitySelectedEvent event) {
+                createEntityPanel(event.getSelectedEntity());
+            }
+        });
+        
+        createUI();
+    }
+    
+    private void createUI() {
+        this.uiPanel = new Panel();
+        this.uiPanel.setBounds(new Rectangle(FranksGame.DEFAULT_MINIMIZED_SCREEN_WIDTH, 300));
+        this.uiPanel.setBackgroundColor(0xffa9a9a9);
+        
+        this.uiPanelView = new PanelView();
+        //this.uiPanelView.addElement(element);
+        
     }
 
+    private void destroyEntityPanel() {
+        if(this.entityPanel != null) {
+            this.entityPanel.destroy();
+        }
+        
+        this.uiPanelView.clear();
+    }
+    
+    private void createEntityPanel(Entity entity) {
+        destroyEntityPanel();
+        
+        this.entityPanel = new Panel();
+        
+        Vector2f uiPos = new Vector2f(10, 600);
+        
+        EntityModel model = entity.getModel();
+        TextureRegion tex = model.getHudDisplay();
+        if(tex != null) {
+            Sprite sprite = new Sprite(tex);
+            sprite.setPosition(uiPos.x, uiPos.y);
+            this.uiPanelView.addElement(new ImageView(sprite));
+        }
+        
+        uiPos.x += 100;
+        
+        List<Action> actions = entity.getAvailableActions();
+        actions.sort( (a,b) -> a.getDisplayName().compareTo(b.getDisplayName()));
+        
+        for(Action action : actions) {
+            setupButton(uiPos, action);
+            uiPos.x += 120;
+        }
+        
+        
+    }
+    
+    private Button setupButton(Vector2f pos, Action action) {
+        Button btn = new Button();
+        btn.setText(action.getDisplayName());
+        btn.setBounds(new Rectangle(pos, 100, 30));
+        btn.setTextSize(12);
+        btn.setHoverTextSize(14);
+        btn.setBackgroundColor(0xffcacaca);
+        btn.setBorder(true);
+        btn.setBorderColor(0xff8a8a8a);
+        btn.setHoverBorderColor(0xffffffff);
+        btn.addOnButtonClickedListener(new OnButtonClickedListener() {
+            
+            @Override
+            public void onButtonClicked(ButtonEvent event) {
+                game.setActionContext(action.getType());  
+            }
+        });
+        
+        this.entityPanel.addWidget(btn);
+        this.uiPanelView.addElement(new ButtonView(btn));
+        
+        return btn;        
+    }
+    
+    private void setCursorIcon() {
+        ActionType actionContext = game.getActionContext();
+        switch(actionContext) {
+            case Attack:
+                cursor.setCursorImg(Art.attackCursorImg);
+                break;                            
+            case Die:
+                // TODO
+            case Move:
+            default:
+                if(actionContext.isBuildAction()) {
+                    cursor.setCursorImg(Art.buildCursorImg);
+                }
+                else {
+                    cursor.setCursorImg(Art.normalCursorImg);
+                }
+                break;        
+        }
+    }
+    
     @Override
     public void update(TimeStep timeStep) {
         this.movementAnalyzer.update(timeStep);
         this.attackAnalyzer.update(timeStep);
+        
+        this.uiPanelView.update(timeStep);
+        
+        setCursorIcon();
     }
         
     public void renderUnderEntities(Canvas canvas, Camera camera, float alpha) {    
@@ -92,6 +227,8 @@ public class MetaHud implements Renderable {
     
     @Override
     public void render(Canvas canvas, Camera camera, float alpha) {
+        renderPanel(canvas);
+        
         int textColor = 0xff00ff00;
         canvas.setFont("Consola", 12);
         
@@ -136,6 +273,8 @@ public class MetaHud implements Renderable {
             }
         }
         
+        this.uiPanelView.render(canvas, camera, alpha);
+        
         RenderFont.drawShadedString(canvas, "Current Players Turn: " + game.getCurrentTurn().getActivePlayer().getName(), 10, canvas.getHeight() - 20, textColor);
     }
     
@@ -179,7 +318,7 @@ public class MetaHud implements Renderable {
                 cursor.setCursorImg(Art.attackCursorImg);
             }
             else {
-                cursor.setCursorImg(Art.normalCursorImg);
+                //cursor.setCursorImg(Art.normalCursorImg);
             }
             
             int color = 0xffffffff;
@@ -224,6 +363,12 @@ public class MetaHud implements Renderable {
             }
         }
         
+    }
+    
+    private void renderPanel(Canvas canvas) {
+        final int height = 220;
+        canvas.fillRect(0, FranksGame.DEFAULT_MINIMIZED_SCREEN_HEIGHT-height, FranksGame.DEFAULT_MINIMIZED_SCREEN_WIDTH, height, 0xff5F6A6A);
+        canvas.drawRect(1, FranksGame.DEFAULT_MINIMIZED_SCREEN_HEIGHT-height, FranksGame.DEFAULT_MINIMIZED_SCREEN_WIDTH-1, height-1, 0xffffffff);
     }
     
 //    private void drawMovementRange(Canvas canvas, Entity selectedEntity, Vector2f cameraPos) {

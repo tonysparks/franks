@@ -5,6 +5,7 @@ package franks.game.actions;
 
 import franks.game.Game;
 import franks.game.PreconditionResponse;
+import franks.game.Resources;
 import franks.game.entity.Direction;
 import franks.game.entity.Entity;
 import franks.game.entity.EntityData.BuildData;
@@ -12,34 +13,31 @@ import franks.game.entity.EntityGroupData.EntityInstanceData;
 import franks.game.entity.EntityState;
 import franks.gfx.Camera;
 import franks.gfx.Canvas;
-import franks.map.MapTile;
-import franks.math.Vector2f;
 import franks.sfx.Sounds;
 import franks.util.TimeStep;
-import franks.util.Timer;
 
 /**
- * Builds a building
+ * Creates an {@link Entity}
  * 
  * @author Tony
  *
  */
-public class BuildAction extends Action {
+public class CreateUnitAction extends Action {
 
     private BuildData data;
         
     /**
-     * @param actionCost
+     * @param data
      * @param entity
      */
-    public BuildAction(BuildData data, Entity entity) {
+    public CreateUnitAction(BuildData data, Entity entity) {
         super(data.actionType, data.actionPoints, entity);
-            
+        
         this.data = data;
     }
     
     @Override
-    public String getDisplayName() {    
+    public String getDisplayName() {
         return this.data.displayName;
     }
 
@@ -48,10 +46,19 @@ public class BuildAction extends Action {
         PreconditionResponse response = new PreconditionResponse();
         
         if(!getEntity().canDo(getType())) {
-            response.addFailure("This entity can not build");
+            response.addFailure("This entity can not create entities");
         }
         
-        // TODO: Verify width/height of the building fits!
+        Resources resources = getEntity().getResources();                   
+        if(!resources.hasGoldAmount(data.resources.gold)) {
+            response.addFailure("Does not have enough gold");
+        }
+        if(!resources.hasFoodAmount(data.resources.food)) {
+            response.addFailure("Does not have enough food");
+        }
+        if(!resources.hasMaterialAmount(data.resources.material)) {
+            response.addFailure("Does not have enough material");
+        }
         
         checkCost(response, game);
         return response;
@@ -59,11 +66,8 @@ public class BuildAction extends Action {
 
 
     @Override
-    protected ExecutedAction doActionImpl(final Game game, Command command) {        
-        MapTile tile = game.getTile(command.cursorTilePos);
-        return new ExecutedAction(command) {
-            
-            Timer timer = new Timer(false, getEntity().getData().getAnimationTime(EntityState.BUILDING));
+    protected ExecutedAction doActionImpl(final Game game, Command command) {                
+        return new ExecutedAction(command) {            
             int startingTurn = game.getCurrentTurn().getNumber();
             boolean isCancelled = false;
             
@@ -74,47 +78,33 @@ public class BuildAction extends Action {
             
             @Override
             public ExecutedAction start() {
-                timer.start();
                 Sounds.playGlobalSound(Sounds.build);
-                
-                if(tile != null) {
-                    getEntity().lookAt(tile);
-                }
-                getEntity().setCurrentState(EntityState.BUILDING);
-                
+                getEntity().setCurrentState(EntityState.BUILDING);               
                 return this;
             }
             
             
             @Override
             public ExecutedAction end() {
-                // TODO: Create the building
-                EntityInstanceData buildingData = new EntityInstanceData();
-                buildingData.dataFile = getEntity().getEntityDataFileName("town_center");
-                buildingData.direction = Direction.SOUTH;
-                buildingData.x = tile.getXIndex();
-                buildingData.y = tile.getYIndex();
+                // Creates the new Entity
+                EntityInstanceData entityData = new EntityInstanceData();
+                entityData.dataFile = getEntity().getEntityDataFileName(data.entityType);
+                entityData.direction = Direction.SOUTH;
+                                
+                Entity newEntity = game.buildEntity(getEntity().getTeam(), entityData);
                 
-                game.buildEntity(getEntity().getTeam(), buildingData);
-                
+                getEntity().addHeldEntity(newEntity);
                 getEntity().setCurrentState(EntityState.IDLE);
+                
                 return super.end();
             }
             
             @Override
             public void update(TimeStep timeStep) {     
-                timer.update(timeStep);             
             }
             
             @Override
-            public void render(Canvas canvas, Camera camera, float alpha) {
-                Vector2f pos = camera.getRenderPosition(alpha);
-                
-                game.getWorld().getMap().renderIsoRect(canvas, 
-                                                       tile.getIsoX()-pos.x, 
-                                                       tile.getIsoY()-pos.y, 
-                                                       96, 
-                                                       96, 0xffffffff);
+            public void render(Canvas canvas, Camera camera, float alpha) {                
             }
             
             @Override
@@ -133,7 +123,6 @@ public class BuildAction extends Action {
             
             @Override
             public void cancel() {
-                timer.setEndTime(0);
                 isCancelled = true;
             }
         };

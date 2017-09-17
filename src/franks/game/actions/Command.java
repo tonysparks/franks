@@ -7,7 +7,6 @@ import java.util.Optional;
 
 import franks.game.Game;
 import franks.game.PreconditionResponse;
-import franks.game.actions.Action.ActionType;
 import franks.game.entity.Entity;
 import franks.game.net.NetCommand;
 import franks.math.Vector2f;
@@ -39,12 +38,12 @@ public class Command {
     public Vector2f cursorTilePos, cursorPos;
     
     /**
-     * The type of action the entity should take
+     * The entityType of action the entity should take
      */
     public ActionType type;
     
     /**
-     * Any other type of arguments this command may need
+     * Any other entityType of arguments this command may need
      */
     public Object argument;
     

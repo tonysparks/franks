@@ -8,7 +8,7 @@ import java.util.List;
 
 import franks.game.Game;
 import franks.game.Randomizer;
-import franks.game.actions.Action.ActionType;
+import franks.game.actions.ActionType;
 import franks.game.actions.Command;
 import franks.game.ai.BattleEvaluator;
 import franks.game.battle.BattleGame;
@@ -39,7 +39,7 @@ public class MovementBattleEvaluator implements BattleEvaluator {
         this.selectedEntity = entity;
         this.destination = null;
                 
-        EntityList enemies = game.getOtherLeader(entity.getPlayer()).getEntities();
+        EntityList enemies = game.getOtherLeader(entity.getPlayer()).getHeldEntities();
         
         List<MapTile> walkableTiles = getWalkableTiles(entity, game);        
         for(MapTile tile : walkableTiles) {

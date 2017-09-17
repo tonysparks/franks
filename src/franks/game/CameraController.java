@@ -124,7 +124,7 @@ public class CameraController implements Updatable {
      * @param timeStep
      */
     private void updateCameraForRoamingMovements(TimeStep timeStep) {
-        final int movementSpeed = 780;
+        final int movementSpeed = 480;
         if(playerVelocity.lengthSquared() > 0) {            
             Vector2f pos = cameraDest;        
             

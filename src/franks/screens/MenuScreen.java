@@ -42,7 +42,7 @@ public class MenuScreen implements Screen {
                 , optionsBtn, creditsBtn, exitBtn;    
     
     private Panel menuPanel;
-    private PanelView<Renderable> panelView;
+    private PanelView panelView;
 
     /**
      * 
@@ -52,7 +52,7 @@ public class MenuScreen implements Screen {
         this.theme = app.getTheme();
                         
         this.uiManager = app.getUiManager();
-        this.panelView = new PanelView<>();
+        this.panelView = new PanelView();
         this.menuPanel = new Panel();
                 
         Vector2f uiPos = new Vector2f(app.getScreenWidth()/2, 300);
@@ -138,6 +138,7 @@ public class MenuScreen implements Screen {
         btn.getTextLabel().setForegroundColor(theme.getForegroundColor());
         btn.setTheme(theme);
         btn.setEnableGradiant(false);
+        btn.setBorder(false);
         return btn;
     }
 

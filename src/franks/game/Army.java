@@ -9,8 +9,6 @@ import java.util.List;
 import com.badlogic.gdx.graphics.Color;
 
 import franks.game.entity.Entity;
-import franks.game.entity.meta.WorkerEntity;
-import franks.game.entity.meta.LeaderEntity;
 import franks.game.net.NetArmy;
 
 /**
@@ -27,8 +25,8 @@ public class Army {
     
     private String name;
     private Player player;
-    private List<LeaderEntity> leaders;
-    private List<WorkerEntity> workers;
+    private List<Entity> leaders;
+    private List<Entity> workers;
     
     private NetArmy net;
     private Color color;
@@ -72,19 +70,19 @@ public class Army {
         return color;
     }
 
-    public void addLeader(LeaderEntity entity) {
+    public void addLeader(Entity entity) {
         this.leaders.add(entity);
     }
     
-    public void addWorker(WorkerEntity entity) {
+    public void addWorker(Entity entity) {
         this.workers.add(entity);
     }
     
-    public void addLeaders(List<LeaderEntity> entities) {
+    public void addLeaders(List<Entity> entities) {
         this.leaders.addAll(entities);
     }
     
-    public void addWorkers(List<WorkerEntity> entities) {
+    public void addWorkers(List<Entity> entities) {
         this.workers.addAll(entities);
     }
     
@@ -108,14 +106,14 @@ public class Army {
     /**
      * @return the leaders
      */
-    public List<LeaderEntity> getLeaders() {
+    public List<Entity> getLeaders() {
         return leaders;
     }
     
     /**
      * @return the workers
      */
-    public List<WorkerEntity> getWorkers() {
+    public List<Entity> getWorkers() {
         return workers;
     }
     

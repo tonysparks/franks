@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import franks.game.entity.Entity;
-import franks.game.entity.meta.LeaderEntity;
 import franks.game.net.NetPlayer;
 
 /**
@@ -46,16 +45,16 @@ public class Player {
     /**
      * @param entities the entities to set
      */
-    public void setEntities(List<LeaderEntity> entities) {
+    public void setEntities(List<Entity> entities) {
         this.army.removeAllLeaders();
         this.army.addLeaders(entities);
     }
     
-    public void addEntities(List<LeaderEntity> entities) {
+    public void addEntities(List<Entity> entities) {
         this.army.addLeaders(entities);
     }
     
-    public void addEntity(LeaderEntity ent) {
+    public void addEntity(Entity ent) {
         this.army.addLeader(ent);
     }
         
@@ -75,8 +74,8 @@ public class Player {
 
     public NetPlayer getNetPlayer() {
         net.entities = new ArrayList<>();
-        for(LeaderEntity ent : this.army.getLeaders()) {
-            net.entities.add(ent.getNetLeaderEntity());
+        for(Entity ent : this.army.getLeaders()) {
+            net.entities.add(ent.getNetEntity());
         }
         return net;
     }

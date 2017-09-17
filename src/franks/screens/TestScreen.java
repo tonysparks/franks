@@ -42,7 +42,7 @@ public class TestScreen implements Screen {
     private Cursor cursor;
     private Button endTurnBtn;
         
-    private PanelView<Renderable> panel;
+    private PanelView panel;
     
     private IsometricTiledMapRenderer mapRenderer;
     private CameraController cameraController;
@@ -95,7 +95,7 @@ public class TestScreen implements Screen {
     }
 
     private void createUI() {
-        this.panel = new PanelView<>();
+        this.panel = new PanelView();
         this.endTurnBtn = new Button();
         this.endTurnBtn.setBounds(new Rectangle(840, 700, 120, 40));
         //this.endTurnBtn.getBounds().centerAround(600, 500);

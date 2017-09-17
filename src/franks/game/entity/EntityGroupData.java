@@ -18,7 +18,7 @@ import franks.game.Army;
 public class EntityGroupData {
 
     /**
-     * The entity instance specifies the type of entity to create and
+     * The entity instance specifies the entityType of entity to create and
      * position
      * 
      * @author Tony

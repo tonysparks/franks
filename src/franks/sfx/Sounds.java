@@ -409,7 +409,7 @@ public class Sounds {
     }
     
     /**
-     * @param type
+     * @param entityType
      * @return the corresponding sound bank for the {@link SoundType}
      */
     public static int[] soundBank(SoundType type) {
@@ -497,7 +497,7 @@ public class Sounds {
     /**
      * Play a sound at the specified location
      * 
-     * @param type
+     * @param entityType
      * @param x
      * @param y
      * @return the {@link Sound}

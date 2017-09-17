@@ -6,7 +6,7 @@ package franks.game;
 import java.util.ArrayList;
 import java.util.List;
 
-import franks.game.actions.Action.ActionType;
+import franks.game.actions.ActionType;
 import franks.game.actions.Command;
 import franks.game.entity.EntityList;
 import franks.game.events.TurnCompletedEvent;

@@ -34,7 +34,8 @@ public class Art {
      
     
     public static  TextureRegion normalCursorImg = null;
-    public static  TextureRegion attackCursorImg = null;        
+    public static  TextureRegion attackCursorImg = null;
+    public static  TextureRegion buildCursorImg = null;
 
     public static TextureRegion blackedOutTile = null;
     public static TextureRegion fadedOutTile = null;
@@ -61,6 +62,7 @@ public class Art {
         
         normalCursorImg = loadImage("./assets/gfx/cursors/default_cursor.png");
         attackCursorImg = loadImage("./assets/gfx/cursors/attack_cursor.png");
+        buildCursorImg = loadImage("./assets/gfx/cursors/build_cursor.png");
         
         TextureRegion tex = loadImage("./assets/gfx/tiles/fog_tiles.png");
         TextureRegion tiles[] = TextureUtil.splitImage(tex, 1, 2);

@@ -37,7 +37,7 @@ public class TextureUtil {
      * @return
      * @throws Exception
      */
-    public static TextureRegion loadImage(String image) throws Exception {
+    public static TextureRegion loadImage(String image) {
         Texture texture = new Texture(Gdx.files.internal(image));
         TextureRegion region = new TextureRegion(texture, 0, 0, texture.getWidth(), texture.getHeight());
         region.flip(false, true);

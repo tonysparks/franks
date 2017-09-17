@@ -59,7 +59,7 @@ public class StateMachine<T extends State> {
     }
     
     /**
-     * Changes to the new {@link State}
+     * Changes to the new {@link EntityState}
      * @param newState
      */
     public void changeState(T newState) {                

@@ -3,7 +3,7 @@
  */
 package franks.game.battle;
 
-import franks.game.entity.meta.LeaderEntity;
+import franks.game.entity.Entity;
 
 /**
  * @author Tony
@@ -11,13 +11,13 @@ import franks.game.entity.meta.LeaderEntity;
  */
 public class Battle {
 
-    private LeaderEntity attacker;
-    private LeaderEntity defender;
+    private Entity attacker;
+    private Entity defender;
     /**
      * @param attacker
      * @param defender
      */
-    public Battle(LeaderEntity attacker, LeaderEntity defender) {
+    public Battle(Entity attacker, Entity defender) {
         super();
         this.attacker = attacker;
         this.defender = defender;
@@ -26,14 +26,14 @@ public class Battle {
     /**
      * @return the attacker
      */
-    public LeaderEntity getAttacker() {
+    public Entity getAttacker() {
         return attacker;
     }
     
     /**
      * @return the defender
      */
-    public LeaderEntity getDefender() {
+    public Entity getDefender() {
         return defender;
     }
 

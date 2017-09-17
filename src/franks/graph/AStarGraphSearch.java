@@ -175,8 +175,8 @@ public class AStarGraphSearch<E, T> implements GraphSearchPath<E, T> {
         openSet.add(start);
         
         gScores.put(start, 0);                                          /* No other possibility, thus 0 to denote optimal path */
-        hScores.put(start, heuristicEstimateDistance(start, start, goal));     /* Guess the cost from start to goal nodes */
-        fScores.put(start, hScores.get(start));                         /* Store the sum of the cost 0 + X = X */
+        hScores.put(start, heuristicEstimateDistance(start, start, goal));     /* Guess the actionPoints from start to goal nodes */
+        fScores.put(start, hScores.get(start));                         /* Store the sum of the actionPoints 0 + X = X */
         
         /*
          * Until we run out of nodes of interest, lets compile our path.  If there
