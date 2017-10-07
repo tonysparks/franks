@@ -88,7 +88,6 @@ public class BuildAction extends Action {
             
             @Override
             public ExecutedAction end() {
-                // TODO: Create the building
                 EntityInstanceData buildingData = new EntityInstanceData();
                 buildingData.dataFile = getEntity().getEntityDataFileName(data.entityType);
                 buildingData.direction = Direction.SOUTH;

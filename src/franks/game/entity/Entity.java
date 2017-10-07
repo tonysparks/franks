@@ -13,6 +13,7 @@ import franks.game.Army;
 import franks.game.Game;
 import franks.game.Player;
 import franks.game.Randomizer;
+import franks.game.ResourceInfluencer;
 import franks.game.Resources;
 import franks.game.World;
 import franks.game.actions.Action;
@@ -88,6 +89,7 @@ public class Entity implements Renderable {
     protected Resources resources;
     protected EntityList heldEntities;
     protected Entity holder;
+    protected List<ResourceInfluencer> incluencers;
     
                 
     public Entity(int id, Game game, Army army, EntityData data) {
@@ -146,6 +148,7 @@ public class Entity implements Renderable {
         this.health = data.getHealth();        
         this.model = new EntityModel(game, this, data.graphics);
         
+        this.incluencers = new ArrayList<>();
         
         if(data.attackAction!=null) {       
             if(getType()==EntityType.GENERAL) {
@@ -943,8 +946,18 @@ public class Entity implements Renderable {
         return renderPos;
     }
 
+    /**
+     * Called once the players turn is finished.  This is only
+     * called once upon completion of the turn.
+     */
     public void endTurn() {
         this.meter.reset(startingActionPoints());
+        
+        if(this.resources != null) {
+            for(ResourceInfluencer influencer : this.incluencers) {
+                influencer.influence(resources);
+            }
+        }
     }
     
     

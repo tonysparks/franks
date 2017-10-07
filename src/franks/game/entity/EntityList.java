@@ -142,6 +142,11 @@ public class EntityList implements Renderable, Iterable<Entity> {
         return null;
     }
     
+    
+    /**
+     * Called once the players turn is finished.  This is only
+     * called once upon completion of the turn.
+     */
     public void endTurn() {
         for(int i = 0; i < entities.length; i++) {
             Entity ent = entities[i]; 
